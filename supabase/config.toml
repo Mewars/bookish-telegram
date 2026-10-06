@@ -1,0 +1,2 @@
+[functions.yandex-userinfo]
+verify_jwt = false
