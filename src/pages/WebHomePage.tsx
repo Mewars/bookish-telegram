@@ -9,10 +9,10 @@ import { matches } from '../utils/search';
 import cityIllustration from '../assets/city.svg';
 
 const shortcuts: { title: string; subtitle: string; icon: IconName; section: Section; color: string }[] = [
-  { title: 'Куда сходить', subtitle: 'Планы на свободный вечер', icon: 'events', section: 'events', color: 'peach' },
-  { title: 'Где поесть', subtitle: 'Кафе своего города', icon: 'places', section: 'places', color: 'green' },
-  { title: 'Найти мастера', subtitle: 'Нужные услуги поблизости', icon: 'services', section: 'services', color: 'lavender' },
-  { title: 'Избранное', subtitle: 'Сохранённые находки', icon: 'heart', section: 'favorites', color: 'yellow' },
+  { title: 'Куда сходить', subtitle: 'Планы на свободный вечер', icon: 'events', section: 'events', color: 'accent-tile' },
+  { title: 'Где поесть', subtitle: 'Кафе своего города', icon: 'places', section: 'places', color: 'accent-tile' },
+  { title: 'Найти мастера', subtitle: 'Нужные услуги поблизости', icon: 'services', section: 'services', color: 'accent-tile' },
+  { title: 'Избранное', subtitle: 'Сохранённые находки', icon: 'heart', section: 'favorites', color: 'accent-tile' },
 ];
 
 export function WebHomePage({ city, items, navigate, ...actions }: CardActions & { city: string; items: Item[]; navigate: (section: Section) => void }) {
@@ -24,7 +24,7 @@ export function WebHomePage({ city, items, navigate, ...actions }: CardActions &
   };
   return <div className="web-home">
     <section className="web-hero">
-      <div className="web-hero-content"><span className="eyebrow">{city.toLocaleUpperCase('ru-RU')} · КРАСНОЯРСКИЙ КРАЙ</span><h1>{city}<br/>рядом<span>✳</span></h1><p>Места, события и полезные услуги<br/>города в одном месте</p><div className="web-hero-actions"><button className="primary-button" onClick={() => navigate('places')}>Смотреть места <Icon name="arrow" size={18}/></button><TelegramLink className="telegram-link-outline"/></div></div>
+      <div className="web-hero-content"><span className="eyebrow">{city.toLocaleUpperCase('ru-RU')} · КРАСНОЯРСКИЙ КРАЙ</span><h1>{city}</h1><p>Места, события и полезные услуги<br/>города в одном месте</p><div className="web-hero-actions"><button className="primary-button" onClick={() => navigate('places')}>Смотреть места <Icon name="arrow" size={18}/></button><TelegramLink className="telegram-link-outline"/></div></div>
       <div className="web-hero-visual"><img src={cityIllustration} alt="Стилизованная иллюстрация города"/><span className="web-hero-sticker">всё хорошее рядом <Icon name="arrow" size={18}/></span></div>
     </section>
     <section className="web-home-search" aria-label="Поиск по городу"><div><h2>Что найдём сегодня?</h2><p>Место, событие или своего мастера</p></div><Search value={query} onChange={setQuery}/></section>

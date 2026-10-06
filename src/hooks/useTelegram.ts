@@ -28,12 +28,12 @@ export function useTelegram() {
   }, [webApp]);
   useEffect(() => {
     document.documentElement.dataset.theme = theme === 'system' ? appearance.scheme : theme;
-    const params = appearance.params;
-    const colors = { '--bg': params?.bg_color, '--text': params?.text_color, '--muted': params?.hint_color, '--surface': params?.secondary_bg_color, '--accent': params?.button_color, '--accent-text': params?.button_text_color };
-    for (const [key, value] of Object.entries(colors)) {
-      if (theme === 'system' && value && /^#[0-9a-f]{6}$/i.test(value)) document.documentElement.style.setProperty(key, value);
-      else document.documentElement.style.removeProperty(key);
+    // Telegram supplies the light/dark scheme; brand colors stay consistent with web.
+    for (const key of ['--bg', '--text', '--muted', '--surface', '--accent', '--accent-text']) {
+      document.documentElement.style.removeProperty(key);
     }
+    const resolved = theme === 'system' ? appearance.scheme : theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#0D1520' : '#F4F8FB');
     saveStorage('ryadom.theme', theme);
   }, [theme, appearance]);
   return { user: webApp?.initDataUnsafe?.user, theme, setTheme, webApp };
