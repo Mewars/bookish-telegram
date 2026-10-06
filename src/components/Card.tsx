@@ -2,8 +2,8 @@ import type { Item } from '../types';
 import { eventDate } from '../utils/date';
 import { hoursDisclaimer } from '../utils/place';
 import { Icon } from './Icon';
-export interface CardActions { favorites: string[]; toggle: (id: string) => void; open: (item: Item) => void }
-export function Card({ item, favorites, toggle, open, compact = false }: CardActions & { item: Item; compact?: boolean }) {
+export interface CardActions { favorites: string[]; favoritesBusy?: boolean; toggle: (id: string) => void; open: (item: Item) => void }
+export function Card({ item, favorites, toggle, open, favoritesBusy = false, compact = false }: CardActions & { item: Item; compact?: boolean }) {
  const saved = favorites.includes(item.id);
  const address = item.kind === 'events' ? item.address?.split(',')[0] : item.address;
  return <article data-kind={item.kind} className={`card ${compact ? 'compact' : ''} ${item.real ? 'card-real' : ''}`}>
@@ -16,6 +16,6 @@ export function Card({ item, favorites, toggle, open, compact = false }: CardAct
     {item.real && item.hours && <small className="hours-disclaimer">{hoursDisclaimer}</small>}
    </div>
   </button>
-  <button className={`favorite-button ${saved ? 'saved' : ''}`} onClick={() => toggle(item.id)} aria-pressed={saved} aria-label={`${saved ? 'Удалить из избранного' : 'В избранное'}: ${item.title}`}><Icon name="heart" size={19} filled={saved}/></button>
+  <button className={`favorite-button ${saved ? 'saved' : ''}`} disabled={favoritesBusy} onClick={() => toggle(item.id)} aria-pressed={saved} aria-label={`${saved ? 'Удалить из избранного' : 'В избранное'}: ${item.title}`}><Icon name="heart" size={19} filled={saved}/></button>
  </article>;
 }
