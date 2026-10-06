@@ -32,7 +32,7 @@ readAccountData читает только профиль с id текущего 
 
 ## Что остаётся неподключённым
 
-Страница #/login не вызывает OAuth: VK/Яндекс/Telegram/Google отключены, MAX — скоро. Нет mock login или собственной фиктивной сессии. Данные Telegram initDataUnsafe служат только отображению. getTelegramIdentityRequest подготовлен для будущего HTTPS POST с серверной проверкой подписи initData, auth_date и ограничений повтора; сейчас он не отправляется на сервер и не создаёт Supabase session.
+Страница #/login запускает реальный OAuth только для Яндекс ID (`custom:yandex`). VK/Telegram/Google отключены, MAX — скоро. Нет mock login или собственной фиктивной сессии. Данные Telegram initDataUnsafe служат только отображению. getTelegramIdentityRequest подготовлен для будущего HTTPS POST с серверной проверкой подписи initData, auth_date и ограничений повтора; сейчас он не отправляется на сервер и не создаёт Supabase session.
 
 Следующие этапы: серверная проверка Telegram, отдельное подключение OAuth, безопасное связывание identities с повторным подтверждением пользователя, UI редактирования профиля и интеграционные проверки действующего проекта Supabase. Связывание нельзя делать по отображаемому имени или неподтверждённому email. База и RLS уже настроены пользователем; приложение их не меняет.
 
@@ -58,4 +58,12 @@ supabase functions deploy yandex-userinfo --project-ref <project-ref>
 https://<project-ref>.supabase.co/functions/v1/yandex-userinfo
 ```
 
-Указать этот адрес в Custom OAuth Provider как **Userinfo URL**. Client ID / Client Secret провайдера настраиваются отдельно на серверной стороне Supabase, не в frontend или Git. Deploy в рамках этой задачи не выполнялся; OAuth-кнопка Яндекса остаётся отключённой до отдельного подключения провайдера.
+Указать этот адрес в Custom OAuth Provider как **Userinfo URL**. Client ID / Client Secret провайдера настраиваются отдельно на серверной стороне Supabase, не в frontend или Git. Deploy в рамках этой задачи не выполнялся; Custom OAuth Provider `custom:yandex` включён пользователем; web-кнопка Яндекс ID активна.
+
+## Вход через Яндекс ID
+
+Кнопка Яндекс ID вызывает `supabase.auth.signInWithOAuth({ provider: 'custom:yandex', options: { redirectTo: window.location.origin + '/' } })`. Client ID и Client Secret остаются в настройках Supabase. На время запуска кнопка показывает «Переходим в Яндекс…» и блокирует повторные клики. Ошибка до redirect отображается без технических деталей или значений токенов. Без env приложение остаётся гостевым и показывает понятное сообщение при попытке входа.
+
+SDK использует PKCE и detectSessionInUrl: callback с code обменивается на настоящую Supabase session, code удаляется из URL, а существующий AuthProvider через getSession/onAuthStateChange загружает профиль. Корневой URL сайта должен быть разрешён в Supabase Auth Redirect URLs; для другого домена нужно добавить его origin с завершающим `/`. Браузерное хранилище сохраняет Supabase session и PKCE state, но исключает provider_token/provider_refresh_token Яндекса. При недоступном localStorage используется память, и сессия не сохраняется после закрытия страницы.
+
+Пустые display_name/avatar_url существующего профиля могут один раз заполниться из metadata пользователя, проверенного через Supabase getUser. Используются name/full_name/preferred_username и picture/avatar_url, только для пользователя с провайдером custom:yandex. Уже заполненные поля не меняются; условный UPDATE также защищает от пользовательской правки во время запроса. Обновление выполняется через существующий updateCurrentProfile по текущему UUID. Отметка инициализации хранится локально по UUID; после очистки хранилища проверка может повториться, но непустые поля всё равно защищены. SQL-схема не менялась.
