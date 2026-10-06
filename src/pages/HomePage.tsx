@@ -19,7 +19,7 @@ export function HomePage({ user, navigate, items, city, ...actions }: CardAction
    <section className="hero"><div className="hero-content"><span className="hero-tag"><span/>ГОРОД ЖИВЁТ</span><h2>Ближе, чем<br/>кажется.</h2><p>Новые места, знакомые лица<br/>и планы на хороший вечер.</p><button onClick={() => navigate('events')}>Найти свои планы <Icon name="arrow" size={18}/></button></div><img src={cityIllustration} alt="Иллюстрация уютного города"/><span className="hero-sticker">всё рядом <Icon name="arrow" size={12}/></span></section>
    {section(`Сегодня в ${city === 'Енисейск' ? 'Енисейске' : city}`, 'Не откладывай хорошее на потом', 'events', ['e1', 'e2'])}
    <div className="editorial-note"><span className="note-mark"><Icon name="arrow" size={30}/></span><div><strong>Меньше скролла. Больше города.</strong><p>Открой место, мимо которого проходишь каждый день.</p></div></div>
-   {section('Места с настроением', 'Те самые, куда хочется вернуться', 'places', ['p1', 'p2', 'p5'], true)}
+   {section('Места с настроением', 'Первая подборка мест Енисейска', 'places', ['place-kytmanov-museum', 'place-monastery-park', 'place-don-leon'], true)}
    {section('Свои люди, нужное дело', 'Локальные услуги без долгих поисков', 'services', ['s1', 's2'], true)}
    {section('Планы на ближайшие дни', 'Добавь в избранное, чтобы не забыть', 'events', ['e3', 'e5'], true)}
   </>}
