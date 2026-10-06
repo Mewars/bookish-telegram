@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { AuthContext } from './context';
+import { initializeYandexProfile } from '../services/yandexProfile';
 import { supabase } from '../lib/supabase';
 import { readAccountData, updateCurrentProfile } from './adapter';
 import type { AuthState, ProfileUpdate } from '../types/auth';
@@ -22,6 +23,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ? previous : { status: 'authenticated', user, profile: null, identities: [] });
       try {
         const account = await readAccountData(supabase!, user.id);
+        if (!active || revision !== sessionRevision.current) return;
+        if (account.profile) {
+          try { account.profile = await initializeYandexProfile(supabase!, account.profile); }
+          catch { account.error = account.error ?? 'Не удалось заполнить профиль из Яндекс ID. Ваш аккаунт остаётся доступным.'; }
+        }
         if (!active || revision !== sessionRevision.current) return;
         setState({ status: 'authenticated', user, profile: account.profile, identities: account.identities });
         setError(account.error);

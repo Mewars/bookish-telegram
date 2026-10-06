@@ -10,10 +10,14 @@ export async function handleRequest(request: Request): Promise<Response> {
   if (request.method !== 'GET') return errorResponse(405, 'Method not allowed', { Allow: 'GET' });
   const authorization = request.headers.get('Authorization');
   if (!authorization || !/^Bearer[ \t]+\S+$/i.test(authorization)) return errorResponse(401, 'Bearer authorization required');
+  const token = authorization.replace(/^Bearer[ \t]+/i, '');
   let upstream: Response;
   try {
     upstream = await fetch(userinfoUrl, {
-      headers: { Authorization: authorization, Accept: 'application/json' },
+      headers: {
+        Authorization: `OAuth ${token}`,
+        Accept: 'application/json',
+      },
       redirect: 'error',
       signal: AbortSignal.timeout(15_000),
     });
