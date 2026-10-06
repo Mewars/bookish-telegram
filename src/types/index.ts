@@ -2,7 +2,7 @@ export type Section = 'home' | 'events' | 'places' | 'services' | 'profile' | 'f
 export type Kind = 'events' | 'places' | 'services';
 export type Theme = 'system' | 'light' | 'dark';
 export interface Item {
-  id: string; kind: Kind; title: string; category: string; image: string; description: string; details: string;
+  id: string; city: string; kind: Kind; title: string; category: string; image: string; description: string; details: string;
   address: string; price?: string; rating?: string; hours?: string; provider?: string;
   dateOffset?: number; time?: string; label?: string;
 }
