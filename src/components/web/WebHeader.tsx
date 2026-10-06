@@ -1,7 +1,6 @@
 import { BrandMark } from '../BrandMark';
 import type { Section } from '../../types';
 import { Icon } from '../Icon';
-import { TelegramLink } from './TelegramLink';
 
 interface WebHeaderProps {
   city: string;
@@ -21,8 +20,7 @@ export function WebHeader({ city, section, navigate, favoritesCount, cityPickerO
     ] as const).map(tab => <button key={tab.id} data-section={tab.id} aria-current={section === tab.id ? 'page' : undefined} onClick={() => navigate(tab.id)}>{tab.label}</button>)}</nav>
     <div className="web-header-actions">
       <button className="web-favorites" onClick={() => navigate('favorites')} aria-current={section === 'favorites' ? 'page' : undefined}><Icon name="heart" size={19}/>Избранное{favoritesCount > 0 && <span>{favoritesCount}</span>}</button>
-      <TelegramLink/>
-      <button className="web-profile-button" aria-label="Гостевой web-профиль" aria-current={section === 'profile' ? 'page' : undefined} onClick={() => navigate('profile')}><Icon name="profile" size={20}/></button>
+      <button className="web-profile-button" aria-label="Открыть профиль" aria-current={section === 'profile' ? 'page' : undefined} onClick={() => navigate('profile')}><Icon name="profile" size={20}/></button>
     </div>
   </div></header>;
 }

@@ -10,3 +10,4 @@
 
 .web-nav button[aria-current=page]{color:var(--section-ink);background:var(--section-soft)}.telegram-link:not(.telegram-link-outline):hover,.web-hero-actions .primary-button:hover{background:var(--accent-strong);filter:none}.telegram-link-outline:hover{background:var(--surface-secondary)}
 .web-footer .footer-slogan{color:var(--text);font-size:15px}.web-footer-legal{grid-column:1/-1;border-top:1px solid var(--line);padding-top:20px}.web-footer-legal>p{margin:0 0 22px}.web-footer .footer-cooperation>p{margin-top:0}.web-footer-note{border:0;padding-top:0}.web-footer .footer-brand .brand{margin-bottom:0}
+.web-footer-inner{grid-template-columns:1fr auto}.desktop-web .profile-future{max-width:760px;margin:auto}
