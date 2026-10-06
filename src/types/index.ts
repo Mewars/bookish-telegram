@@ -2,8 +2,9 @@ export type Section = 'home' | 'events' | 'places' | 'services' | 'profile' | 'f
 export type Kind = 'events' | 'places' | 'services';
 export type Theme = 'system' | 'light' | 'dark';
 export interface Item {
-  id: string; city: string; kind: Kind; title: string; category: string; image: string; description: string; details: string;
-  address: string; price?: string; rating?: string; hours?: string; provider?: string;
+  id: string; city: string; kind: Kind; title: string; category: string; image: string; description: string; details?: string;
+  address?: string; price?: string; rating?: string; hours?: string; provider?: string;
+  real?: boolean; phone?: string; verifiedAt?: string; sourceType?: string;
   dateOffset?: number; time?: string; label?: string;
 }
 export interface TelegramUser { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string }
