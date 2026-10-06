@@ -87,6 +87,12 @@ src/
 
 В `public/brand/` сохранены оригинальные PNG пользователя: `star-blue.png` (брендовый знак и favicon) и `vk.png` (ссылка на VK в футере). Прозрачность сохранена; временные SVG-заглушки удалены.
 
+## Яндекс Метрика
+
+Счётчик `113480026` подключён официальным `tag.js` без дополнительных библиотек. `src/main.tsx` запускает `src/analytics/yandexMetrika.ts` один раз вне React. Автоматический просмотр отключён через `defer: true`: первый просмотр и изменения hash/истории отправляются вручную; одинаковый текущий URL не отправляется повторно, предыдущий URL передаётся как `referer`. OAuth-параметры и служебные Telegram-фрагменты исключаются из URL просмотров.
+
+JavaScript-счётчик разрешён только в production-сборке на `https://ryadomcity.ru`. Localhost, IP-адреса и Netlify preview не загружают его. `noscript`-пиксель из `index.html` сохраняется только при сборке с `CONTEXT=production` (Netlify задаёт это автоматически); в dev, локальной сборке и deploy preview Vite удаляет его. При публикации на другом хостинге задайте `CONTEXT=production` для production-сборки. Блокировка Метрики не мешает работе приложения.
+
 ## Аккаунты и Supabase
 
 `src/lib/supabase.ts` создаёт один официальный Supabase client. Для браузера используются `VITE_SUPABASE_URL` и `VITE_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`) из `.env.local` или настроек сборки Netlify. Реальные значения не входят в Git. `SUPABASE_SECRET_KEY`, service_role, secret key, пароль базы, OAuth secrets и Bot Token запрещены во frontend. Отсутствующая или неподходящая конфигурация оставляет приложение в гостевом режиме; в dev console появляется предупреждение без значений ключей. После изменения env нужна новая сборка/перезапуск Vite.
