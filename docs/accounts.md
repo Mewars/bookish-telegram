@@ -39,3 +39,23 @@ readAccountData читает только профиль с id текущего 
 ## Проверки и ограничения среды
 
 Без env можно проверить production guest, desktop/mobile, Telegram mock, login и localStorage. Для проверки клиентских запросов и событий SDK используются изолированные HTTP fixtures вне исходников приложения; это не функция входа. Для проверки действующих Supabase RLS и настоящей серверной сессии нужен отдельный тест в настроенном окружении. Локальная cloud-среда не содержит значений Netlify env, поэтому успешный тест HTTP fixtures не доказывает подключение к действующей базе или корректность её RLS.
+
+## Yandex ID: нормализация Userinfo
+
+Edge Function `supabase/functions/yandex-userinfo/index.ts` принимает GET от Supabase Auth с `Authorization: Bearer <yandex_access_token>`. Этот Bearer передаётся только на `https://login.yandex.ru/info?format=json`. Функция возвращает нормализованные OIDC-поля sub/email/email_verified/name/given_name/family_name/preferred_username/picture. При отсутствии email поле опускается; при отсутствии аватара picture равен null. Некорректный или отсутствующий id не превращается в фиктивный sub.
+
+Для этой функции в `supabase/config.toml` установлено `verify_jwt = false`: входящий token принадлежит Яндексу, не Supabase. Проверка JWT остальных функций не изменяется. Наличие корректного Yandex token проверяется самим Яндексом; без Bearer функция возвращает 401, другие методы — 405. Ошибочный HTTP status Яндекса сохраняется с нейтральным JSON-ответом, без передачи его тела или заголовков. Сетевая ошибка/некорректный JSON даёт 502, timeout — 504. Ответы имеют Cache-Control: no-store. Токен и Authorization не логируются и не сохраняются, client secret и Supabase secret key функции не нужны.
+
+На отдельном этапе deploy можно выполнить из корня проекта через настроенный Supabase CLI:
+
+```bash
+supabase functions deploy yandex-userinfo --project-ref <project-ref>
+```
+
+После deploy URL будет:
+
+```text
+https://<project-ref>.supabase.co/functions/v1/yandex-userinfo
+```
+
+Указать этот адрес в Custom OAuth Provider как **Userinfo URL**. Client ID / Client Secret провайдера настраиваются отдельно на серверной стороне Supabase, не в frontend или Git. Deploy в рамках этой задачи не выполнялся; OAuth-кнопка Яндекса остаётся отключённой до отдельного подключения провайдера.
