@@ -1,5 +1,8 @@
-export type IconName = 'home' | 'events' | 'places' | 'services' | 'profile' | 'search' | 'heart' | 'arrow' | 'back' | 'close' | 'sun' | 'moon' | 'pin' | 'star' | 'clock' | 'phone';
+export type IconName = 'music' | 'play' | 'pause' | 'volume' | 'muted' | 'home' | 'events' | 'places' | 'services' | 'profile' | 'search' | 'heart' | 'arrow' | 'back' | 'close' | 'sun' | 'moon' | 'pin' | 'star' | 'clock' | 'phone';
 const paths: Record<IconName, string> = {
+ music: 'M9 18V5l11-2v13M9 5l11-2M9 18a3 3 0 1 1-3-3h3m11 1a3 3 0 1 1-3-3h3',
+ play: 'm8 4 13 8-13 8Z', pause: 'M8 4v16M16 4v16',
+ volume: 'm11 4-6 5H2v6h3l6 5ZM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14', muted: 'm11 4-6 5H2v6h3l6 5ZM16 9l6 6m0-6-6 6',
  phone: 'M5 3h4l2 5-3 2a15 15 0 0 0 6 6l2-3 5 2v4c0 2-2 3-4 2C9 20 4 15 3 7c-1-2 0-4 2-4Z',
  home: 'm3 10 9-7 9 7v10H7V10m3 10v-6h4v6', events: 'M5 5h14v16H5zM8 3v4m8-4v4M5 10h14m-10 4h2m2 0h2m-6 3h2',
  places: 'M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0ZM15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0',

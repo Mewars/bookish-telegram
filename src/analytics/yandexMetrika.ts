@@ -66,3 +66,9 @@ export function startYandexMetrikaTracking(): void {
   window.addEventListener('hashchange', changed);
   window.addEventListener('popstate', changed);
 }
+
+export function trackMusicEvent(event: 'music_play' | 'music_pause' | 'music_error'): void {
+  if (!enabled() || typeof window.ym !== 'function') return;
+  try { window.ym(METRIKA_COUNTER_ID, 'reachGoal', event); }
+  catch { /* Music must work when analytics is blocked. */ }
+}
