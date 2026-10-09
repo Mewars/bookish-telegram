@@ -1,0 +1,13 @@
+ .app-shell{--cookie-bottom:calc(var(--music-nav-height,71px) + var(--music-safe-bottom,env(safe-area-inset-bottom,0px)) + var(--music-player-height,0px) + 12px)}
+.cookie-banner{position:fixed;z-index:35;bottom:var(--cookie-bottom);left:50%;transform:translateX(-50%);width:min(calc(100% - 24px),620px);max-height:calc(100dvh - var(--cookie-bottom) - 16px);overflow:auto;overscroll-behavior:contain;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 32px #0002;padding:18px}
+.cookie-banner h2{font-size:18px;margin-bottom:8px}.cookie-banner p{font-size:12px;line-height:1.6}.cookie-banner .cookie-current{margin-top:8px;font-weight:750}
+.cookie-details-toggle,.cookie-settings-close{font-size:12px;text-decoration:underline;min-height:40px;padding:8px 0;color:var(--primary)}
+.cookie-details{display:grid;gap:8px;padding:10px 0;border-top:1px solid var(--line)}
+.cookie-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cookie-actions button{min-height:44px;border:1px solid var(--primary);border-radius:11px;background:var(--soft);color:var(--text);font-size:12px;font-weight:750;padding:10px}.cookie-actions button:hover{background:var(--surface-secondary)}
+.cookie-banner button:focus-visible,.cookie-settings-link:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.cookie-settings-link{font-size:11px;text-decoration:underline;color:var(--muted);min-height:44px;padding:8px 0}
+.cookie-dialog{position:fixed;inset:auto 0 var(--cookie-bottom);margin:0 auto;padding:0;border:0;background:transparent;color:var(--text);width:min(calc(100% - 24px),620px);max-height:calc(100dvh - var(--cookie-bottom) - 16px);overflow:auto}
+.cookie-dialog::backdrop{background:#0003}.cookie-dialog .cookie-banner{position:static;transform:none;width:100%;max-height:none}
+.app-shell:has(.cookie-banner).app-shell{padding-bottom:calc(var(--music-player-height,0px) + var(--cookie-banner-height,240px))}
+.app-shell:has(.cookie-banner) .storage-warning{bottom:calc(var(--cookie-bottom) + var(--cookie-banner-height,240px))}
+@media(max-width:359px){.cookie-banner{padding:14px}.cookie-actions{gap:8px}.cookie-actions button{padding:9px 5px}}
