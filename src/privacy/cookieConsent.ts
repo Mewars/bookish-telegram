@@ -1,3 +1,5 @@
+import { clearMetrikaClientIdentifiers } from './metrikaCleanup';
+
 export type CookieConsent = 'accepted' | 'necessary' | null;
 const key = 'ryadom_cookie_consent_v1';
 function readConsent(): CookieConsent {
@@ -17,9 +19,11 @@ export function subscribeCookieConsent(listener: () => void) {
   return () => { listeners.delete(listener); };
 }
 function save(consent: Exclude<CookieConsent, null>) {
+  const revoked = state.consent === 'accepted' && consent === 'necessary';
   try { localStorage.setItem(key, consent); } catch { /* Keep the explicit decision for this visit only. */ }
   state = { consent, settingsOpen: false };
   notify();
+  if (revoked) clearMetrikaClientIdentifiers();
 }
 export function acceptAnalytics() { save('accepted'); }
 export function acceptNecessaryOnly() { save('necessary'); }
@@ -27,6 +31,9 @@ export function openCookieSettings() { state = { ...state, settingsOpen: true };
 export function closeCookieSettings() { state = { ...state, settingsOpen: false }; notify(); }
 window.addEventListener('storage', event => {
   if (event.key !== key && event.key !== null) return;
-  state = { ...state, consent: readConsent() };
+  const consent = readConsent();
+  const revoked = state.consent === 'accepted' && consent === 'necessary';
+  state = { ...state, consent };
   notify();
+  if (revoked) clearMetrikaClientIdentifiers();
 });
