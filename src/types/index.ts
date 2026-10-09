@@ -1,4 +1,4 @@
-export type Section = 'home' | 'events' | 'places' | 'services' | 'profile' | 'favorites' | 'login';
+export type Section = 'home' | 'events' | 'places' | 'services' | 'profile' | 'favorites' | 'login' | 'consent';
 export type Kind = 'events' | 'places' | 'services';
 export type Theme = 'system' | 'light' | 'dark';
 export interface Item {
