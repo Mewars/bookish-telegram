@@ -1,4 +1,4 @@
-import { CookieSettingsButton } from '../privacy/CookieSettingsButton';
+import { LegalLinks } from './legal/LegalLinks';
 import { BrandMark } from './BrandMark';
 import { brandAssets } from '../utils/brand';
 
@@ -7,5 +7,5 @@ export function FooterBrand({ city, goHome }: { city: string; goHome: () => void
 }
 
 export function FooterCooperation() {
-  return <div className="footer-cooperation"><p>Франшиза · Добавление организации · Платные услуги</p><a className="vk-link" href="https://vk.ru/mewarspro" target="_blank" rel="noopener noreferrer"><img src={brandAssets.vk} width="28" height="28" alt=""/>По вопросам сотрудничества — VK</a><CookieSettingsButton/></div>;
+  return <div className="footer-cooperation"><p>Франшиза · Добавление организации · Платные услуги</p><a className="vk-link" href="https://vk.ru/mewarspro" target="_blank" rel="noopener noreferrer"><img src={brandAssets.vk} width="28" height="28" alt=""/>По вопросам сотрудничества — VK</a><LegalLinks/></div>;
 }

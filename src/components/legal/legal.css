@@ -1,0 +1,13 @@
+.legal-document{max-width:860px;margin:0 auto;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:20px;padding:32px;overflow-wrap:anywhere}
+.legal-document h1{font-size:clamp(24px,4vw,34px);line-height:1.3;letter-spacing:-.7px;margin-bottom:14px}
+.legal-document h2{font-size:21px;line-height:1.4;margin:28px 0 12px}
+.legal-document p,.legal-document li{font-size:16px;line-height:1.75}.legal-document p{margin:16px 0}.legal-document ul{padding-left:24px}.legal-document li{margin:6px 0}
+.legal-document .legal-document-meta{font-size:13px;color:var(--muted);margin-bottom:24px}.legal-document .back-link{margin-top:24px}
+.legal-document a,.cookie-details a,.login-policy-link{color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.legal-links,.web-footer nav.legal-links{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;padding:12px 0 0;max-width:100%}
+.legal-links a{display:inline-flex;align-items:center;min-height:44px;font-size:11px;line-height:1.5;text-decoration:underline;text-underline-offset:3px;color:var(--muted)}
+.legal-links .cookie-settings-link{margin:0;font-size:11px}
+.content-footer .legal-links{justify-content:center;gap:4px 12px}
+.legal-document a:focus-visible,.legal-links a:focus-visible,.cookie-details a:focus-visible,.login-policy-link:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.login-policy-link{display:inline-block;font-size:12px;line-height:1.6;margin-top:12px;min-height:32px}
+@media(max-width:699px){.legal-document{padding:20px 16px}.legal-links a{max-width:100%}}

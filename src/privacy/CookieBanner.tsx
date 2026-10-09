@@ -29,7 +29,7 @@ export function CookieBanner() {
     <p>Мы используем необходимые файлы cookie для работы сайта и, с вашего согласия, Яндекс Метрику для анализа посещаемости.</p>
     {settingsOpen && <p className="cookie-current">Аналитика: {consent === 'accepted' ? 'включена' : 'выключена'}</p>}
     <button className="cookie-details-toggle" onClick={() => setDetails(value => !value)} aria-expanded={details} aria-controls="cookie-details">{details ? 'Скрыть подробности' : 'Подробнее'}</button>
-    {details && <div id="cookie-details" className="cookie-details"><p><strong>Необходимые:</strong> Нужны для сохранения настроек сайта и работы основных функций.</p><p><strong>Аналитические:</strong> Яндекс Метрика помогает нам понимать, как используется сайт. Включается только с вашего согласия.</p></div>}
+    {details && <div id="cookie-details" className="cookie-details"><p><strong>Необходимые:</strong> Нужны для сохранения настроек сайта и работы основных функций.</p><p><strong>Аналитические:</strong> Яндекс Метрика помогает нам понимать, как используется сайт. Включается только с вашего согласия.</p><p><a href="#/cookies" onClick={closeCookieSettings}>Политика cookie</a></p></div>}
     <div className="cookie-actions"><button onClick={acceptAnalytics}>Принять</button><button onClick={acceptNecessaryOnly}>Только необходимые</button></div>
     {settingsOpen && <button className="cookie-settings-close" onClick={closeCookieSettings} aria-label="Закрыть настройки cookie без изменения выбора">Закрыть</button>}
   </section>;
