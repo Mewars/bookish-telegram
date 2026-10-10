@@ -3,8 +3,8 @@
 .web-header-inner { max-width: var(--content-width); min-height: 80px; margin: auto; display: flex; align-items: center; gap: 24px; padding: 16px 32px; }
 .brand-logo-pin { gap: 0; font-size: 28px; font-weight: 900; letter-spacing: -.055em; }
 .brand-word { display: inline-block; }
-.brand-pin-o { position: relative; display: inline-block; width: .82em; height: .82em; margin: 0 .035em; transform: translateY(.03em) rotate(45deg); background: #f3bd5d; border-radius: 50% 50% 50% 0; }
-.brand-pin-o > span { position: absolute; width: 29%; height: 29%; left: 35.5%; top: 35.5%; border-radius: 50%; background: #173650; }
+.brand-pin-o { width: .74em; height: .88em; margin: 0 .02em; overflow: visible; color: #f3bd5d; flex: 0 0 auto; transform: translateY(.08em); }
+.brand-pin-hole { fill: #173650; }
 .city-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; min-height: 40px; white-space: nowrap; background: var(--surface); }
 .city-chevron { display: flex; transform: rotate(-90deg); color: var(--muted); }
 .web-nav { display: flex; align-items: center; gap: 10px; margin-left: auto; }
