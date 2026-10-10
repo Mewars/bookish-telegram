@@ -1,12 +1,13 @@
+import type { SourceMetadata } from '../import/types';
 export type Section = 'home' | 'events' | 'places' | 'services' | 'profile' | 'favorites' | 'login' | 'consent' | 'privacy' | 'cookies' | 'terms' | 'contacts';
 export type Kind = 'events' | 'places' | 'services';
 export type Theme = 'system' | 'light' | 'dark';
-export interface Item {
+export interface Item extends SourceMetadata {
   id: string; city: string; kind: Kind; title: string; category: string; image: string; description: string; details?: string;
   address?: string; price?: string; rating?: string; hours?: string; provider?: string;
   coordinates?: { lat: number; lon: number };
   yandexMapsUrl?: string;
-  real?: boolean; phone?: string; verifiedAt?: string; sourceType?: string;
+  real?: boolean; phone?: string;
   dateOffset?: number; time?: string; label?: string;
 }
 export interface TelegramUser { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string }

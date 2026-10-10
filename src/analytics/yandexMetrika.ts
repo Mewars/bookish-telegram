@@ -1,3 +1,4 @@
+import { isOrganizationImportRoute } from '../import/route';
 import { hasAnalyticsConsent } from '../privacy/cookieConsent';
 export const METRIKA_COUNTER_ID = 113480026;
 const productionOrigin = 'https://ryadomcity.ru';
@@ -7,7 +8,7 @@ let listening = false;
 let previousUrl: string | null = null;
 const privateParams = new Set(['code', 'state', 'access_token', 'refresh_token', 'id_token', 'provider_token', 'provider_refresh_token', 'error_description', 'tgwebappdata', 'tgwebappthemeparams']);
 function enabled() {
-  return typeof window !== 'undefined' && import.meta.env.PROD && window.location.origin === productionOrigin && hasAnalyticsConsent();
+  return typeof window !== 'undefined' && import.meta.env.PROD && window.location.origin === productionOrigin && !isOrganizationImportRoute() && hasAnalyticsConsent();
 }
 function analyticsUrl(raw: string): string | null {
   if (!raw) return null;
@@ -39,7 +40,7 @@ export function initYandexMetrika(): void {
   if (!tagLoaded && ![...document.scripts].some(script => script.src === source)) {
     const script = document.createElement('script');
     script.src = source; script.async = true;
-    script.onload = () => { tagLoaded = true; if (!hasAnalyticsConsent()) stopYandexMetrikaTracking(); };
+    script.onload = () => { tagLoaded = true; if (!hasAnalyticsConsent() || isOrganizationImportRoute()) stopYandexMetrikaTracking(); };
     document.head.append(script);
   }
   try {
