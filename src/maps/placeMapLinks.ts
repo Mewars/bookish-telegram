@@ -24,7 +24,7 @@ function urlDestination(url?: URL): Coordinates | undefined {
     if (validCoordinates(point)) return point;
   }
 }
-export function placeMapLinks(item: Pick<Item, 'coordinates' | 'yandexMapsUrl'>) {
+export function placeMapLinks(item: Partial<Pick<Item, 'coordinates' | 'yandexMapsUrl' | 'city' | 'address'>>) {
   const supplied = suppliedMapsUrl(item.yandexMapsUrl);
   const point = validCoordinates(item.coordinates) ? item.coordinates : undefined;
   const destination = point ?? urlDestination(supplied);
@@ -36,10 +36,28 @@ export function placeMapLinks(item: Pick<Item, 'coordinates' | 'yandexMapsUrl'>)
     url.searchParams.set('z', '16');
     mapsUrl = url.href;
   }
+  // Address fallback uses only our own Item data, never a lookup or geocoder.
+  const city = item.city?.trim();
+  const address = item.address?.trim();
+  const addressDestination = !supplied && !point && city && address ? `${city}, ${address}` : undefined;
+  if (addressDestination) {
+    const url = new URL('https://yandex.ru/maps/');
+    url.searchParams.set('text', addressDestination);
+    mapsUrl = url.href;
+  }
   let routeUrl: string | undefined;
   if (destination) {
     const url = new URL('https://yandex.ru/maps/');
     url.searchParams.set('rtext', `~${destination.lat},${destination.lon}`);
+    url.searchParams.set('rtt', 'auto');
+    routeUrl = url.href;
+  }
+  // rtext accepts textual endpoints, but ~ separates waypoints after decoding.
+  // Do not let an address containing that separator or control characters
+  // create an unintended route. The search link remains available.
+  if (addressDestination && !addressDestination.includes('~') && !/\p{Cc}/u.test(addressDestination)) {
+    const url = new URL('https://yandex.ru/maps/');
+    url.searchParams.set('rtext', `~${addressDestination}`);
     url.searchParams.set('rtt', 'auto');
     routeUrl = url.href;
   }
