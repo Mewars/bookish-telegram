@@ -50,16 +50,16 @@
   text-shadow: 0 6px 36px rgba(0,0,0,.16);
 }
 .cover-tagline {
-  margin-top: 18px;
+  margin-top: 14px;
   color: #fff4df;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(36px, 3.9vw, 60px);
+  font-size: clamp(32px, 3.43vw, 53px);
   line-height: .98;
   letter-spacing: -.045em;
 }
 .cover-summary {
   max-width: 720px;
-  margin-top: 12px;
+  margin-top: 10px;
   color: rgba(244,247,250,.76);
   font-size: clamp(16px, 1.4vw, 20px);
   line-height: 1.4;
@@ -67,7 +67,7 @@
 .cover-search {
   width: min(760px, 100%);
   min-height: 60px;
-  margin-top: 18px;
+  margin-top: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -117,7 +117,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border: 1px solid rgba(255,255,255,.54);
+  border: 1px solid rgba(255,255,255,.32);
   border-radius: 999px;
   color: #fff;
   background: rgba(7,20,32,.47);
@@ -186,14 +186,15 @@
 }
 .city-home [data-selection="01"] .card {
   position: relative;
-  min-height: 220px;
+  min-height: 240px;
+  border-radius: 16px;
   background: #10202c;
   border: 1px solid rgba(255,255,255,.08);
 }
 .city-home [data-selection="01"] .card-visual,
 .city-home [data-selection="01"] .card-open,
 .city-home [data-selection="01"] .card-image {
-  height: 220px;
+  height: 240px;
 }
 .city-home [data-selection="01"] .card-image { aspect-ratio: auto; }
 .city-home [data-selection="01"] .card-image::after {
@@ -213,9 +214,9 @@
   position: absolute;
   z-index: 2;
   left: 0;
-  right: 58px;
+  right: 0;
   bottom: 0;
-  padding: 18px;
+  padding: 18px 62px 18px 18px;
   color: #fff;
   pointer-events: none;
 }
@@ -304,7 +305,7 @@
     width: 82%;
   }
   .city-cover-content h1 { font-size: clamp(86px, 13vw, 132px); }
-  .cover-tagline { font-size: clamp(36px, 6vw, 54px); }
+  .cover-tagline { font-size: clamp(32px, 5.28vw, 48px); }
   .city-home .discovery-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .city-home [data-selection="01"] .discovery-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .city-home [data-selection="04"] .discovery-grid {
@@ -355,18 +356,18 @@
     white-space: nowrap;
   }
   .cover-tagline {
-    margin-top: 11px;
-    font-size: clamp(29px, 8vw, 36px);
+    margin-top: 9px;
+    font-size: clamp(26px, 7.04vw, 32px);
     max-width: 95%;
   }
   .cover-summary {
-    margin-top: 9px;
+    margin-top: 8px;
     max-width: 94%;
     font-size: 14px;
   }
   .cover-search {
     min-height: 54px;
-    margin-top: 16px;
+    margin-top: 12px;
     padding: 6px 6px 6px 10px;
     border-radius: 16px;
   }
@@ -429,7 +430,7 @@
 
 
 /* Full-bleed approved desktop composition — the previous 1344px shell made the redesign look like the old page. */
-.city-home { background: #071622; }
+.city-home { background: #071622; color: #fff8e9; --surface: #10202c; --text: #fff8e9; --muted: #b9c2cb; --line: #ffffff1f; }
 @media (min-width:900px) {
   .app-shell:has(.city-home) main {
     max-width: none;
@@ -452,7 +453,7 @@
     line-height: .78;
   }
   .cover-tagline {
-    font-size: clamp(42px, 3.8vw, 64px);
+    font-size: clamp(37px, 3.344vw, 56px);
   }
   .cover-summary { font-size: 19px; }
   .cover-search { width: min(820px, 100%); }
@@ -483,3 +484,17 @@
 
 /* Keep popular-card controls compact over the approved media composition. */
 .city-home [data-selection="01"] .favorite-button { width: 32px; height: 32px; top: 12px; right: 12px; }
+
+/* Polish the approved composition without changing the cover asset. */
+.quick-discovery button { height: 40px; line-height: 1.3; transition: background-color 160ms ease, border-color 160ms ease; }
+.quick-discovery button:focus-visible { outline: 2px solid #ffd47d; outline-offset: 3px; }
+@media (hover:hover) and (pointer:fine) {
+  .quick-discovery button:not([aria-pressed=true]):hover { background: rgba(255,255,255,.12); border-color: rgba(244,197,107,.8); }
+}
+.city-home .section-heading h2 { color: #fff8e9; }
+.city-home .section-heading p { color: #b9c2cb; line-height: 1.6; }
+.city-home .text-action { color: #e8ba63; }
+.city-home [data-selection="01"] .card-title-button { width: 100%; }
+.city-home [data-selection="01"] .card-title-arrow { position: absolute; right: 16px; bottom: 20px; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.58); border-radius: 50%; background: rgba(5,12,19,.35); }
+.city-home [data-selection="01"] .image-label { border-radius: 999px; font-size: 10px; padding: 5px 9px; max-width: calc(100% - 64px); }
+@media (max-width:599px) { .quick-discovery button { height: 38px; }.city-home [data-selection="01"] .card h3 { font-size: 21px; }.city-home [data-selection="01"] .card-body { padding: 16px 58px 16px 16px; }.city-home [data-selection="01"] .card-title-arrow { right: 14px; bottom: 18px; } }

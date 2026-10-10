@@ -33,12 +33,12 @@ export function CityHome({ city, items, navigate, user, ...actions }: CardAction
           <h2>{title}</h2>
           <p>{subtitle}</p>
         </div>
-        <button className="text-action" onClick={() => navigate(kind)} aria-label={`Смотреть все: ${title}`}>
-          Смотреть все <Icon name="arrow" size={18}/>
+        <button className="text-action" onClick={() => navigate(kind)} aria-label={index === '01' ? 'Посмотреть все места' : `Смотреть все: ${title}`}>
+          {index === '01' ? 'Посмотреть все места' : 'Смотреть все'} <Icon name="arrow" size={18}/>
         </button>
       </div>
       <div className="card-grid discovery-grid">
-        {entries.slice(0, limit).map(item => <Card key={item.id} item={item} {...actions}/>)}
+        {entries.slice(0, limit).map(item => <Card key={item.id} item={item} featured={index === '01'} {...actions}/>)}
       </div>
     </section>;
 
