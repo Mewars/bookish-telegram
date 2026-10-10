@@ -8,3 +8,4 @@
 .place-map-placeholder p,.place-map-unavailable{font-size:13px;line-height:1.6;color:var(--muted)}
 .place-map-links{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px}.place-map-links a{display:inline-flex;align-items:center;min-height:44px;font-size:13px;color:var(--primary);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 .place-map-links a:focus-visible,.place-map-placeholder button:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.place-map-placeholder>div{display:grid;justify-items:center;gap:16px}
