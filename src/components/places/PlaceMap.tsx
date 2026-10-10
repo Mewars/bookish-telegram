@@ -40,6 +40,6 @@ export function PlaceMap({ item, desktop }: { item: Item; desktop: boolean }) {
       {status !== 'ready' && <div className="place-map-placeholder">{status === 'idle' ? <button onClick={() => { setStatus('loading'); setAttempt(value => value + 1); }}><Icon name="pin" size={20}/>Показать карту</button> : <div><p role="status">{status === 'error' ? 'Не удалось загрузить карту. Воспользуйтесь ссылкой на Яндекс Карты.' : 'Загружаем карту…'}</p>{status === 'error' && <button onClick={() => { setStatus('loading'); setAttempt(value => value + 1); }}>Повторить</button>}</div>}</div>}
     </div>}
     {coordinates && !configured && <p className="place-map-unavailable">Встроенная карта пока недоступна.</p>}
-    <div className="place-map-links">{mapsUrl && <a href={mapsUrl} target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах</a>}{routeUrl && <a href={routeUrl} target="_blank" rel="noopener noreferrer">Маршрут</a>}</div>
+    <div className="place-map-links">{mapsUrl && <a href={mapsUrl} target="_blank" rel="noopener noreferrer">Открыть карту</a>}{routeUrl && <a href={routeUrl} target="_blank" rel="noopener noreferrer">Маршрут</a>}</div>
   </section>;
 }

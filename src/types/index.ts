@@ -7,6 +7,7 @@ export interface Item extends SourceMetadata {
   address?: string; price?: string; rating?: string; hours?: string; provider?: string;
   coordinates?: { lat: number; lon: number };
   yandexMapsUrl?: string;
+  website?: string; vkUrl?: string;
   real?: boolean; phone?: string;
   dateOffset?: number; time?: string; label?: string;
 }
