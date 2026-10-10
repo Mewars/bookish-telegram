@@ -104,3 +104,7 @@ JavaScript-счётчик разрешён только в production-сборк
 `#/login` сохранён. Яндекс ID запускает Supabase OAuth через `custom:yandex`; остальные VK ID, Telegram и Google отключены с пометкой «Подключение настраивается», MAX — «скоро». Автоматический Telegram-вход не подключён. initDataUnsafe используется только для отображения; будущий вход через Telegram требует серверной проверки initData. Без настоящей Supabase session интерфейс остаётся гостевым.
 
 Схема таблиц и RLS подготовлены в `supabase/schema.sql` и по сообщению пользователя уже настроены в Supabase. Приложение не применяет SQL автоматически. Подробности lifecycle, кеша, ограничений и следующих шагов: [docs/accounts.md](docs/accounts.md).
+
+## Тестовый GitHub Pages
+
+Отдельная сборка `npm run build:pages` использует `/bookish-telegram/`, обычная Netlify-сборка сохраняет `/`. Workflow проверяет PR и публикует только ветку `mewars`. Настройки Pages, OAuth и команды локальной проверки: [docs/github-pages.md](docs/github-pages.md).
