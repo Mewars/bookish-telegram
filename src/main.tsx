@@ -1,19 +1,20 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MusicProvider } from './music/MusicProvider';
-import App from './App';
+import { RootRoute } from './RootRoute';
+import { isOrganizationImportRoute } from './import/route';
 import { hasAnalyticsConsent, subscribeCookieConsent } from './privacy/cookieConsent';
 import { startYandexMetrikaTracking, stopYandexMetrikaTracking } from './analytics/yandexMetrika';
-import { AuthProvider } from './auth/AuthProvider';
 import './styles.css';
 import './web.css';
 const syncAnalyticsConsent = () => {
-  if (hasAnalyticsConsent()) {
+  if (hasAnalyticsConsent() && !isOrganizationImportRoute()) {
     // Let React close the consent panel before initializing analytics.
-    window.setTimeout(() => { if (hasAnalyticsConsent()) startYandexMetrikaTracking(); }, 0);
+    window.setTimeout(() => { if (hasAnalyticsConsent() && !isOrganizationImportRoute()) startYandexMetrikaTracking(); }, 0);
   }
   else stopYandexMetrikaTracking();
 };
 subscribeCookieConsent(syncAnalyticsConsent);
-if (hasAnalyticsConsent()) startYandexMetrikaTracking();
-createRoot(document.getElementById('root')!).render(<StrictMode><AuthProvider><MusicProvider><App/></MusicProvider></AuthProvider></StrictMode>);
+// Suspend Webvisor before React renders any importer data, including hash navigation.
+window.addEventListener('hashchange', syncAnalyticsConsent);
+syncAnalyticsConsent();
+createRoot(document.getElementById('root')!).render(<StrictMode><RootRoute/></StrictMode>);
