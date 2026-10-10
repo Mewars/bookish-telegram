@@ -1,6 +1,7 @@
 import { MusicButton } from '../../music/MusicPlayer';
 import type { Section } from '../../types';
 import { Icon } from '../Icon';
+import { BrandWordmark } from '../BrandWordmark';
 
 interface WebHeaderProps {
   city: string;
@@ -13,9 +14,7 @@ interface WebHeaderProps {
 
 export function WebHeader({ city, section, navigate, favoritesCount, cityPickerOpen, openCityPicker }: WebHeaderProps) {
   return <header className="web-header"><div className="web-header-inner">
-    <button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Рядом — на главную">
-      <span className="brand-word">РЯД</span><span className="brand-pin-o" aria-hidden="true"><span/></span><span className="brand-word">М</span>
-    </button>
+    <button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Рядом — на главную"><BrandWordmark/></button>
     <button className="city-pill" onClick={openCityPicker} aria-label={`Выбрать город: ${city}`} aria-haspopup="dialog" aria-expanded={cityPickerOpen}>
       <Icon name="pin" size={14}/>{city}<span className="city-chevron" aria-hidden="true"><Icon name="back" size={12}/></span>
     </button>
