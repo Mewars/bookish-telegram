@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
 import type { TelegramWebApp, Theme } from '../types';
 import { readStorage, saveStorage } from '../utils/storage';
-function getWebApp() {
-  const candidate = window.Telegram?.WebApp;
-  // The SDK also creates a WebApp stub in ordinary browsers.
-  return candidate?.initData || candidate?.initDataUnsafe?.user ? candidate : undefined;
-}
+import { getTelegramWebApp, loadTelegramWebApp } from '../telegram/sdk';
 const deviceScheme = () => matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 export function useTelegram() {
-  const [webApp, setWebApp] = useState<TelegramWebApp | undefined>(getWebApp);
+  const [webApp, setWebApp] = useState<TelegramWebApp | undefined>(getTelegramWebApp);
   const [theme, setTheme] = useState<Theme>(() => readStorage('ryadom.theme', 'system', (v): v is Theme => v === 'system' || v === 'light' || v === 'dark'));
   const [appearance, setAppearance] = useState(() => ({ scheme: webApp?.colorScheme ?? deviceScheme(), params: webApp?.themeParams }));
   useEffect(() => {
-    const sdk = document.getElementById('telegram-sdk');
-    const loaded = () => setWebApp(getWebApp());
-    sdk?.addEventListener('load', loaded);
-    return () => sdk?.removeEventListener('load', loaded);
+    let active = true;
+    // Defer SDK work until after the initial React commit; never await it to render.
+    const timer = window.setTimeout(() => {
+      void loadTelegramWebApp().then(candidate => {
+        if (active && candidate) setWebApp(candidate);
+      });
+    }, 0);
+    return () => { active = false; window.clearTimeout(timer); };
   }, []);
   useEffect(() => {
     try { webApp?.ready(); webApp?.expand(); } catch { /* Browser fallback stays usable. */ }
