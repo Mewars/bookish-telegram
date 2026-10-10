@@ -1,9 +1,9 @@
 :root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;
-  --bg: #F7F6F2; --surface: #FFFFFF; --surface-secondary: #EEEDE8;
-  --text: #171821; --muted: #686A73; --primary: #5C68DF; --primary-hover: #4A56C9;
-  --primary-text: #FFFFFF; --border: #E2E2DD; --primary-soft: #EBEDFF;
+  --bg: #FAF7EF; --surface: #FFFCF5; --surface-secondary: #F1EBDD;
+  --text: #0B1C29; --muted: #62665F; --primary: #F3BD5D; --primary-hover: #FFD178;
+  --primary-text: #071622; --primary-ink: #805715; --border: #DED8CA; --primary-soft: #F6E9CC;
   --blue-soft: #E9F1FA; --blue-ink: #345D83; --coral-soft: #FBECE6; --coral-ink: #9E4834;
   --violet-soft: #EEEAF8; --violet-ink: #68518B; --yellow-soft: #FBF3DF; --yellow-ink: #745D20;
   --accent-blue: #87B8DE; --accent-coral: #E5A38B; --accent-yellow: #BDB0DE;
@@ -14,9 +14,9 @@
   --radius: 20px; --content-width: 1344px; color: var(--text); background: var(--bg); color-scheme: light;
 }
 :root[data-theme=dark] {
-  --bg: #171922; --surface: #22252F; --surface-secondary: #2B2E39; --text: #F4F3EF; --muted: #B1B3BF;
-  --primary: #9AA4FF; --primary-hover: #B0B8FF; --primary-text: #171922; --border: #383B46;
-  --primary-soft: #2E3249; --blue-soft: #293847; --blue-ink: #A7CEE9; --coral-soft: #44312F; --coral-ink: #F0BBA7;
+  --bg: #071622; --surface: #102330; --surface-secondary: #142735; --text: #FFF8E9; --muted: rgba(255,248,233,.68);
+  --primary: #F3BD5D; --primary-hover: #FFD178; --primary-text: #071622; --primary-ink: #F3BD5D; --border: rgba(255,248,233,.14);
+  --primary-soft: #24302E; --blue-soft: #293847; --blue-ink: #A7CEE9; --coral-soft: #44312F; --coral-ink: #F0BBA7;
   --violet-soft: #363047; --violet-ink: #CEBFF1; --yellow-soft: #3A3528; --yellow-ink: #E7CF96;
   --shadow: 0 8px 24px #00000014; color-scheme: dark;
 }
