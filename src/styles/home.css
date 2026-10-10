@@ -426,3 +426,57 @@
   .city-home [data-selection="04"] .card { min-height: 370px; }
   .city-home [data-selection="04"] .card:last-child { grid-column: auto; }
 }
+
+
+/* Full-bleed approved desktop composition — the previous 1344px shell made the redesign look like the old page. */
+.city-home { background: #071622; }
+@media (min-width:900px) {
+  .app-shell:has(.city-home) main {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+  }
+  .city-home > .city-cover {
+    border-radius: 0;
+    margin-bottom: 0;
+    height: clamp(700px, 52vw, 820px);
+  }
+  .city-cover-content {
+    left: max(48px, calc((100vw - 1500px)/2));
+    top: 145px;
+    width: min(860px, 58vw);
+  }
+  .city-cover-content h1 {
+    font-size: clamp(126px, 12.3vw, 205px);
+    line-height: .78;
+  }
+  .cover-tagline {
+    font-size: clamp(46px, 4.3vw, 72px);
+  }
+  .cover-summary { font-size: 19px; }
+  .cover-search { width: min(820px, 100%); }
+  .cover-image img {
+    object-position: 68% 53%;
+    filter: saturate(1.02) contrast(1.05) brightness(.78);
+  }
+  .cover-atmosphere {
+    background:
+      linear-gradient(90deg, rgba(2,13,25,.94) 0%, rgba(3,17,30,.82) 31%, rgba(5,15,26,.30) 57%, rgba(2,8,15,.08) 76%),
+      linear-gradient(180deg, rgba(1,8,16,.45), transparent 34%, transparent 68%, rgba(2,10,18,.62));
+  }
+  .city-home > #city-selections,
+  .city-home > .cover-welcome {
+    width: min(var(--content-width), calc(100% - 64px));
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .city-home > #city-selections {
+    padding-top: 26px;
+    padding-bottom: 64px;
+  }
+  .city-home > #city-selections > .city-section:first-child { margin-top: 0; }
+  .city-home .section-heading h2 { color: #fff8e9; }
+  .city-home .section-heading p { color: rgba(255,255,255,.58); }
+  .city-home .text-action { color: #e8ba63; }
+}
