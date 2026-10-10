@@ -1,0 +1,11 @@
+.place-map-section{margin:24px 0;min-width:0}.web-place-content .place-map-section{order:2}
+.place-map-section h2{font-size:20px;line-height:1.4;margin-bottom:12px}
+.place-map-frame{height:240px;position:relative;isolation:isolate;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--soft)}
+.place-map-desktop .place-map-frame{height:320px}
+.place-map-canvas{height:100%;width:100%}
+.place-map-placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;background:var(--soft);color:var(--text)}
+.place-map-placeholder button{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;min-height:44px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-weight:750;font-size:14px}
+.place-map-placeholder p,.place-map-unavailable{font-size:13px;line-height:1.6;color:var(--muted)}
+.place-map-links{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px}.place-map-links a{display:inline-flex;align-items:center;min-height:44px;font-size:13px;color:var(--primary);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.place-map-links a:focus-visible,.place-map-placeholder button:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.place-map-placeholder>div{display:grid;justify-items:center;gap:16px}
