@@ -4,6 +4,8 @@ export type Theme = 'system' | 'light' | 'dark';
 export interface Item {
   id: string; city: string; kind: Kind; title: string; category: string; image: string; description: string; details?: string;
   address?: string; price?: string; rating?: string; hours?: string; provider?: string;
+  coordinates?: { lat: number; lon: number };
+  yandexMapsUrl?: string;
   real?: boolean; phone?: string; verifiedAt?: string; sourceType?: string;
   dateOffset?: number; time?: string; label?: string;
 }

@@ -1,3 +1,4 @@
+import { PlaceMap } from '../components/places/PlaceMap';
 import type { Item } from '../types';
 import { Icon } from '../components/Icon';
 import { eventDate } from '../utils/date';
@@ -20,6 +21,7 @@ export function DetailPage({ item, saved, toggle, goBack, favoritesBusy = false,
    {item.price && <div><Icon name="services"/><span><small>{item.kind === 'places' ? 'Стоимость' : item.kind === 'events' ? 'Вход' : 'Ориентировочная цена'}</small><strong>{item.price}</strong></span></div>}
   </div>}
   {item.details && <section className="detail-description"><h2>{item.kind === 'events' ? 'Что тебя ждёт' : item.kind === 'places' ? 'О месте' : 'Об услуге'}</h2><p>{item.details}</p></section>}
+  {item.real && item.kind === 'places' && <PlaceMap key={item.id} item={item} desktop={desktop}/>}
   {item.real ? <div className="place-source">{item.sourceType === 'user_provided' && <span>Данные предоставлены пользователем{item.verifiedAt ? ` · ${suppliedDate(item.verifiedAt)}` : ''}. Независимая проверка не проводилась.</span>}</div> : <div className="demo-note">Демонстрационная карточка. Все названия, адреса и оценки вымышлены. {item.kind === 'events' ? 'Билеты не продаются.' : 'Контакты и онлайн-запись пока недоступны.'}</div>}
   <button className={`primary-button detail-save ${saved ? 'is-saved' : ''}`} disabled={favoritesBusy} aria-pressed={saved} onClick={() => toggle(item.id)}><Icon name="heart" size={20} filled={saved}/>{saved ? 'Сохранено · убрать из избранного' : 'Добавить в избранное'}</button>
  </>;
