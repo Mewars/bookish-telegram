@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BrandMark } from '../components/BrandMark';
+import { BrandWordmark } from '../components/BrandWordmark';
 import { useTelegram } from '../hooks/useTelegram';
 import { checkFileSize, csvTemplate, parseOrganizationCsv } from '../import/csv';
 import { downloadDate, downloadText } from '../import/download';
@@ -90,7 +90,7 @@ export function OrganizationImportPage() {
   const visibleRows = checked.slice(page * pageSize, (page + 1) * pageSize);
   const selected = editing ? checked.find(row => row.number === editing.number) : undefined;
   return <div className="import-shell ym-disable-keys ym-disable-clicks ym-disable-webvisor">
-    <header className="import-header"><a href="#/home" className="brand" aria-label="Рядом — на главную">рядом<BrandMark/></a>
+    <header className="import-header"><a href="#/home" className="brand brand-logo-pin" aria-label="Рядом — на главную"><BrandWordmark/></a>
       <label>Тема<select value={theme} onChange={event => setTheme(event.target.value as typeof theme)}><option value="system">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label>
     </header>
     <main className="import-page">
