@@ -11,3 +11,10 @@
 .app-shell:has(.cookie-banner).app-shell{padding-bottom:calc(var(--music-player-height,0px) + var(--cookie-banner-height,240px))}
 .app-shell:has(.cookie-banner) .storage-warning{bottom:calc(var(--cookie-bottom) + var(--cookie-banner-height,240px))}
 @media(max-width:359px){.cookie-banner{padding:14px}.cookie-actions{gap:8px}.cookie-actions button{padding:9px 5px}}
+/* Appearance only: consent state and handlers remain unchanged. */
+.cookie-banner { border-radius: 18px; box-shadow: 0 8px 28px #00000012; padding: 22px; }
+.cookie-banner h2 { font-size: 20px; letter-spacing: -.03em; }.cookie-banner p { color: var(--muted); }
+.cookie-actions button { border-color: var(--line); background: var(--surface-secondary); border-radius: 10px; font-weight: 600; }
+.cookie-actions button:first-child { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+.desktop-web > .cookie-banner { left: 24px; transform: none; width: 440px; }
+@media (max-width:359px) { .cookie-banner { padding: 16px; } }

@@ -5,7 +5,6 @@ import { isOrganizationImportRoute } from './import/route';
 import { hasAnalyticsConsent, subscribeCookieConsent } from './privacy/cookieConsent';
 import { startYandexMetrikaTracking, stopYandexMetrikaTracking } from './analytics/yandexMetrika';
 import './styles.css';
-import './web.css';
 const syncAnalyticsConsent = () => {
   if (hasAnalyticsConsent() && !isOrganizationImportRoute()) {
     // Let React close the consent panel before initializing analytics.

@@ -1,0 +1,25 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;
+  --bg: #F7F6F2; --surface: #FFFFFF; --surface-secondary: #EEEDE8;
+  --text: #171821; --muted: #686A73; --primary: #5C68DF; --primary-hover: #4A56C9;
+  --primary-text: #FFFFFF; --border: #E2E2DD; --primary-soft: #EBEDFF;
+  --blue-soft: #E9F1FA; --blue-ink: #345D83; --coral-soft: #FBECE6; --coral-ink: #9E4834;
+  --violet-soft: #EEEAF8; --violet-ink: #68518B; --yellow-soft: #FBF3DF; --yellow-ink: #745D20;
+  --accent-blue: #87B8DE; --accent-coral: #E5A38B; --accent-yellow: #BDB0DE;
+  --accent: var(--primary); --accent-strong: var(--primary-hover); --accent-text: var(--primary-text);
+  --accent-soft: var(--primary-soft); --line: var(--border); --soft: var(--surface-secondary);
+  --hero: var(--primary-soft); --hero-text: var(--text); --shadow: 0 8px 24px #17182106;
+  --section-accent: var(--primary); --section-soft: var(--primary-soft); --section-ink: var(--primary);
+  --radius: 20px; --content-width: 1344px; color: var(--text); background: var(--bg); color-scheme: light;
+}
+:root[data-theme=dark] {
+  --bg: #171922; --surface: #22252F; --surface-secondary: #2B2E39; --text: #F4F3EF; --muted: #B1B3BF;
+  --primary: #9AA4FF; --primary-hover: #B0B8FF; --primary-text: #171922; --border: #383B46;
+  --primary-soft: #2E3249; --blue-soft: #293847; --blue-ink: #A7CEE9; --coral-soft: #44312F; --coral-ink: #F0BBA7;
+  --violet-soft: #363047; --violet-ink: #CEBFF1; --yellow-soft: #3A3528; --yellow-ink: #E7CF96;
+  --shadow: 0 8px 24px #00000014; color-scheme: dark;
+}
+[data-kind=places], [data-section=places] { --section-soft: var(--blue-soft); --section-ink: var(--blue-ink); }
+[data-kind=events], [data-section=events] { --section-soft: var(--coral-soft); --section-ink: var(--coral-ink); }
+[data-kind=services], [data-section=services] { --section-soft: var(--violet-soft); --section-ink: var(--violet-ink); }

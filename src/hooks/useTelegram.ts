@@ -33,7 +33,7 @@ export function useTelegram() {
       document.documentElement.style.removeProperty(key);
     }
     const resolved = theme === 'system' ? appearance.scheme : theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#20233A' : '#F6F3EC');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#171922' : '#F7F6F2');
     saveStorage('ryadom.theme', theme);
   }, [theme, appearance]);
   return { user: webApp?.initDataUnsafe?.user, theme, setTheme, webApp };
