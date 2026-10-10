@@ -28,7 +28,7 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
     starting.current = true; setRedirecting(true); setLoginError(null);
     try {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'custom:yandex', options: { redirectTo: `${window.location.origin}/` },
+        provider: 'custom:yandex', options: { redirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href },
       });
       if (oauthError) throw oauthError;
     } catch {
