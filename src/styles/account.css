@@ -15,3 +15,22 @@
   .theme-options button:not(.selected):hover, .profile-row:not(:disabled):hover { border-color: var(--primary); background: var(--primary-soft); }
   .login-guest:hover, .account-signout:hover { text-decoration: underline; text-underline-offset: 4px; }
 }
+
+
+/* Email/password flows share the existing navy/gold account design. */
+.email-auth-tabs { display:flex; gap:8px; margin-top:24px; padding:5px; border-radius:12px; background:var(--soft); }
+.email-auth-tabs button { flex:1; border-radius:9px; min-height:44px; font-size:13px; font-weight:600; }
+.email-auth-tabs button.active { background:var(--primary); color:var(--primary-text); }
+.email-auth-form { display:grid; gap:15px; margin-top:20px; }
+.email-auth-form > label:not(.pd-consent-checkbox) { display:grid; gap:8px; color:var(--text); font-size:13px; font-weight:600; }
+.email-auth-form input:not([type=checkbox]) { width:100%; min-width:0; padding:13px 14px; min-height:48px; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:10px; font-size:16px; }
+.email-auth-form input:focus-visible,.email-auth-tabs button:focus-visible,.email-auth-link:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+.email-auth-form .email-auth-hint { font-size:12px; color:var(--muted); line-height:1.6; }
+.email-auth-submit { min-height:48px; width:100%; justify-content:center; }
+.email-auth-link { display:block; margin:14px 0 0 auto; color:var(--primary-ink); min-height:44px; font-size:13px; }
+.email-auth-separator { display:flex; gap:14px; align-items:center; margin:24px 0 0; color:var(--muted); font-size:12px; }
+.email-auth-separator::before,.email-auth-separator::after { content:''; flex:1; border-top:1px solid var(--line); }
+.login-card .email-auth-notice,.login-card .email-auth-error { font-size:13px; line-height:1.7; padding:10px 12px; border-radius:9px; background:var(--soft); margin-top:16px; color:var(--text); overflow-wrap:anywhere; }
+.login-card .email-auth-error { border-left:3px solid var(--coral-ink); }
+.login-card .email-auth-notice { border-left:3px solid var(--primary-ink); }
+.email-auth-tabs button:disabled,.email-auth-form button:disabled { opacity:.65; }
