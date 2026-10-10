@@ -250,7 +250,7 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
         {mode !== 'forgot' && <label>Пароль<input type="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} minLength={mode === 'signup' ? 8 : undefined} required value={password} onChange={event => setPassword(event.target.value)} disabled={disabled}/></label>}
         {mode === 'signup' && <label>Повторите пароль<input type="password" autoComplete="new-password" minLength={8} required value={passwordAgain} onChange={event => setPasswordAgain(event.target.value)} disabled={disabled}/></label>}
         {mode === 'signup' && <p className="email-auth-hint">Не менее 8 символов. Используйте уникальный пароль.</p>}
-        {mode === 'signup' && <label className="pd-consent-checkbox"><input type="checkbox" checked={pdConsent} onChange={event => { setPdConsent(event.target.checked); setConsentError(null); }} aria-describedby={consentError ? 'pd-consent-error' : undefined}/><span>Я даю <a href="#/consent">согласие на обработку персональных данных</a></span></label>}
+        
         {consentError && <p id="pd-consent-error" className="pd-consent-error" role="alert">{consentError}</p>}
         <button type="submit" className="primary-button email-auth-submit" disabled={disabled}>
           {busy ? 'Выполняем…' : mode === 'signin' ? 'Войти по почте' : mode === 'signup' ? 'Зарегистрироваться' : 'Отправить письмо'}
@@ -259,7 +259,7 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
       {mode === 'signin' && <button className="email-auth-link" disabled={disabled} onClick={() => changeMode('forgot')}>Забыли пароль?</button>}
       {mode === 'forgot' && <button className="email-auth-link" disabled={disabled} onClick={() => changeMode('signin')}>Вернуться ко входу</button>}
       {mode !== 'forgot' && <><div className="email-auth-separator"><span>или войдите через</span></div>
-        <label className="pd-consent-checkbox"><input type="checkbox" checked={pdConsent} onChange={event => { setPdConsent(event.target.checked); setConsentError(null); }} aria-describedby={consentError ? 'pd-consent-error' : undefined}/><span>Я даю <a href="#/consent">согласие на обработку персональных данных</a> для входа через Яндекс</span></label>
+        <label className="pd-consent-checkbox"><input type="checkbox" checked={pdConsent} onChange={event => { setPdConsent(event.target.checked); setConsentError(null); }} aria-describedby={consentError ? 'pd-consent-error' : undefined}/><span>Я даю <a href="#/consent">согласие на обработку персональных данных</a> для создания аккаунта</span></label>
         <div className="login-providers">{identityProviders.map(provider => <button key={provider.id} type="button" disabled={provider.status !== 'enabled' || disabled} onClick={provider.id === 'yandex' ? () => { void startYandex(); } : undefined} className="login-provider"><strong>{provider.id === 'yandex' && redirecting ? 'Переходим в Яндекс…' : provider.label}{provider.status === 'coming-soon' && ' — скоро'}</strong>{provider.status === 'not-configured' && <span>Подключение настраивается</span>}</button>)}</div>
       </>}
       <a className="login-policy-link" href="#/privacy">Политика обработки персональных данных</a>
