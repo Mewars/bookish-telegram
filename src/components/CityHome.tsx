@@ -89,7 +89,6 @@ export function CityHome({ city, items, navigate, user, ...actions }: CardAction
 
       </div>
 
-      <span className="cover-media-credit">{cityCover.caption}</span>
     </section>
 
     {user?.first_name && <button className="cover-welcome" onClick={() => navigate('profile')}>
@@ -104,7 +103,6 @@ export function CityHome({ city, items, navigate, user, ...actions }: CardAction
             <h2>{selected?.label ?? 'Нашлось рядом'}</h2>
             <p role="status">
               Найдено: {results.length}
-              {selected?.label === 'Сегодня' || selected?.label === 'Услуги' ? ' · демонстрационные данные' : ''}
             </p>
           </div>
           <button className="text-action" onClick={reset}>Сбросить <Icon name="close" size={17}/></button>
@@ -114,10 +112,10 @@ export function CityHome({ city, items, navigate, user, ...actions }: CardAction
           : <EmptyState title="Пока ничего" text="Попробуйте «музей», «кафе» или «фото»." action="Сбросить поиск" onAction={reset}/>}
       </section> : <>
         {selection('Популярные места', 'То, с чего удобно начать знакомство с Енисейском.', 'places', popular, '01', 3)}
-        {selection('Куда сходить', 'Поводы выйти из дома · демонстрационная афиша', 'events', items.filter(item => item.kind === 'events'), '02')}
+        {selection('Куда сходить', 'Поводы выйти из дома.', 'events', items.filter(item => item.kind === 'events'), '02')}
         {selection('Где поесть', 'Кофе, обед и разговоры без спешки.', 'places', items.filter(item => discoveries[1].matches(item)), '03')}
         {selection('Места, которые стоит увидеть', 'История города в деталях.', 'places', pick(['place-kytmanov-museum', 'place-borodkin-house', 'place-photoizba', 'place-spassky-monastery']), '04')}
-        {selection('Услуги рядом', 'Нужные люди и полезные дела · демо-подборка', 'services', items.filter(item => item.kind === 'services'), '05')}
+        {selection('Услуги рядом', 'Нужные люди и полезные дела.', 'services', items.filter(item => item.kind === 'services'), '05')}
       </>}
     </div>
   </div>;
