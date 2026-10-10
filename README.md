@@ -105,6 +105,6 @@ JavaScript-счётчик разрешён только в production-сборк
 
 Схема таблиц и RLS подготовлены в `supabase/schema.sql` и по сообщению пользователя уже настроены в Supabase. Приложение не применяет SQL автоматически. Подробности lifecycle, кеша, ограничений и следующих шагов: [docs/accounts.md](docs/accounts.md).
 
-## Тестовый GitHub Pages
+## Production GitHub Pages
 
-Отдельная сборка `npm run build:pages` использует `/bookish-telegram/`, обычная Netlify-сборка сохраняет `/`. Workflow проверяет PR и публикует только ветку `mewars`. Настройки Pages, OAuth и команды локальной проверки: [docs/github-pages.md](docs/github-pages.md).
+Production-сборка `npm run build:pages` использует `/` для `https://ryadomcity.ru`; Netlify-сборка тоже сохраняет `/` и подходит для preview. Необязательная `npm run build:pages:test` использует `/bookish-telegram/`. Workflow проверяет PR и публикует только ветку `mewars`. Порядок переключения DNS, настройки Pages и переменные окружения: [docs/github-pages.md](docs/github-pages.md).

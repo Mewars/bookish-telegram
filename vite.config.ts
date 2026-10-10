@@ -1,8 +1,8 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => ({
-  // Netlify keeps the root path; only the explicit Pages build uses the repo path.
-  base: mode === 'github-pages' ? '/bookish-telegram/' : '/',
+  // Production Pages and Netlify share the root path; the optional test build uses the repo path.
+  base: mode === 'github-pages-test' ? '/bookish-telegram/' : '/',
   plugins: [react(), {
     name: 'production-metrika-noscript',
     // Without JavaScript, hostname checks are impossible. Keep the pixel only

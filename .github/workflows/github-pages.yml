@@ -1,4 +1,4 @@
-name: Test GitHub Pages
+name: Production GitHub Pages
 
 on:
   push:
@@ -17,6 +17,11 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_YANDEX_MAPS_API_KEY: ${{ secrets.VITE_YANDEX_MAPS_API_KEY }}
+      CONTEXT: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/mewars' && 'production' || 'deploy-preview' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,12 +34,16 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
-      - name: Build for the repository subpath
+      - name: Check production auth configuration
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/mewars'
+        shell: bash
+        run: |
+          if [[ -z "$VITE_SUPABASE_URL" || -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]]; then
+            echo "::error::Configure the production VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY repository secrets before deploying."
+            exit 1
+          fi
+      - name: Build for ryadomcity.ru at the domain root
         run: npm run build:pages
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_YANDEX_MAPS_API_KEY: ${{ secrets.VITE_YANDEX_MAPS_API_KEY }}
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
