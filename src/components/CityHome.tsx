@@ -9,10 +9,10 @@ import { cityCover } from '../data/cityCover';
 import { matches } from '../utils/search';
 
 const discoveries: { label: string; icon: IconName; matches: (item: Item) => boolean }[] = [
+  { label: 'Сегодня', icon: 'events', matches: item => item.kind === 'events' && item.dateOffset === 0 },
   { label: 'Поесть', icon: 'places', matches: item => item.kind === 'places' && item.category.split(' / ')[0] === 'Кафе' },
   { label: 'Погулять', icon: 'pin', matches: item => item.kind === 'places' && ['Парки', 'Достопримечательности'].includes(item.category.split(' / ')[0]) },
   { label: 'Культура', icon: 'star', matches: item => item.kind === 'places' && item.category.split(' / ')[0] === 'Музеи' },
-  { label: 'Сегодня', icon: 'events', matches: item => item.kind === 'events' && item.dateOffset === 0 },
   { label: 'Услуги', icon: 'services', matches: item => item.kind === 'services' },
 ];
 
@@ -87,9 +87,6 @@ export function CityHome({ city, items, navigate, user, ...actions }: CardAction
           </button>)}
         </div>
 
-        <button className="cover-cta primary-button" onClick={() => navigate('places')}>
-          Смотреть места <Icon name="arrow" size={18}/>
-        </button>
       </div>
 
       <span className="cover-media-credit">{cityCover.caption}</span>
@@ -118,7 +115,7 @@ export function CityHome({ city, items, navigate, user, ...actions }: CardAction
       </section> : <>
         {selection('Популярные места', 'То, с чего удобно начать знакомство с Енисейском.', 'places', popular, '01', 3)}
         {selection('Куда сходить', 'Поводы выйти из дома · демонстрационная афиша', 'events', items.filter(item => item.kind === 'events'), '02')}
-        {selection('Где поесть', 'Кофе, обед и разговоры без спешки.', 'places', items.filter(item => discoveries[0].matches(item)), '03')}
+        {selection('Где поесть', 'Кофе, обед и разговоры без спешки.', 'places', items.filter(item => discoveries[1].matches(item)), '03')}
         {selection('Места, которые стоит увидеть', 'История города в деталях.', 'places', pick(['place-kytmanov-museum', 'place-borodkin-house', 'place-photoizba', 'place-spassky-monastery']), '04')}
         {selection('Услуги рядом', 'Нужные люди и полезные дела · демо-подборка', 'services', items.filter(item => item.kind === 'services'), '05')}
       </>}
