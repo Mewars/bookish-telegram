@@ -119,3 +119,7 @@ JavaScript-счётчик разрешён только в production-сборк
 ## Production GitHub Pages
 
 Production-сборка `npm run build:pages` использует `/` для `https://ryadomcity.ru`; Netlify-сборка тоже сохраняет `/` и подходит для preview. Необязательная `npm run build:pages:test` использует `/bookish-telegram/`. Workflow проверяет PR и публикует только ветку `mewars`. Порядок переключения DNS, настройки Pages и переменные окружения: [docs/github-pages.md](docs/github-pages.md).
+
+## ZIP для Спринтхост
+
+Ручной workflow **Build Sprinthost ZIP** собирает `npm run build` на Node.js 24 и публикует `sprinthost-site.zip` в Artifacts без автоматического деплоя. Как запустить, скачать и распаковать в `public_html`: [docs/sprinthost.md](docs/sprinthost.md).
