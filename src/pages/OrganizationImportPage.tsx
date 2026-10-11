@@ -93,7 +93,7 @@ export function OrganizationImportPage() {
   const visibleRows = checked.slice(page * pageSize, (page + 1) * pageSize);
   const selected = editing ? checked.find(row => row.number === editing.number) : undefined;
   return <div className="import-shell ym-disable-keys ym-disable-clicks ym-disable-webvisor">
-    <header className="import-header"><a href="#/home" className="brand brand-logo-pin" aria-label="Рядом — на главную"><BrandWordmark/></a>
+    <header className="import-header"><a href="#/home" className="brand brand-logo-pin" aria-label="Рядом — на главную"><BrandWordmark decorative/></a>
       <label>Тема<select value={theme} onChange={event => setTheme(event.target.value as typeof theme)}><option value="system">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label>
     </header>
     <main className="import-page">

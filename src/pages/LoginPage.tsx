@@ -217,7 +217,7 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
   if (recoveryMode) {
     return <><button className="back-link" onClick={exitRecovery}><Icon name="back" size={18}/> Назад</button>
       <section className="login-card" aria-busy={disabled}>
-        <span className="brand brand-logo-pin login-brand" aria-label="Рядом"><BrandWordmark/></span>
+        <span className="brand brand-logo-pin login-brand"><BrandWordmark/></span>
         <h1>Новый пароль</h1>
         {state.status === 'authenticated'
           ? <><p>Придумайте новый пароль для своего аккаунта.</p>
@@ -238,7 +238,7 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
 
   return <><button className="back-link" onClick={goBack}><Icon name="back" size={18}/> Назад</button>
     <section className="login-card" aria-busy={disabled}>
-      <span className="brand brand-logo-pin login-brand" aria-label="Рядом"><BrandWordmark/></span>
+      <span className="brand brand-logo-pin login-brand"><BrandWordmark/></span>
       <h1>{mode === 'signup' ? 'Регистрация' : mode === 'forgot' ? 'Восстановить пароль' : 'Войти в Рядом'}</h1>
       <p>{mode === 'signup' ? 'Создайте аккаунт, чтобы сохранять любимые места.' : mode === 'forgot' ? 'Укажите почту, и мы отправим ссылку для смены пароля.' : 'Сохраняйте места и пользуйтесь профилем на разных устройствах.'}</p>
       <div className="email-auth-tabs" role="group" aria-label="Способ входа">
