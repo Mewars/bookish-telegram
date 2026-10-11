@@ -26,7 +26,7 @@
 .bottom-nav button { min-height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 10px; color: var(--muted); }
 .bottom-nav button > span { display: grid; place-items: center; width: 42px; height: 28px; border-radius: 9px; }
 .bottom-nav button svg { width: 20px; height: 20px; }
-.bottom-nav button.active { color: var(--primary); }
+.bottom-nav button.active { color: var(--primary-ink); }
 .bottom-nav button.active > span { background: var(--primary-soft); }
 .web-footer { background: var(--surface-secondary); border-top: 1px solid var(--line); }
 .web-footer-inner { max-width: var(--content-width); margin: auto; padding: 52px 32px 28px; display: grid; grid-template-columns: 1.25fr .7fr 1fr 1fr; gap: 38px; }
