@@ -20,7 +20,6 @@ jobs:
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-      VITE_YANDEX_MAPS_API_KEY: ${{ secrets.VITE_YANDEX_MAPS_API_KEY }}
       CONTEXT: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/mewars' && 'production' || 'deploy-preview' }}
     steps:
       - name: Checkout
@@ -34,6 +33,10 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Test Yandex route links
+        run: npm run test:maps
+      - name: Test OpenStreetMap embedding
+        run: npm run test:osm
       - name: Check production auth configuration
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/mewars'
         shell: bash
