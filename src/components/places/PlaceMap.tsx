@@ -8,8 +8,8 @@ import './placeMap.css';
 export function PlaceMap({ item, desktop }: { item: Item; desktop: boolean }) {
   const [showMap, setShowMap] = useState(false);
   const osm = openStreetMapUrls(item.coordinates);
-  // Route links remain ordinary public Yandex Maps links, not calls to its paid API.
-  const { mapsUrl, routeUrl } = placeMapLinks(item);
+  // Opening links remain ordinary public map links, not paid API calls.
+  const { mapsUrl } = placeMapLinks(item);
 
   if (!osm && !mapsUrl) return null;
 
@@ -43,7 +43,6 @@ export function PlaceMap({ item, desktop }: { item: Item; desktop: boolean }) {
       <div className="place-map-links">
         {osm && <a href={osm.pageUrl} target="_blank" rel="noopener noreferrer">Открыть в OpenStreetMap</a>}
         {mapsUrl && <a href={mapsUrl} target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах</a>}
-        {routeUrl && <a href={routeUrl} target="_blank" rel="noopener noreferrer">Маршрут в Яндекс Картах</a>}
       </div>
     </section>
   );
