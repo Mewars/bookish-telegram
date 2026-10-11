@@ -36,7 +36,10 @@ export function isSafeWebUrl(value: string): boolean {
   } catch { return false; }
 }
 export function normalizeDraft(draft: ApplicationDraft): ApplicationDraft {
-  return Object.fromEntries(applicationFields.map(([key]) => [key, draft[key].trim()])) as ApplicationDraft;
+  return Object.fromEntries(applicationFields.map(([key]) => {
+    const value = draft[key].trim();
+    return [key, ['website', 'vk_url'].includes(key) && value && isSafeWebUrl(value) ? new URL(value).href : value];
+  })) as ApplicationDraft;
 }
 export function validateDraft(draft: ApplicationDraft, consent: boolean): ApplicationErrors {
   const errors: ApplicationErrors = {};
@@ -50,6 +53,7 @@ export function validateDraft(draft: ApplicationDraft, consent: boolean): Applic
   for (const key of ['website', 'vk_url'] as const) {
     const value = draft[key].trim();
     if (value && !isSafeWebUrl(value)) errors[key] = 'Укажите полный HTTPS-адрес без логина и пароля.';
+    else if (value && new URL(value).href.length > 500) errors[key] = 'Адрес после URL-кодирования должен быть не длиннее 500 символов.';
   }
   if (draft.vk_url.trim() && isSafeWebUrl(draft.vk_url.trim()) && !['vk.com', 'www.vk.com', 'vk.ru', 'www.vk.ru'].includes(new URL(draft.vk_url.trim()).hostname)) errors.vk_url = 'Укажите адрес страницы на vk.com или vk.ru.';
   if (!consent) errors.consent = 'Для отправки необходимо отдельное согласие на обработку данных заявки.';

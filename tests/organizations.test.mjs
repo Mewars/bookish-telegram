@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { URL } from 'node:url';
-import { APPLICATION_CONSENT_VERSION, emptyDraft, featureEnabled, mergePublished, statusLabels, validateDraft } from '../src/organizations/model.ts';
+import { APPLICATION_CONSENT_VERSION, emptyDraft, featureEnabled, mergePublished, normalizeDraft, statusLabels, validateDraft } from '../src/organizations/model.ts';
 import { readPublished, readApplications, submitApplication, withDeadline } from '../src/organizations/repository.ts';
 
 const draft = { ...emptyDraft('Енисейск'), title: 'Музей', category: 'Музеи', address: 'ул. Ленина, 106', description: 'Сведения для теста, не публикуются.', source_note: 'Источник для теста.' };
@@ -40,6 +39,8 @@ test('phone and unsafe or invalid website/VK values are rejected', () => {
   assert.ok(validateDraft({ ...draft, phone: 'call me' }, true).phone);
   for (const website of ['javascript:alert(1)', 'http://example.org', 'https://user:pass@example.org', 'data:text/html,test']) assert.ok(validateDraft({ ...draft, website }, true).website);
   assert.ok(validateDraft({ ...draft, vk_url: 'https://evil.org/vk.com' }, true).vk_url);
+  assert.equal(normalizeDraft({ ...draft, vk_url: 'HTTPS://VK.COM/test' }).vk_url, 'https://vk.com/test');
+  assert.ok(validateDraft({ ...draft, website: 'https://example.org/' + 'я'.repeat(100) }, true).website);
   assert.deepEqual(validateDraft({ ...draft, phone: '+7 (991) 438-83-80', website: 'https://example.org', vk_url: 'https://vk.com/test' }, true), {});
 });
 test('pending/archived records never enter catalog, no response preserves local baseline', () => {
@@ -99,5 +100,4 @@ test('status labels and private SEO screens do not invent verification or canoni
   assert.deepEqual(Object.keys(statusLabels), ['pending','approved','rejected']);
   const { pageMetadata } = await import('../src/seo/metadata.ts');
   for (const section of ['add-organization','my-applications','organization-consent']) assert.equal(pageMetadata(section).canonical, undefined);
-  assert.equal(new URL('https://vk.com').protocol, 'https:');
 });
