@@ -1,0 +1,24 @@
+.organizations-page { max-width:900px; margin-inline:auto; overflow-wrap:anywhere; }
+.organizations-page .page-heading h1 { font-size:clamp(30px,5vw,56px); }
+.organization-panel { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:28px; margin:20px 0; }
+.organization-panel h2 { font-size:24px; margin-top:12px; }
+.organization-panel p { color:var(--muted); font-size:14px; line-height:1.7; margin:12px 0 20px; }
+.organization-form fieldset { border:0; padding:0; margin:24px 0 0; min-width:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.organization-field { display:grid; align-content:start; gap:8px; min-width:0; }
+.organization-field label { font-size:14px; font-weight:600; }
+.organization-field input,.organization-field textarea { width:100%; min-width:0; min-height:48px; border:1px solid var(--border); background:var(--bg); color:var(--text); border-radius:10px; padding:12px; font:inherit; font-size:16px; }
+.organization-field textarea { resize:vertical; }
+.organization-field small { font-size:12px; line-height:1.6; color:var(--muted); }
+.organization-wide { grid-column:1/-1; }
+.organization-consent { display:flex; align-items:flex-start; gap:12px; font-size:14px; line-height:1.7; }
+.organization-consent input { width:20px; height:20px; flex-shrink:0; margin-top:3px; accent-color:var(--primary); }
+.organization-consent a,.organization-panel a { color:var(--primary-ink); text-underline-offset:3px; }
+.organization-panel .organization-error { color:var(--coral-ink); }
+.organization-error { display:block; font-size:13px; margin-top:8px; line-height:1.6; }
+.organization-status { display:inline-block; padding:8px 12px; border-radius:10px; background:var(--primary-soft); color:var(--primary-ink); font-size:13px; }
+.organization-field :focus-visible,.organization-consent :focus-visible { outline:2px solid var(--primary); outline-offset:3px; }
+.organization-field [aria-invalid=true] { border-color:var(--coral-ink); }
+.organization-form button:disabled { opacity:.65; }
+.organization-catalog-action { margin-top:20px; font-size:14px; }
+.organization-catalog-status { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:12px 0; color:var(--muted); font-size:13px; }
+@media(max-width:599px) { .organization-panel { padding:20px 16px; }.organization-form fieldset { grid-template-columns:minmax(0,1fr); }.organization-wide { grid-column:auto; }.organization-form .primary-button { width:100%; justify-content:center; white-space:normal; } }
