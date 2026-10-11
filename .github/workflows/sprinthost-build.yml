@@ -1,0 +1,90 @@
+name: Build Sprinthost ZIP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Test map links
+        run: npm run test:maps
+      - name: Test OpenStreetMap
+        run: npm run test:osm
+      - name: Test importer
+        run: npm run test:import
+      - name: Check public production configuration
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          node --input-type=module <<'JS'
+          const { VITE_SUPABASE_URL: url, VITE_SUPABASE_PUBLISHABLE_KEY: key } = process.env;
+          let validUrl = false;
+          try { const parsed = new URL(url); validUrl = parsed.protocol === 'https:' && !parsed.username && !parsed.password; } catch {}
+          if (!validUrl || !key?.startsWith('sb_publishable_') || key.length <= 'sb_publishable_'.length || /\s/.test(key)) {
+            throw new Error('Set the existing VITE_SUPABASE_URL and public sb_publishable_ key repository secrets. Do not use a service-role or secret key.');
+          }
+          JS
+      - name: Build production site at base /
+        run: npm run build
+        env:
+          CONTEXT: production
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      - name: Package dist contents without a wrapper folder
+        working-directory: dist
+        run: zip -r ../sprinthost-site.zip .
+      - name: Verify ZIP layout and contents
+        run: |
+          python3 - <<'PY'
+          from pathlib import PurePosixPath
+          from zipfile import ZipFile
+          with ZipFile('sprinthost-site.zip') as archive:
+              names = archive.namelist()
+              assert 'index.html' in names, 'Missing root index.html'
+              assert any(name.startswith('assets/') for name in names), 'Missing root assets/'
+              for name in names:
+                  path = PurePosixPath(name)
+                  assert not path.is_absolute() and '..' not in path.parts, 'Unsafe ZIP path'
+                  assert not set(path.parts).intersection({'dist', 'src', 'node_modules', '.git'}), 'Non-build directory in ZIP'
+                  assert not any(part.startswith('.env') for part in path.parts), 'Environment file in ZIP'
+                  assert path.suffix not in {'.ts', '.tsx', '.jsx', '.map'}, 'Source code or source map in ZIP'
+              html = archive.read('index.html').decode('utf-8')
+              assert 'src="/assets/' in html and 'href="/assets/' in html, 'Expected root JS/CSS URLs'
+              assert '/bookish-telegram/' not in html, 'Unexpected repository base path'
+              assert archive.testzip() is None, 'Corrupt ZIP entry'
+          print('ZIP verified: root index.html/assets, base /, build files only')
+          PY
+      - name: Upload downloadable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprinthost-site
+          path: sprinthost-site.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+      - name: Write download instructions
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF_SUMMARY'
+          ## Sprinthost ZIP is ready
+          Download the **sprinthost-site** artifact from this run.
+          GitHub downloads an artifact container ZIP: extract it to obtain **sprinthost-site.zip**.
+          The site ZIP contains **index.html**, **assets/** and the other built files at its root.
+          Upload/extract those contents into **/home/mewars/domains/mewars.xsph.ru/public_html/**.
+          This workflow does not deploy, change DNS or update hosting settings.
+          EOF_SUMMARY
