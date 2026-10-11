@@ -7,7 +7,7 @@ export function Card({ item, favorites, toggle, open, favoritesBusy = false, com
   const saved = favorites.includes(item.id);
   const address = item.kind === 'events' ? item.address?.split(',')[0] : item.address;
   return <article data-kind={item.kind} className={`card ${compact ? 'compact' : ''} ${item.real ? 'card-real' : ''}`}>
-    <div className="card-visual"><button className="card-open" onClick={() => open(item)} aria-label={`Подробнее: ${item.title}`}><div className="card-image"><MediaImage src={item.image}/>
+    <div className="card-visual"><button className="card-open" onClick={() => open(item)} aria-label={`Подробнее: ${item.title} · ${item.category}${item.kind === 'events' ? ` ${eventDate(item.dateOffset)} · ${item.time}` : ''}`}><div className="card-image"><MediaImage src={item.image}/>
       <span className="image-label">{item.category}</span>
       {item.kind === 'events' && <span className="date-label">{eventDate(item.dateOffset)} <span>· {item.time}</span></span>}
     </div></button>

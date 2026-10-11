@@ -32,8 +32,8 @@ export function useTelegram() {
     for (const key of ['--bg', '--text', '--muted', '--surface', '--accent', '--accent-text']) {
       document.documentElement.style.removeProperty(key);
     }
-    const resolved = theme === 'system' ? appearance.scheme : theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#171922' : '#F7F6F2');
+    const background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    if (background) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', background);
     saveStorage('ryadom.theme', theme);
   }, [theme, appearance]);
   return { user: webApp?.initDataUnsafe?.user, theme, setTheme, webApp };

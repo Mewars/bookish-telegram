@@ -10,6 +10,7 @@
     "build:pages:test": "npm run build -- --mode github-pages-test",
     "preview": "vite preview --host 0.0.0.0",
     "lint": "eslint .",
+    "test": "npm run test:maps && npm run test:osm && npm run test:import",
     "test:maps": "node --loader ./tests/typescript-loader.mjs tests/place-map-links.test.mjs",
     "test:import": "node --loader ./tests/typescript-loader.mjs tests/organization-import.test.mjs",
     "test:osm": "node --loader ./tests/typescript-loader.mjs tests/openstreetmap.test.mjs"
