@@ -28,6 +28,8 @@ import { FavoritesPage } from './pages/FavoritesPage';
 import { DetailPage } from './pages/DetailPage';
 import { EmptyState } from './components/EmptyState';
 import type { Item, Section } from './types';
+import { pageMetadata } from './seo/metadata';
+import { usePageMetadata } from './seo/usePageMetadata';
 const legalSections: Section[] = ['privacy', 'cookies', 'terms', 'contacts'];
 export default function App() {
  const { user, theme, setTheme, webApp } = useTelegram();
@@ -45,6 +47,7 @@ export default function App() {
  const favoritesCount = cityItems.filter(entry => favorites.includes(entry.id)).length;
  const mainRef = useRef<HTMLElement>(null);
  const item = id ? cityItems.find(x => x.id === id) : undefined;
+ usePageMetadata(pageMetadata(section, id, item));
  const goBack = () => navigate(section === 'favorites' ? 'profile' : section);
  const open = (entry: Item) => navigate(section, entry.id);
  const actions = { favorites, toggle, open, favoritesBusy: syncing };
