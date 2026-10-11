@@ -1,5 +1,5 @@
 import type { SourceMetadata } from '../import/types';
-export type Section = 'home' | 'events' | 'places' | 'services' | 'profile' | 'favorites' | 'login' | 'consent' | 'privacy' | 'cookies' | 'terms' | 'contacts';
+export type Section = 'home' | 'events' | 'places' | 'services' | 'profile' | 'favorites' | 'login' | 'consent' | 'privacy' | 'cookies' | 'terms' | 'contacts' | 'add-organization' | 'my-applications' | 'organization-consent';
 export type Kind = 'events' | 'places' | 'services';
 export type Theme = 'system' | 'light' | 'dark';
 export interface Item extends SourceMetadata {

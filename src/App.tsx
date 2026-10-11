@@ -17,7 +17,10 @@ import { WebFooter } from './components/web/WebFooter';
 import { WebHomePage } from './pages/WebHomePage';
 import { CityPicker } from './components/CityPicker';
 import { filterByCity } from './utils/city';
-import { catalog } from './data/catalog';
+import { featureEnabled } from './organizations/model';
+import { useOrganizations } from './organizations/useOrganizations';
+import { OrganizationsPage } from './organizations/OrganizationsPage';
+import { OrganizationConsentPage } from './organizations/OrganizationConsentPage';
 import { Navigation } from './components/Navigation';
 import { Icon } from './components/Icon';
 import { HomePage } from './pages/HomePage';
@@ -30,7 +33,8 @@ import { EmptyState } from './components/EmptyState';
 import type { Item, Section } from './types';
 import { pageMetadata } from './seo/metadata';
 import { usePageMetadata } from './seo/usePageMetadata';
-const legalSections: Section[] = ['privacy', 'cookies', 'terms', 'contacts'];
+const organizationsEnabled = featureEnabled(import.meta.env.VITE_ORGANIZATIONS_ENABLED, window.location.protocol, window.location.hostname, import.meta.env.DEV);
+const legalSections: Section[] = ['privacy', 'cookies', 'terms', 'contacts', 'organization-consent'];
 export default function App() {
  const { user, theme, setTheme, webApp } = useTelegram();
  const isWideScreen = useMediaQuery('(min-width: 900px)');
@@ -43,7 +47,8 @@ export default function App() {
  const goLegalBack = () => navigate(legalOrigin.current.section, legalOrigin.current.id);
  const { city, selectCity, storageError: cityStorageError } = useCity();
  const [cityPickerOpen, setCityPickerOpen] = useState(false);
- const cityItems = filterByCity(catalog, city);
+ const organizationCatalog = useOrganizations(organizationsEnabled);
+ const cityItems = filterByCity(organizationCatalog.items, city);
  const favoritesCount = cityItems.filter(entry => favorites.includes(entry.id)).length;
  const mainRef = useRef<HTMLElement>(null);
  const item = id ? cityItems.find(x => x.id === id) : undefined;
@@ -54,8 +59,8 @@ export default function App() {
  useEffect(() => { window.scrollTo({ top: 0 }); mainRef.current?.focus({ preventScroll: true }); }, [section, id]);
  useEffect(() => {
   const back = webApp?.BackButton;
-  const callback = () => { if (cityPickerOpen) { setCityPickerOpen(false); return; } if (isLegalPage) { const origin = legalOrigin.current; window.location.hash = `/${origin.section}${origin.id ? `/${origin.id}` : ''}`; return; } window.location.hash = `/${section === 'consent' ? 'login' : id ? section : 'profile'}`; };
-  if (cityPickerOpen || id || section === 'favorites' || section === 'consent' || isLegalPage) { back?.show(); back?.onClick(callback); }
+  const callback = () => { if (cityPickerOpen) { setCityPickerOpen(false); return; } if (isLegalPage) { const origin = legalOrigin.current; window.location.hash = `/${origin.section}${origin.id ? `/${origin.id}` : ''}`; return; } window.location.hash = `/${section === 'consent' ? 'login' : section === 'add-organization' ? 'places' : id ? section : 'profile'}`; };
+  if (cityPickerOpen || id || section === 'favorites' || section === 'add-organization' || section === 'my-applications' || section === 'consent' || isLegalPage) { back?.show(); back?.onClick(callback); }
   else back?.hide();
   const escape = (event: KeyboardEvent) => { if (event.key === 'Escape' && id && !cityPickerOpen) callback(); };
   window.addEventListener('keydown', escape);
@@ -63,7 +68,7 @@ export default function App() {
  }, [id, section, webApp, cityPickerOpen, isLegalPage]);
  return <div className={`app-shell ${isDesktopWeb ? 'desktop-web' : 'compact-app'}`} data-section={section} data-mode={webApp ? 'telegram' : 'browser'}>{isDesktopWeb ? <WebHeader city={city} section={section} navigate={navigate} favoritesCount={favoritesCount} cityPickerOpen={cityPickerOpen} openCityPicker={() => setCityPickerOpen(true)}/> : <header className="app-header"><button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Рядом — на главную"><BrandWordmark/></button><button className="city-pill" onClick={() => setCityPickerOpen(true)} aria-label={`Выбрать город: ${city}`} aria-haspopup="dialog" aria-expanded={cityPickerOpen}><Icon name="pin" size={14}/><span>{city}</span><span className="city-chevron" aria-hidden="true"><Icon name="back" size={12}/></span></button><MusicButton/><button className="header-heart" onClick={() => navigate('favorites')} aria-label={`Избранное: ${favoritesCount}`}><Icon name="heart" size={21}/>{favoritesCount > 0 && <span>{favoritesCount}</span>}</button></header>}
  <main ref={mainRef} tabIndex={-1} key={`${section}/${id ?? ''}`}>
- {id ? item ? <DetailPage favoritesBusy={syncing} item={item} saved={favorites.includes(item.id)} toggle={toggle} goBack={() => navigate(section)} desktop={isDesktopWeb} relatedItems={cityItems} favorites={favorites} openRelated={open}/> : <EmptyState title="Карточка не найдена" text="Возможно, ссылка устарела. Посмотрите свежую подборку." action="На главную" onAction={() => navigate('home')}/> : section === 'home' ? isDesktopWeb ? <WebHomePage {...actions} city={city} items={cityItems} navigate={navigate}/> : <HomePage {...actions} city={city} items={cityItems} user={user} navigate={navigate}/> : section === 'privacy' ? <PrivacyPolicyPage goBack={goLegalBack}/> : section === 'cookies' ? <CookiePolicyPage goBack={goLegalBack}/> : section === 'terms' ? <TermsPage goBack={goLegalBack}/> : section === 'contacts' ? <OperatorContactsPage goBack={goLegalBack}/> : section === 'consent' ? <ConsentPage goBack={() => navigate('login')}/> : section === 'login' ? <LoginPage goBack={() => navigate('home')} openProfile={() => navigate('profile')}/> : section === 'profile' ? <ProfilePage city={city} openLogin={() => navigate('login')} browserMode={!webApp} user={user} theme={theme} setTheme={setTheme} favoritesCount={favoritesCount} openFavorites={() => navigate('favorites')}/> : section === 'favorites' ? <FavoritesPage {...actions} items={cityItems} goBack={goBack} explore={() => navigate('events')}/> : <CatalogPage key={section} kind={section} items={cityItems} {...actions}/>}
+ {id ? item ? <DetailPage favoritesBusy={syncing} item={item} saved={favorites.includes(item.id)} toggle={toggle} goBack={() => navigate(section)} desktop={isDesktopWeb} relatedItems={cityItems} favorites={favorites} openRelated={open}/> : <EmptyState title="Карточка не найдена" text="Возможно, ссылка устарела. Посмотрите свежую подборку." action="На главную" onAction={() => navigate('home')}/> : section === 'home' ? isDesktopWeb ? <WebHomePage {...actions} city={city} items={cityItems} navigate={navigate}/> : <HomePage {...actions} city={city} items={cityItems} user={user} navigate={navigate}/> : section === 'privacy' ? <PrivacyPolicyPage goBack={goLegalBack}/> : section === 'cookies' ? <CookiePolicyPage goBack={goLegalBack}/> : section === 'terms' ? <TermsPage goBack={goLegalBack}/> : section === 'contacts' ? <OperatorContactsPage goBack={goLegalBack}/> : section === 'organization-consent' ? organizationsEnabled ? <OrganizationConsentPage/> : <EmptyState title="Приём заявок пока не открыт" text="Каталог продолжает работать." action="К местам" onAction={() => navigate('places')}/> : section === 'add-organization' || section === 'my-applications' ? <OrganizationsPage enabled={organizationsEnabled} mode={section === 'add-organization' ? 'add' : 'list'} city={city} goBack={() => navigate(section === 'my-applications' ? 'profile' : 'places')} openLogin={() => navigate('login')} openApplications={() => navigate('my-applications')}/> : section === 'consent' ? <ConsentPage goBack={() => navigate('login')}/> : section === 'login' ? <LoginPage goBack={() => navigate('home')} openProfile={() => navigate('profile')}/> : section === 'profile' ? <ProfilePage openApplications={organizationsEnabled ? () => navigate('my-applications') : undefined} city={city} openLogin={() => navigate('login')} browserMode={!webApp} user={user} theme={theme} setTheme={setTheme} favoritesCount={favoritesCount} openFavorites={() => navigate('favorites')}/> : section === 'favorites' ? <FavoritesPage {...actions} items={cityItems} goBack={goBack} explore={() => navigate('events')}/> : <CatalogPage addOrganization={organizationsEnabled && section === 'places' ? () => navigate('add-organization') : undefined} catalogStatus={organizationsEnabled ? organizationCatalog.status : undefined} retryCatalog={organizationCatalog.retry} key={section} kind={section} items={cityItems} {...actions}/>}
 
  </main><WebFooter city={city} navigate={navigate}/>{(syncError || storageError) && <div role="status" className="storage-warning">{syncError ?? 'Браузер запретил локальное сохранение избранного.'}{syncError && <button onClick={retry}>Повторить</button>}</div>}{!isDesktopWeb && <Navigation section={section} navigate={navigate}/>}<MusicPlayer/><CookieBanner/>{cityPickerOpen && <CityPicker city={city} selectCity={selectCity} storageError={cityStorageError} onDismiss={() => setCityPickerOpen(false)}/>}</div>;
 }
