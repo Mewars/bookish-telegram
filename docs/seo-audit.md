@@ -76,7 +76,7 @@ JPEG, 1400×788, около 153 kB, соотношение 1.78:1. Подход�
 | `npm run test:seo` | PASS, 4 теста; также включены в общий `npm run test` |
 | XML parser и ZIP | PASS: namespace/loc корректны; 12 build-файлов, robots/sitemap в корне, без wrapper dist и исходников |
 | Browser SEO | PASS: 24 перехода на 390/1440 px, direct card reload, дедупликация/возврат canonical, raw metadata и noscript без JavaScript, ресурсы HTTP 200 |
-| Chromium сценарии | Guest search/favorites/settings/navigation, Telegram fallback и mocked email/OAuth/recovery/signout — PASS, без необработанных JS ошибок |
+| Chromium сценарии | Guest search/favorites/settings/navigation, mocked email/OAuth/recovery/signout — PASS, без необработанных JS ошибок |
 | `git diff --check` | PASS |
 
 Загрузка JavaScript была отключена через настройку site content settings в отдельном Chromium profile: действительно отображается noscript с одним H1. Отключение лишь выполнения скриптов через DevTools/CDP не всегда отключает scripting flag HTML parser, поэтому для этой проверки не использовалось как эквивалент отключённого JavaScript в браузере.

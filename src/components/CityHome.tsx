@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Item, Kind, Section, TelegramUser } from '../types';
+import type { Item, Kind, Section } from '../types';
 import { Card, type CardActions } from './Card';
 import { Search } from './Search';
 import { EmptyState } from './EmptyState';
@@ -16,7 +16,7 @@ const discoveries: { label: string; icon: IconName; matches: (item: Item) => boo
   { label: 'Услуги', icon: 'services', matches: item => item.kind === 'services' },
 ];
 
-export function CityHome({ city, items, navigate, user, ...actions }: CardActions & { city: string; items: Item[]; user?: TelegramUser; navigate: (section: Section) => void }) {
+export function CityHome({ city, items, navigate, ...actions }: CardActions & { city: string; items: Item[]; navigate: (section: Section) => void }) {
   const [query, setQuery] = useState('');
   const [discovery, setDiscovery] = useState<string | null>(null);
 
@@ -91,9 +91,7 @@ export function CityHome({ city, items, navigate, user, ...actions }: CardAction
 
     </section>
 
-    {user?.first_name && <button className="cover-welcome" onClick={() => navigate('profile')}>
-      Привет, {user.first_name} <Icon name="arrow" size={16}/>
-    </button>}
+
 
     <div id="city-selections">
       {searching ? <section className="city-section">

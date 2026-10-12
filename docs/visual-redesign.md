@@ -48,7 +48,7 @@ home, cards, catalog, detail, account, overlays. Старые дублирующ
 - «Ещё рядом» — до трёх реальных записей того же city/kind/основной category,
   с существующим общим favorite state, без recommendation API.
 - WebHeader: компактный sticky header; бренд и город слева, навигация по центру,
-  музыка/избранное/профиль справа. Mobile/Telegram сохраняют нижнюю навигацию.
+  музыка/избранное/профиль справа. Mobile сохраняют нижнюю навигацию.
 - WebFooter теперь общий для desktop/mobile, с навигацией, всеми legal links,
   cookie settings, сотрудничеством/VK и обозначением demo-контента.
 - MusicPlayer: компактная floating card, настройки показываются/сворачиваются
@@ -88,8 +88,6 @@ PlaceMap/место назначения/геокодинг не менялис�
   URL Radio Record и audioPlayer не изменены. Live-эфир не запрашивался.
 - На всех ширинах проверены границы плеера/cookie banner/bottom nav с дополнительным
   safe-area 20px: блоки не пересекаются. Cookie consent и управление им работают.
-- Telegram SDK contract в browser fixture: compact shell, имя, тема, ready/expand,
-  native BackButton. Это проверка layout/контракта, а не запуск в реальном Telegram-клиенте.
 - Importer: загрузка/экспорт JSON без запросов. Production-сборка с согласием на
   аналитику: прямой вход и hash navigation отключают Метрику, выход возобновляет её.
 - До commit созданы before/after screenshots для desktop 1440 (home/places/real
@@ -97,7 +95,7 @@ PlaceMap/место назначения/геокодинг не менялис�
   загружены перед полными снимками. Дополнительно просмотрены первые экраны.
 
 Auth/Supabase adapters, consent state, PD consent storage, analytics, importer,
-useFavorites/useRoute и audioPlayer не изменены. Единственное изменение useTelegram —
+useFavorites/useRoute и audioPlayer не изменены. Тема устройства —
 значения meta theme-color, соответствующие палитре.
 
 Сборка не получила новых зависимостей; CSS стал меньше, JS остаётся сопоставимым

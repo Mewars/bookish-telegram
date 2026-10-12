@@ -34,3 +34,17 @@
 .login-card .email-auth-error { border-left:3px solid var(--coral-ink); }
 .login-card .email-auth-notice { border-left:3px solid var(--primary-ink); }
 .email-auth-tabs button:disabled,.email-auth-form button:disabled { opacity:.65; }
+
+/* Provider marks retain their original colors; the surrounding card uses the brand palette. */
+.login-provider { justify-content: center; gap: 8px; position: relative; min-height: 56px; }
+.login-provider img { width: 24px; height: 24px; flex-shrink: 0; }
+.login-provider strong { font-size: 14px; font-weight: 500; }
+.login-provider > span { flex-basis: 100%; text-align: center; }
+.login-provider--vk:not(:disabled) { background: #0077ff; border-color: #0077ff; color: #fff; }
+.login-provider--yandex:not(:disabled) { background: #000; border-color: #000; color: #fff; }
+.login-provider--vk:disabled { background: var(--surface-secondary); }
+.login-provider:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+@media (hover:hover) and (pointer:fine) {
+  .login-provider--vk:not(:disabled):hover { background: #0071f2; border-color: #0071f2; }
+  .login-provider--yandex:not(:disabled):hover { background: #222; border-color: #222; }
+}

@@ -1,4 +1,4 @@
-export type IdentityProvider = 'telegram' | 'vk' | 'yandex' | 'google' | 'max';
+export type IdentityProvider = 'vk' | 'yandex';
 export interface UserProfile {
   id: string;
   display_name: string;
@@ -10,7 +10,8 @@ export interface UserProfile {
 export interface UserIdentity {
   id: string;
   user_id: string;
-  provider: IdentityProvider;
+  // Historical database providers remain readable without offering obsolete login methods.
+  provider: string;
   provider_user_id: string;
   created_at: string;
 }
