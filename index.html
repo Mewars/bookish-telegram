@@ -3,6 +3,26 @@
   <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <script>
+      // Resolve the theme before stylesheets and React can paint the page.
+      (function () {
+        var theme = 'system';
+        try {
+          var raw = localStorage.getItem('ryadom.theme');
+          var value = raw;
+          try { value = JSON.parse(raw); } catch { /* Legacy unquoted value. */ }
+          if (value === 'light' || value === 'dark' || value === 'system') theme = value;
+        } catch { /* Unavailable storage follows the device preference. */ }
+        var dark = theme === 'dark' || (theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      }());
+    </script>
+    <style>
+      /* Only the initial canvas; keep these colors in sync with styles/tokens.css. */
+      :root { --bg: #FAF7EF; --text: #0B1C29; background: var(--bg); color: var(--text); color-scheme: light; }
+      :root[data-theme=dark] { --bg: #071622; --text: #FFF8E9; color-scheme: dark; }
+      body { margin: 0; background: var(--bg); }
+    </style>
     <meta name="theme-color" content="#0B1C29"/>
     <title>Рядом — городской гид по Енисейску: места и достопримечательности</title>
     <meta name="description" content="Рядом — городской гид по Енисейску. Открывайте интересные места, достопримечательности и идеи для прогулок. Узнавайте город по-новому."/>

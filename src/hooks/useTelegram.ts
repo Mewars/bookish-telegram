@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { TelegramWebApp, Theme } from '../types';
-import { readStorage, saveStorage } from '../utils/storage';
+import { saveStorage } from '../utils/storage';
+import { readTheme } from '../utils/theme';
 import { getTelegramWebApp, loadTelegramWebApp } from '../telegram/sdk';
 const deviceScheme = () => matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 export function useTelegram() {
   const [webApp, setWebApp] = useState<TelegramWebApp | undefined>(getTelegramWebApp);
-  const [theme, setTheme] = useState<Theme>(() => readStorage('ryadom.theme', 'system', (v): v is Theme => v === 'system' || v === 'light' || v === 'dark'));
+  const [theme, setTheme] = useState<Theme>(readTheme);
   const [appearance, setAppearance] = useState(() => ({ scheme: webApp?.colorScheme ?? deviceScheme(), params: webApp?.themeParams }));
   useEffect(() => {
     let active = true;
