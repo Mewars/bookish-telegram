@@ -16,7 +16,7 @@
     "test:import": "node --loader ./tests/typescript-loader.mjs tests/organization-import.test.mjs",
     "test:osm": "node --loader ./tests/typescript-loader.mjs tests/openstreetmap.test.mjs",
     "test:organizations": "node --loader ./tests/typescript-loader.mjs tests/organizations.test.mjs && node tests/organizations-rls.test.mjs",
-    "test:startup": "node --loader ./tests/typescript-loader.mjs tests/startup-loading.test.mjs"
+    "test:startup": "node --loader ./tests/typescript-loader.mjs tests/startup-loading.test.mjs && node --loader ./tests/typescript-loader.mjs tests/theme-startup.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
