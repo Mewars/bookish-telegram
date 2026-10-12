@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandWordmark } from '../components/BrandWordmark';
-import { useTelegram } from '../hooks/useTelegram';
+import { useTheme } from '../hooks/useTheme';
 import { pageMetadata } from '../seo/metadata';
 import { usePageMetadata } from '../seo/usePageMetadata';
 import { checkFileSize, csvTemplate, parseOrganizationCsv } from '../import/csv';
@@ -14,7 +14,7 @@ const requiredFields = new Set(['title', 'city', 'category', 'sourceUrl', 'sourc
 
 export function OrganizationImportPage() {
   usePageMetadata(pageMetadata('import'));
-  const { theme, setTheme } = useTelegram();
+  const { theme, setTheme } = useTheme();
   const [rows, setRows] = useState<ImportRow[]>([]);
   const [fileName, setFileName] = useState('');
   const [delimiter, setDelimiter] = useState('');

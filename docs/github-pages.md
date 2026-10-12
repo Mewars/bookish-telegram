@@ -16,7 +16,7 @@ Hero, favicon, CSS и JS доступны через `/brand/...` и `/assets/..
    - `VITE_SUPABASE_PUBLISHABLE_KEY` — публичный browser key формата `sb_publishable_…`, не service_role / secret key.
    - `VITE_YANDEX_MAPS_API_KEY` — если встроенная карта использует ключ; сохраните существующие ограничения для `ryadomcity.ru`.
    Значения Netlify не переносятся в Actions автоматически. Production deploy останавливается, если отсутствуют два Supabase secrets, чтобы не опубликовать гостевую сборку вместо работающего Auth. Эти Vite-параметры встраиваются в публичный frontend.
-3. Production-домен остаётся тем же. Существующие Supabase Site URL, redirect URL `https://ryadomcity.ru/`, callback `custom:yandex`, Yandex ID и Telegram Mini App URL без необходимости не менять.
+3. Production-домен остаётся тем же. Существующие Supabase Site URL, redirect URL `https://ryadomcity.ru/`, callback `custom:yandex` и Yandex ID без необходимости не менять.
 4. По желанию подтвердите владение доменом в **личных GitHub Settings → Pages → Add a domain**. Значение TXT GitHub выдаёт индивидуально; его нельзя заменить универсальным значением. Оно не меняет текущий хостинг.
 
 ## После merge: Settings → Pages, затем DNS
@@ -61,8 +61,7 @@ MX, почтовые TXT и другие записи, не относящиес
 ## Netlify и существующие функции
 
 Netlify-сайт, его настройки build (`npm run build`, `dist`) и Deploy Preview сохраняются. Проектные Netlify-настройки не удаляются; custom domain/DNS будут переключены отдельно после merge. Для preview используйте Netlify preview URLs.
-Настройки Auth, consent, Метрики и Telegram loader не меняются. Workflow передаёт `CONTEXT=production` только при deploy из `mewars`, сохраняя существующее поведение production build; PR получает `deploy-preview`. JavaScript Метрики по-прежнему ограничен origin `https://ryadomcity.ru` и согласием пользователя.
-Telegram fix PR #21 сохраняется: в обычном браузере SDK не запрашивается, Mini App загружает его после первого render с timeout/fallback.
+Настройки Auth, consent и Метрики не меняются. Workflow передаёт `CONTEXT=production` только при deploy из `mewars`, сохраняя существующее поведение production build; PR получает `deploy-preview`. JavaScript Метрики по-прежнему ограничен origin `https://ryadomcity.ru` и согласием пользователя.
 При сохранении origin `https://ryadomcity.ru` локальное избранное, cookies и согласия остаются в том же браузерном хранилище.
 
 ## Локальная проверка production root

@@ -6,6 +6,8 @@ import { BrandWordmark } from '../components/BrandWordmark';
 import { Icon } from '../components/Icon';
 import { identityProviders } from '../auth/providers';
 import { useAuth } from '../hooks/useAuth';
+import { startWebsiteOAuth, type WebsiteOAuthProvider } from '../auth/oauth';
+import { getOAuthCallbackMessage } from '../auth/oauthCallback';
 
 type EmailMode = 'signin' | 'signup' | 'forgot';
 
@@ -55,7 +57,7 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
   const [newPasswordAgain, setNewPasswordAgain] = useState('');
   const [redirecting, setRedirecting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(getOAuthCallbackMessage);
   const [notice, setNotice] = useState<string | null>(null);
   const [pdConsent, setPdConsent] = useState(hasCurrentPersonalDataConsent);
   const [consentError, setConsentError] = useState<string | null>(null);
@@ -99,20 +101,19 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
     setConsentError(null);
   };
 
-  const startYandex = async () => {
+  const startOAuth = async (provider: WebsiteOAuthProvider) => {
     if (inFlight.current || disabled || !checkConsent()) return;
-    if (!supabase) { setLoginError('Вход через Яндекс недоступен: Supabase не настроен.'); return; }
+    if (!identityProviders.some(entry => entry.id === provider && entry.status === 'enabled')) return;
+    const label = provider === 'vk' ? 'VK ID' : 'Яндекс';
+    if (!supabase) { setLoginError(`Вход через ${label} пока недоступен.`); return; }
     inFlight.current = true;
     setRedirecting(true);
     setLoginError(null);
     try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'custom:yandex',
-        options: { redirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href },
-      });
+      const { error: oauthError } = await startWebsiteOAuth(supabase, provider, new URL(import.meta.env.BASE_URL, window.location.origin).href);
       if (oauthError) throw oauthError;
     } catch {
-      setLoginError('Не удалось перейти в Яндекс. Проверьте соединение и попробуйте ещё раз.');
+      setLoginError(`Не удалось перейти в ${label}. Проверьте соединение и попробуйте ещё раз.`);
       inFlight.current = false;
       setRedirecting(false);
     }
@@ -241,6 +242,11 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
       <span className="brand brand-logo-pin login-brand"><BrandWordmark/></span>
       <h1>{mode === 'signup' ? 'Регистрация' : mode === 'forgot' ? 'Восстановить пароль' : 'Войти в Рядом'}</h1>
       <p>{mode === 'signup' ? 'Создайте аккаунт, чтобы сохранять любимые места.' : mode === 'forgot' ? 'Укажите почту, и мы отправим ссылку для смены пароля.' : 'Сохраняйте места и пользуйтесь профилем на разных устройствах.'}</p>
+      {mode !== 'forgot' && <>
+        <label className="pd-consent-checkbox"><input type="checkbox" checked={pdConsent} onChange={event => { setPdConsent(event.target.checked); setConsentError(null); }} aria-describedby={consentError ? 'pd-consent-error' : undefined}/><span>Я даю <a href="#/consent">согласие на обработку персональных данных</a> для создания аккаунта</span></label>
+        <div className="login-providers">{identityProviders.map(provider => <button key={provider.id} type="button" disabled={provider.status !== 'enabled' || disabled} onClick={() => { void startOAuth(provider.id); }} className={`login-provider login-provider--${provider.id}`}><img src={`${import.meta.env.BASE_URL}brand/${provider.id}-id.svg`} width={24} height={24} alt="" aria-hidden="true"/><strong>{redirecting && provider.status === 'enabled' ? 'Переходим…' : `Войти через ${provider.label}`}</strong>{provider.status === 'not-configured' && <span>Подключение настраивается</span>}</button>)}</div>
+        <div className="email-auth-separator"><span>или через электронную почту</span></div>
+      </>}
       <div className="email-auth-tabs" role="group" aria-label="Способ входа">
         <button type="button" className={mode === 'signin' ? 'active' : ''} aria-pressed={mode === 'signin'} disabled={disabled} onClick={() => changeMode('signin')}>Войти</button>
         <button type="button" className={mode === 'signup' ? 'active' : ''} aria-pressed={mode === 'signup'} disabled={disabled} onClick={() => changeMode('signup')}>Регистрация</button>
@@ -258,10 +264,6 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
       </form>
       {mode === 'signin' && <button className="email-auth-link" disabled={disabled} onClick={() => changeMode('forgot')}>Забыли пароль?</button>}
       {mode === 'forgot' && <button className="email-auth-link" disabled={disabled} onClick={() => changeMode('signin')}>Вернуться ко входу</button>}
-      {mode !== 'forgot' && <><div className="email-auth-separator"><span>или войдите через</span></div>
-        <label className="pd-consent-checkbox"><input type="checkbox" checked={pdConsent} onChange={event => { setPdConsent(event.target.checked); setConsentError(null); }} aria-describedby={consentError ? 'pd-consent-error' : undefined}/><span>Я даю <a href="#/consent">согласие на обработку персональных данных</a> для создания аккаунта</span></label>
-        <div className="login-providers">{identityProviders.map(provider => <button key={provider.id} type="button" disabled={provider.status !== 'enabled' || disabled} onClick={provider.id === 'yandex' ? () => { void startYandex(); } : undefined} className="login-provider"><strong>{provider.id === 'yandex' && redirecting ? 'Переходим в Яндекс…' : provider.label}{provider.status === 'coming-soon' && ' — скоро'}</strong>{provider.status === 'not-configured' && <span>Подключение настраивается</span>}</button>)}</div>
-      </>}
       <a className="login-policy-link" href="#/privacy">Политика обработки персональных данных</a>
       {notice && <p className="email-auth-notice" role="status">{notice}</p>}
       {(loginError || error) && <p className="email-auth-error" role="alert">{loginError ?? error}</p>}

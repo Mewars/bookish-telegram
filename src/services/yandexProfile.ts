@@ -10,7 +10,7 @@ export async function initializeYandexProfile(client: SupabaseClient, profile: U
   if (completed.has(profile.id) || readStorage(key, false, (v): v is boolean => typeof v === 'boolean')) return profile;
   if (pending.has(profile.id)) return pending.get(profile.id)!;
   const initialize = async () => {
-    // getUser validates through Supabase Auth; cached session/Telegram metadata is not trusted here.
+    // getUser validates through Supabase Auth; cached metadata is not trusted here.
     const { data: { user }, error } = await client.auth.getUser();
     if (error || !user || user.id !== profile.id) throw new Error('Не удалось проверить данные пользователя.');
     const isYandex = user.app_metadata.provider === 'custom:yandex' || user.app_metadata.providers?.includes('custom:yandex') || user.identities?.some(identity => identity.provider === 'custom:yandex');

@@ -1,3 +1,2 @@
-// All authentication uses the shared Supabase client. Provider-specific login is not enabled.
-// Telegram identity exchange remains a separate future backend operation.
+// All authentication uses the shared Supabase client.
 export { readAccountData, updateCurrentProfile } from '../services/profiles';

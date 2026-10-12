@@ -15,7 +15,7 @@ function analyticsUrl(raw: string): string | null {
   try {
     const url = new URL(raw, productionOrigin);
     for (const key of [...url.searchParams.keys()]) if (privateParams.has(key.toLowerCase())) url.searchParams.delete(key);
-    // OAuth/Telegram launch fragments must never become analytics URLs.
+    // Private OAuth and historical launch fragments must never become analytics URLs.
     if (url.hash && !/^#\/?(?:home|events|places|services|favorites|profile|login)(?:[/?]|$)/.test(url.hash)) url.hash = '';
     else if (url.hash.includes('?')) {
       const [route, query] = url.hash.split('?');
