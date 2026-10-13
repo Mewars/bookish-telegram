@@ -69,7 +69,7 @@ test('admin UI is feature gated, requires a member row and does not contain priv
   const repo = await readFile('src/admin/repository.ts','utf8');
   assert.match(code, /if \(!enabled\)/);
   assert.match(code, /readCityAccess/);
-  assert.match(code, /verified/);
+  assert.match(code, /validateAdminDraft\(draft, confirmed\)/);
   assert.match(app, /VITE_ADMIN_PANEL_ENABLED/);
   assert.match(repo, /requireCurrentUser/);
   assert.doesNotMatch(repo, /service_role|sb_secret_|localStorage/);
