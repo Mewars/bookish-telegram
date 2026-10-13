@@ -24,6 +24,9 @@ CREATE POLICY city_admin_access_read_self ON public.city_admin_access
   FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
 
 ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS image_url text;
+-- Supports both the public Places and Services sections. Existing rows remain Places.
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'places'
+  CHECK (kind IN ('places', 'services'));
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -38,7 +41,7 @@ END $$;
 
 -- Ownership is validated by RLS, not by a hidden browser button.
 -- Scope to selected city; a '*' owner can administer any city.
-GRANT INSERT (id, city, title, category, description, address, phone, hours,
+GRANT INSERT (id, city, kind, title, category, description, address, phone, hours,
   website, vk_url, source_type, source_url, verified_at, status, image_url)
   ON public.organizations TO authenticated;
 GRANT UPDATE (title, category, description, address, phone, hours,
