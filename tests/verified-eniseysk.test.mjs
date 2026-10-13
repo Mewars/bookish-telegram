@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import { URL } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 
 test('reviewed Eniseysk records: 17 source-backed entries and two content sections', async () => {
   const source = await readFile('src/data/verifiedEniseysk.ts', 'utf8');
-  const blocks = [...source.matchAll(/\{\s*\.\.\.common,[\s\S]*?\n  \},/g)].map(match => match[0]);
+  const blocks = [...source.matchAll(/\{\s*\.\.\.common,[\s\S]*?\n\s{2}\},/g)].map(match => match[0]);
   const ids = blocks.map(block => block.match(/\bid: '([^']+)'/)?.[1]);
   assert.equal(blocks.length, 17);
   assert.equal(new Set(ids).size, 17);
