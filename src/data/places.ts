@@ -50,7 +50,7 @@ export const places: Item[] = [
   {
     ...suppliedMetadata,
     id: 'place-spassky-monastery',
-    title: 'Спасский Енисейский мужской монастырь', category: 'Достопримечательности', image: city,
+    title: 'Спасский Енисейский мужской монастырь', category: 'Достопримечательности', image: '/spassky-monastery-eniseysk.webp',
     address: 'ул. Рабоче-Крестьянская, 103',
     description: 'Один из известных историко-архитектурных и религиозных объектов Енисейска.',
   },
