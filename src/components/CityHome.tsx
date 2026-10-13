@@ -22,6 +22,7 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
 
   const selected = discoveries.find(option => option.label === discovery);
   const results = items.filter(item => matches(item, query) && (!selected || selected.matches(item)));
+  const availableDiscoveries = discoveries.filter(option => items.some(item => option.matches(item)));
   const searching = !!query.trim() || !!selected;
   const reset = () => { setQuery(''); setDiscovery(null); };
 
@@ -77,7 +78,7 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
         </div>
 
         <div className="quick-discovery" role="group" aria-label="Быстрые сценарии">
-          {discoveries.map(option => <button
+          {availableDiscoveries.map(option => <button
             key={option.label}
             aria-pressed={discovery === option.label}
             onClick={() => setDiscovery(current => current === option.label ? null : option.label)}
@@ -107,7 +108,7 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
         </div>
         {results.length
           ? <div className="card-grid">{results.map(item => <Card key={item.id} item={item} {...actions}/>)}</div>
-          : <EmptyState title="Пока ничего" text="Попробуйте «музей», «кафе» или «фото»." action="Сбросить поиск" onAction={reset}/>}
+          : <EmptyState title="Пока ничего" text="Попробуйте «музей», «кафе» или «парк»." action="Сбросить поиск" onAction={reset}/>}
       </section> : <>
         {selection('Популярные места', 'То, с чего удобно начать знакомство с Енисейском.', 'places', popular, '01', 3)}
         {selection('Куда сходить', 'Поводы выйти из дома.', 'events', items.filter(item => item.kind === 'events'), '02')}
