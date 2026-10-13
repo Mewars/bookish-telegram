@@ -16,6 +16,7 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
   const { state } = useAuth();
   const userId = state.user?.id;
   const [access, setAccess] = useState<CityAdminAccess[] | null>(null);
+  const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
   const [rows, setRows] = useState<OrganizationRow[]>([]);
   const [loadingError, setLoadingError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -34,9 +35,9 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
       const permissions = await readCityAccess(supabase, userId);
       if (!permissions.length) throw new Error('У этого аккаунта нет доступа к административной панели.');
       const organizations = await readAdminOrganizations(supabase, userId, permissions);
-      if (active) { setAccess(permissions); setRows(organizations); setLoadingError(''); }
+      if (active) { setAccess(permissions); setCheckedUserId(userId); setRows(organizations); setLoadingError(''); }
     }).catch(error => {
-      if (active) setLoadingError(error instanceof Error ? error.message : 'Нет доступа к админке.');
+      if (active) { setCheckedUserId(userId); setAccess(null); setRows([]); setLoadingError(error instanceof Error ? error.message : 'Нет доступа к админке.'); }
     });
     return () => { active = false; };
   }, [enabled, userId, attempt]);
@@ -79,6 +80,7 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
   if (!enabled) return <EmptyState title="Админка готовится к запуску" text="Пока мы не проверили права в Supabase и не включили защищённый доступ, управление организациями выключено." action="На главную" onAction={goHome}/>;
   if (state.status === 'loading') return <p role="status">Проверяем вход администратора…</p>;
   if (!userId) return <EmptyState title="Для входа в админку нужна авторизация" text="Войди под своей учётной записью «Рядом». Доступ к управлению выдаётся отдельно." action="Войти" onAction={openLogin}/>;
+  if (checkedUserId !== userId) return <p role="status">Проверяем права этого аккаунта…</p>;
   if (loadingError) return <div className="admin-shell"><h1>Доступ к админке</h1><p role="alert">{loadingError}</p><button className="secondary-button" onClick={() => { setAccess(null); setLoadingError(''); setAttempt(value => value + 1); }}>Повторить проверку</button></div>;
   if (!access) return <p role="status">Проверяем права на управление городами…</p>;
 
