@@ -65,13 +65,20 @@ export function SiteUpdateNotice() {
 
   if (!availableVersion || availableVersion === dismissedVersion) return null;
 
+  const loadNewestRelease = () => {
+    // Query-busting refresh works even if nginx skips Apache .htaccess cache headers.
+    const target = new URL(window.location.href);
+    target.searchParams.set('ryadom_release', availableVersion);
+    window.location.replace(target.toString());
+  };
+
   return (
     <aside className="site-update-notice" role="status" aria-label="Доступно обновление сайта">
       <div className="site-update-notice__text">
         <strong>«Рядом» обновился</strong>
         <span>Есть свежая версия сайта.</span>
       </div>
-      <button className="site-update-notice__refresh" type="button" onClick={() => window.location.reload()}>
+      <button className="site-update-notice__refresh" type="button" onClick={loadNewestRelease}>
         Обновить
       </button>
       <button className="site-update-notice__dismiss" type="button" aria-label="Напомнить позже" onClick={() => setDismissedVersion(availableVersion)}>
