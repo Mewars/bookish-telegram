@@ -29,12 +29,13 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
   const [cityFilter, setCityFilter] = useState('Все города');
 
   useEffect(() => {
-    if (!enabled || !userId || !supabase) return;
+    const client = supabase;
+    if (!enabled || !userId || !client) return;
     let active = true;
     Promise.resolve().then(async () => {
-      const permissions = await readCityAccess(supabase, userId);
+      const permissions = await readCityAccess(client, userId);
       if (!permissions.length) throw new Error('У этого аккаунта нет доступа к административной панели.');
-      const organizations = await readAdminOrganizations(supabase, userId, permissions);
+      const organizations = await readAdminOrganizations(client, userId, permissions);
       if (active) { setAccess(permissions); setCheckedUserId(userId); setRows(organizations); setLoadingError(''); }
     }).catch(error => {
       if (active) { setCheckedUserId(userId); setAccess(null); setRows([]); setLoadingError(error instanceof Error ? error.message : 'Нет доступа к админке.'); }
@@ -106,7 +107,7 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
           </select>
         </label>
         {adminFields.map(field => <label key={field.key} className={field.key === 'description' ? 'admin-wide' : undefined}>
-          {field.label}{field.required ? ' *' : ''}
+          {field.label}{'required' in field && field.required ? ' *' : ''}
           {['description', 'hours'].includes(field.key)
             ? <textarea rows={field.key === 'description' ? 5 : 3} disabled={busy} maxLength={field.limit} value={draft[field.key]} onChange={event => change(field.key, event.target.value)}/>
             : <input disabled={busy} maxLength={field.limit} type={field.key === 'phone' ? 'tel' : ['website','vk_url','source_url'].includes(field.key) ? 'url' : 'text'} value={draft[field.key]} onChange={event => change(field.key, event.target.value)} placeholder={['website','vk_url','source_url'].includes(field.key) ? 'https://' : undefined}/>}
