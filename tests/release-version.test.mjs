@@ -26,7 +26,9 @@ test('the update check is cache-busting, infrequent, and respects interrupted ne
 });
 
 test('visitors choose when to reload; we do not interrupt unsaved forms', () => {
-  assert.match(notice, /onClick=\{\(\) => window\.location\.reload\(\)\}/);
+  assert.match(notice, /onClick=\{loadNewestRelease\}/);
+  assert.match(notice, /target\.searchParams\.set\('ryadom_release', availableVersion\)/);
+  assert.match(notice, /window\.location\.replace\(target\.toString\(\)\)/);
   assert.match(notice, /onClick=\{\(\) => setDismissedVersion\(availableVersion\)\}/);
   assert.match(app, /<SiteUpdateNotice\/>/);
   assert.doesNotMatch(notice, /setInterval\(\(\) => window\.location\.reload/);
