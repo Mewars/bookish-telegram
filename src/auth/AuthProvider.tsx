@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { AuthContext } from './context';
 import { initializeYandexProfile } from '../services/yandexProfile';
+import { initializeVkAccount } from '../services/vkProfile';
 import { supabase } from '../lib/supabase';
 import { readAccountData, updateCurrentProfile } from './adapter';
 import type { AuthState, ProfileUpdate } from '../types/auth';
@@ -27,6 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (account.profile) {
           try { account.profile = await initializeYandexProfile(supabase!, account.profile); }
           catch { account.error = account.error ?? 'Не удалось заполнить профиль из Яндекс ID. Ваш аккаунт остаётся доступным.'; }
+        }
+        if (!active || revision !== sessionRevision.current) return;
+        if (account.profile && session.user.identities?.some(identity => identity.provider === 'custom:vk')) {
+          try {
+            const vk = await initializeVkAccount(supabase!, account.profile);
+            account.profile = vk.profile;
+            if (vk.identity && !account.identities.some(identity => identity.provider === 'vk')) account.identities.push(vk.identity);
+          } catch { account.error = account.error ?? 'Не удалось заполнить профиль из VK ID. Ваш аккаунт остаётся доступным.'; }
         }
         if (!active || revision !== sessionRevision.current) return;
         setState({ status: 'authenticated', user, profile: account.profile, identities: account.identities });

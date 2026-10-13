@@ -10,14 +10,15 @@
     "build:pages:test": "npm run build -- --mode github-pages-test",
     "preview": "vite preview --host 0.0.0.0",
     "lint": "eslint .",
-    "test": "npm run test:maps && npm run test:osm && npm run test:import && npm run test:seo && npm run test:organizations && npm run test:startup && npm run test:oauth",
+    "test": "npm run test:maps && npm run test:osm && npm run test:import && npm run test:seo && npm run test:organizations && npm run test:startup && npm run test:oauth && npm run test:vk-bridge",
     "test:oauth": "node --loader ./tests/typescript-loader.mjs tests/website-oauth.test.mjs",
     "test:seo": "node --loader ./tests/typescript-loader.mjs tests/seo.test.mjs",
     "test:maps": "node --loader ./tests/typescript-loader.mjs tests/place-map-links.test.mjs",
     "test:import": "node --loader ./tests/typescript-loader.mjs tests/organization-import.test.mjs",
     "test:osm": "node --loader ./tests/typescript-loader.mjs tests/openstreetmap.test.mjs",
     "test:organizations": "node --loader ./tests/typescript-loader.mjs tests/organizations.test.mjs && node tests/organizations-rls.test.mjs",
-    "test:startup": "node --loader ./tests/typescript-loader.mjs tests/startup-loading.test.mjs && node --loader ./tests/typescript-loader.mjs tests/theme-startup.test.mjs"
+    "test:startup": "node --loader ./tests/typescript-loader.mjs tests/startup-loading.test.mjs && node --loader ./tests/typescript-loader.mjs tests/theme-startup.test.mjs",
+    "test:vk-bridge": "tsc -p supabase/functions/vk-oauth-bridge/tsconfig.json && node --loader ./tests/typescript-loader.mjs tests/vk-bridge.test.mjs && node --loader ./tests/typescript-loader.mjs tests/vk-bridge-sql.test.mjs && node --loader ./tests/typescript-loader.mjs tests/vk-profile.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

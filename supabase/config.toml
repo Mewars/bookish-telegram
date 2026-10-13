@@ -1,2 +1,6 @@
 [functions.yandex-userinfo]
 verify_jwt = false
+
+# Public OAuth redirects; token/userinfo implement their own client/Bearer auth.
+[functions.vk-oauth-bridge]
+verify_jwt = false
