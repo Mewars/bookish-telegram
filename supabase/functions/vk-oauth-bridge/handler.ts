@@ -80,7 +80,7 @@ export async function createBridge(config: BridgeConfig,store: BridgeStore,upstr
   async function vk(path: 'auth'|'user_info',params: URLSearchParams): Promise<Record<string,unknown>> {
     // VK credentials/tokens are POST body only, fixed host, redirects prohibited.
     let response: Response;
-    try { response=await upstream('https://id.vk.com/oauth2/'+path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},body:params.toString(),redirect:'error',signal:AbortSignal.timeout(10_000)}); }
+    try { response=await upstream('https://id.vk.ru/oauth2/'+path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},body:params.toString(),redirect:'error',signal:AbortSignal.timeout(10_000)}); }
     catch { fail(502,'upstream_error'); }
     if (!response.ok) fail(502,'upstream_error');
     let data: unknown;
@@ -110,7 +110,7 @@ export async function createBridge(config: BridgeConfig,store: BridgeStore,upstr
     if (p.has('scope') && !['','profile'].includes(p.get('scope')!)) fail(400,'invalid_scope');
     const vkState=randomSecret(),verifier=randomSecret(),binding=randomSecret();
     await put('attempt',vkState,{state,challenge,verifier,cookieHash:await digest(binding)} satisfies Attempt,600);
-    const target=new URL('https://id.vk.com/authorize');
+    const target=new URL('https://id.vk.ru/authorize');
     target.search=new URLSearchParams({client_id:config.vkAppId,redirect_uri:VK_CALLBACK,response_type:'code',state:vkState,code_challenge:await digest(verifier),code_challenge_method:'s256',scope:'vkid.personal_info'}).toString();
     return redirect(target.href,cookie(vkState,binding,600));
   }

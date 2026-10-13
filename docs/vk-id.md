@@ -50,7 +50,7 @@ Callback VK и callback Supabase — разные адреса. Не ставь�
 
 ### 1. Проверить VK App 54818827
 
-В [кабинете VK ID](https://id.vk.com/about/business/go) открыть это приложение, убедиться, что доступна веб-платформа. Сайт и Redirect URI задать по таблице выше; подтвердить требуемые VK настройки домена/доступа приложения. Минимальный scope: `vkid.personal_info`, без email/phone. Проверить, что авторизация через ID VK разрешена для тестового аккаунта.
+В [кабинете VK ID](https://id.vk.ru/about/business/go) открыть это приложение, убедиться, что доступна веб-платформа. Сайт и Redirect URI задать по таблице выше; подтвердить требуемые VK настройки домена/доступа приложения. Минимальный scope: `vkid.personal_info`, без email/phone. Проверить, что авторизация через ID VK разрешена для тестового аккаунта.
 
 Публичный VK Client ID — `54818827`. Это **не** Client ID для настройки custom:vk в Supabase: у Supabase будет отдельный клиент bridge. Если выбранный VK server flow требует Client Secret, взять его в кабинете VK и сохранить только как Edge secret `VK_APP_SECRET`; официальный PKCE web SDK обменивает код без secret, поэтому в коде он необязателен. Не добавлять его в `VITE_*` и Git.
 
@@ -144,5 +144,5 @@ Site URL остаётся `https://ryadomcity.ru/`. Redirect allowlist frontend 
 
 - [Supabase custom OAuth/OIDC providers](https://supabase.com/docs/guides/auth/custom-oauth-providers): Free slots, PKCE, email_optional, server options.
 - [Supabase Edge limits](https://supabase.com/docs/guides/functions/limits): runtime, HTML/custom domain restriction.
-- [Официальный VK SDK exchangeCode/userInfo](https://github.com/VKCOM/vkid-web-sdk/blob/master/src/auth/auth.ts) и [типы ответов](https://github.com/VKCOM/vkid-web-sdk/blob/master/src/auth/types.ts): device_id, POST body, user_id. Основная страница VK docs не открылась из исследовательского инструмента; протокол сверялся с официальным SDK, не с сторонним примером.
+- [Официальный VK SDK exchangeCode/userInfo](https://github.com/VKCOM/vkid-web-sdk/blob/master/src/auth/auth.ts) и [типы ответов](https://github.com/VKCOM/vkid-web-sdk/blob/master/src/auth/types.ts): device_id, POST body, user_id. Актуальные constants официального SDK указывают `id.vk.ru`, этот host зафиксирован в коде ([constants.ts](https://github.com/VKCOM/vkid-web-sdk/blob/master/src/constants.ts)); автоматические переходы с другого домена не разрешены. Основная страница VK docs не открылась из исследовательского инструмента; протокол сверялся с официальным SDK, не с сторонним примером.
 - [Supabase Auth custom OAuth implementation](https://github.com/supabase/auth/blob/master/internal/api/provider/custom_oauth.go) и [external callback](https://github.com/supabase/auth/blob/master/internal/api/external.go): claims, EmailOptional и штатное создание/поиск identity.

@@ -30,7 +30,7 @@ async function setup(options={}) {
       assert.match(p.get('code_verifier'),/^[A-Za-z0-9_-]{43}$/);
       return Response.json({access_token:'PRIVATE-VK-TOKEN',refresh_token:'PRIVATE-VK-REFRESH',user_id:42,token_type:'Bearer',expires_in:3600,state:options.wrongState?'wrong':p.get('state')});
     }
-    assert.equal(url,'https://id.vk.com/oauth2/user_info'); assert.equal(p.get('access_token'),'PRIVATE-VK-TOKEN');
+    assert.equal(url,'https://id.vk.ru/oauth2/user_info'); assert.equal(p.get('access_token'),'PRIVATE-VK-TOKEN');
     return Response.json({user:{user_id:options.wrongId?'43':'42',first_name:'Сосед',last_name:'Рядом',email:'existing@example.test',phone:'123',avatar:options.avatar??'https://example.test/avatar.png'}});
   };
   const handle=await createBridge(config,store,upstream);

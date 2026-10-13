@@ -29,7 +29,7 @@ async def main():
                 self.send_response(result['status'])
                 for key,value in result['headers'].items():
                     if key.lower()=='location':
-                        value=value.replace('https://id.vk.com/authorize',f'https://localhost:{server.server_port}/mock-vk/authorize').replace(ORIGIN,f'https://127.0.0.1:{server.server_port}')
+                        value=value.replace('https://id.vk.ru/authorize',f'https://localhost:{server.server_port}/mock-vk/authorize').replace(ORIGIN,f'https://127.0.0.1:{server.server_port}')
                     self.send_header(key,value)
                 self.end_headers();self.wfile.write(result['body'].encode())
         with tempfile.TemporaryDirectory(prefix='vk-bridge-tls-') as temp:
