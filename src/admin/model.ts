@@ -14,6 +14,7 @@ export interface CityAdminAccess {
 export interface AdminDraft {
   id: string;
   city: string;
+  kind: 'places' | 'services';
   title: string;
   category: string;
   description: string;
@@ -47,13 +48,13 @@ export function canManageCity(access: CityAdminAccess[], city: string): boolean 
 }
 
 export function newAdminDraft(city: string): AdminDraft {
-  return { id: '', city, title: '', category: '', description: '', address: '', phone: '',
+  return { id: '', city, kind: 'places', title: '', category: '', description: '', address: '', phone: '',
     hours: '', website: '', vk_url: '', source_url: '', image_url: '', status: 'draft', verified_at: '' };
 }
 
 export function rowToAdminDraft(row: OrganizationRow): AdminDraft {
   return {
-    id: row.id, city: row.city, title: row.title, category: row.category,
+    id: row.id, city: row.city, kind: row.kind === 'services' ? 'services' : 'places', title: row.title, category: row.category,
     description: row.description, address: row.address ?? '', phone: row.phone ?? '',
     hours: row.hours ?? '', website: row.website ?? '', vk_url: row.vk_url ?? '',
     source_url: row.source_url ?? '', image_url: row.image_url ?? '',
@@ -64,6 +65,7 @@ export function rowToAdminDraft(row: OrganizationRow): AdminDraft {
 export function validateAdminDraft(draft: AdminDraft, confirmed: boolean): Record<string, string> {
   const errors: Record<string, string> = {};
   if (!draft.city.trim() || draft.city.length > 100) errors.city = 'Выбери город.';
+  if (!['places', 'services'].includes(draft.kind)) errors.kind = 'Выбери тип организации.';
   for (const field of adminFields) {
     const { key, label, limit } = field;
     const value = draft[key].trim();
