@@ -72,7 +72,7 @@ test('bridge SQL in isolated PostgreSQL: permissions, durable expiry, atomic tak
         else result=(await db.query('SELECT public.vk_bridge_rate_limit($1) as value',[args.rate_scope])).rows[0].value;
         return Response.json(result);
       };
-      const upstream=async(url)=>Response.json(url.endsWith('/auth')?{access_token:'vk-private',token_type:'Bearer',expires_in:3600,user_id:123}:{user:{user_id:'123',first_name:'Verified',email:'existing@example.test'}});
+      const upstream=async(url)=>{const endpoint=new URL(url);return Response.json(endpoint.pathname.endsWith('/auth')?{access_token:'vk-private',token_type:'Bearer',expires_in:3600,user_id:123,state:endpoint.searchParams.get('state')}:{user:{user_id:'123',first_name:'Verified',email:'existing@example.test'}});};
       const a=await createBridge(config,postgresStore('https://local-store.test','local',request),upstream);
       const b=await createBridge(config,postgresStore('https://local-store.test','local',request),upstream);
       const verifier=randomSecret();

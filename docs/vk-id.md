@@ -30,11 +30,11 @@ Callback VK и callback Supabase — разные адреса. Не ставь�
 1. Supabase Auth вызывает authorize с собственными `state`, S256 PKCE challenge и клиентом `ryadom-vk-supabase`. Bridge проверяет все параметры и фиксированный redirect. Затем создаёт **другие** state и PKCE verifier для VK.
 2. В PostgreSQL хранится попытка на 10 минут, зашифрованная AES-256-GCM. В качестве ключей поиска — SHA-256 digest случайных 256-битных handles; raw handles не хранятся. AES additional data привязывает ciphertext к типу и digest записи. Downstream state, verifier и browser binding находятся внутри ciphertext.
 3. Browser binding — случайная cookie `__Host-ryadom-vk-<state>`, `Secure; HttpOnly; SameSite=Lax; Path=/`, без Domain. Callback требует state и cookie той же попытки; неверная cookie не уничтожает чужую попытку. Это защита от login CSRF, а не замена PKCE. Одновременные попытки используют разные cookie.
-4. Валидная попытка атомарно погашается `DELETE ... RETURNING` перед запросом к VK. Bridge передаёт code, device_id, verifier, state и callback **в POST body** `/oauth2/auth`. VK access token также передаётся **в POST body** `/oauth2/user_info`. Hosts фиксированы, HTTP redirects upstream запрещены. ID из `user_info.user.user_id` должен совпасть с `token.user_id`.
+4. Валидная попытка атомарно погашается `DELETE ... RETURNING` перед запросом к VK. Bridge точно повторяет разделение параметров официального SDK: `/oauth2/auth` получает `grant_type`, `redirect_uri`, `client_id`, `code_verifier`, `state`, `device_id` в query и только `code` в form POST body. `/oauth2/user_info` получает только `client_id` в query и только `access_token` в form POST body. Authorization code, access token и client secret не попадают в URL исходящих запросов. Возвращённый token.state обязателен и должен совпасть с ожидаемым state. Hosts фиксированы, HTTP redirects upstream запрещены. ID из `user_info.user.user_id` должен совпасть с `token.user_id`.
 5. Полученный `sub` — стабильный VK ID. Email и phone **вообще не включаются** в userinfo, даже если VK их вернул. Не запрашиваются email/phone scopes. Нет фиктивного email и `email_verified=true`; Supabase должен работать с `email_optional=true`.
 6. Bridge выдаёт Supabase одноразовый code на 120 секунд. Token endpoint требует Client Secret (HTTP Basic или form) и собственный Supabase S256 verifier. Неверный secret/redirect/PKCE не позволяет погасить код. При параллельном правильном обмене выигрывает только один запрос.
 7. Token response содержит непрозрачный bridge bearer на 60 секунд, **без refresh token и без VK-токена**. Userinfo атомарно погашает bearer при первом обращении. Если Supabase включает этот provider_token в клиентскую session, он уже недействителен; существующий authStorage не сохраняет provider tokens. Настоящие Supabase access/refresh tokens для штатной клиентской сессии остаются механизмом Supabase Auth. Никаких самодельных Supabase JWT/сессий нет.
-8. VK access/refresh tokens не сохраняются даже зашифрованными, не возвращаются frontend и не добавляются в URL. Обычные OAuth authorization codes и случайные state проходят через callback URL согласно протоколу; токены/секреты — нет. Функция не логирует запросы, тела, Cookie, credentials или upstream errors. Платформенные access logs с callback URLs тоже ограничьте по доступу/сроку хранения.
+8. PKCE verifier и state находятся в query обмена, как у SDK: URL этих server-to-server запросов тоже чувствительны и не должны логироваться. VK access/refresh tokens не сохраняются даже зашифрованными, не возвращаются frontend и не добавляются в URL. Обычные OAuth authorization codes и случайные state проходят через callback URL согласно протоколу; токены/секреты — нет. Функция не логирует запросы, тела, Cookie, credentials или upstream errors. Платформенные access logs с callback URLs тоже ограничьте по доступу/сроку хранения.
 9. Все ответы — `no-store`, `no-referrer`, `nosniff`, без CORS. Request body ограничен 8 KiB, upstream JSON — 32 KiB. Глобальные PostgreSQL buckets: 120 authorize/min и 600 остальных запросов/min. Это ограничение работы bridge, не защита всей бесплатной invocation-квоты от внешнего flood; при злоупотреблении выключите bridge и используйте доступные ограничения платформы.
 10. Закрытая схема `vk_bridge_private` с RLS без публичных policies. `anon`/`authenticated` не могут читать таблицы или вызывать RPC. Доступ к четырём операциям над зашифрованными records и rate limiter разрешён только server `service_role` через две ограниченные SECURITY DEFINER функции с пустым search_path. RPC не обращаются к auth.users, profiles, identities или favorites. Cleanup просроченных records выполняется ограниченными пачками при новых insert. При отключённом bridge старые ciphertext остаются до следующего cleanup/ручной очистки владельцем.
 
@@ -52,7 +52,7 @@ Callback VK и callback Supabase — разные адреса. Не ставь�
 
 В [кабинете VK ID](https://id.vk.ru/about/business/go) открыть это приложение, убедиться, что доступна веб-платформа. Сайт и Redirect URI задать по таблице выше; подтвердить требуемые VK настройки домена/доступа приложения. Минимальный scope: `vkid.personal_info`, без email/phone. Проверить, что авторизация через ID VK разрешена для тестового аккаунта.
 
-Публичный VK Client ID — `54818827`. Это **не** Client ID для настройки custom:vk в Supabase: у Supabase будет отдельный клиент bridge. Если выбранный VK server flow требует Client Secret, взять его в кабинете VK и сохранить только как Edge secret `VK_APP_SECRET`; официальный PKCE web SDK обменивает код без secret, поэтому в коде он необязателен. Не добавлять его в `VITE_*` и Git.
+Публичный VK Client ID — `54818827`. Это **не** Client ID для настройки custom:vk в Supabase: у Supabase будет отдельный клиент bridge. Официальный SDK PKCE exchange не передаёт `client_secret`: bridge также не читает и не использует VK App Secret. Ранее предложенный необязательный `VK_APP_SECRET` удалён из конфигурации как неподтверждённое расширение wire format. Client Secret для custom:vk — отдельный секрет **Supabase ↔ bridge**, он по-прежнему обязателен и хранится только на сервере.
 
 ### 2. Проверить и вручную установить SQL
 
@@ -76,7 +76,6 @@ node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'
 | `VK_BRIDGE_CLIENT_ID` | `ryadom-vk-supabase` |
 | `VK_BRIDGE_CLIENT_SECRET` | первый сгенерированный secret |
 | `VK_BRIDGE_ENCRYPTION_KEY` | второй сгенерированный secret |
-| `VK_APP_SECRET` | при необходимости server VK Secret |
 | `VK_BRIDGE_ENABLED` | сначала `false` |
 
 Hosted runtime предоставляет `SUPABASE_SERVICE_ROLE_KEY` автоматически. Его нельзя переносить во frontend. Bridge использует его только для своих server-side RPC. Пример имён без секретов: `supabase/functions/vk-oauth-bridge/.env.example`.
@@ -134,7 +133,7 @@ Site URL остаётся `https://ryadomcity.ru/`. Redirect allowlist frontend 
 
 ## Проверки в PR
 
-**Результаты этого PR:** `npm run lint`, `npm run build`, `npm run test` — PASS, 126 тестов (33 новых проверок bridge/SQL/профиля); `git diff --check` — PASS. Настоящий `deno check supabase/functions/vk-oauth-bridge/index.ts` — PASS. Браузерный local TLS fixture desktop/mobile — PASS. Реальные VK/Supabase sessions, gateway, refresh/logout/cross-device RLS и Safari не проверены.
+**Результаты этого PR:** `npm run lint`, `npm run build`, `npm run test` — PASS, 130 тестов (37 новых проверок bridge/SQL/профиля); `git diff --check` — PASS. Настоящий `deno check supabase/functions/vk-oauth-bridge/index.ts` — PASS. Браузерный local TLS fixture desktop/mobile — PASS. Реальные VK/Supabase sessions, gateway, refresh/logout/cross-device RLS и Safari не проверены.
 
 `npm run test:vk-bridge` входит в `npm test`: protocol/ошибки/replay/crypto/лимиты, реальный PostgreSQL WASM (PGlite) для permissions/expiry/atomicity/нескольких instances, verified profile enrichment. Настоящий Deno check отдельно проверяет Edge entrypoint. Optional browser fixture: `python tests/vk-bridge-browser.py` (Playwright, Chromium, OpenSSL): настоящий локальный TLS, cross-site redirects и cookie desktop/mobile. VK и Supabase mocked; запросов к живой базе нет.
 
@@ -146,3 +145,19 @@ Site URL остаётся `https://ryadomcity.ru/`. Redirect allowlist frontend 
 - [Supabase Edge limits](https://supabase.com/docs/guides/functions/limits): runtime, HTML/custom domain restriction.
 - [Официальный VK SDK exchangeCode/userInfo](https://github.com/VKCOM/vkid-web-sdk/blob/master/src/auth/auth.ts) и [типы ответов](https://github.com/VKCOM/vkid-web-sdk/blob/master/src/auth/types.ts): device_id, POST body, user_id. Актуальные constants официального SDK указывают `id.vk.ru`, этот host зафиксирован в коде ([constants.ts](https://github.com/VKCOM/vkid-web-sdk/blob/master/src/constants.ts)); автоматические переходы с другого домена не разрешены. Основная страница VK docs не открылась из исследовательского инструмента; протокол сверялся с официальным SDK, не с сторонним примером.
 - [Supabase Auth custom OAuth implementation](https://github.com/supabase/auth/blob/master/internal/api/provider/custom_oauth.go) и [external callback](https://github.com/supabase/auth/blob/master/internal/api/external.go): claims, EmailOptional и штатное создание/поиск identity.
+
+
+## Проверка перед merge: HTTP-контракт официального SDK
+
+Сверено 13 октября 2026 с официальным SDK commit `8ff76cfe59ea72e370c4c6c3b40712ecfd43aadd` ([auth.ts](https://github.com/VKCOM/vkid-web-sdk/blob/8ff76cfe59ea72e370c4c6c3b40712ecfd43aadd/src/auth/auth.ts), [types.ts](https://github.com/VKCOM/vkid-web-sdk/blob/8ff76cfe59ea72e370c4c6c3b40712ecfd43aadd/src/auth/types.ts), [constants.ts](https://github.com/VKCOM/vkid-web-sdk/blob/8ff76cfe59ea72e370c4c6c3b40712ecfd43aadd/src/constants.ts)). Совместимость прежнего варианта «всё в POST body» с живым VK подтвердить невозможно без внешнего теста; он заменён опубликованным SDK-форматом.
+
+| Request | Query | POST form body |
+| --- | --- | --- |
+| `POST https://id.vk.ru/oauth2/auth` | `grant_type=authorization_code`, `redirect_uri`, `client_id=54818827`, `code_verifier`, `state`, `device_id` | только `code` |
+| `POST https://id.vk.ru/oauth2/user_info` | только `client_id=54818827` | только `access_token` |
+
+`device_id` берётся из валидного callback. Verifier связан с S256 challenge предыдущего authorize, отличается от downstream Supabase verifier; callback state проверяется до обращения к VK, response state — после обмена, отсутствие response state отклоняется, как checkState в SDK. Авторизационный `scope` остаётся `vkid.personal_info`, без email/phone; SDK передаёт scope из Config, а не из token body. Downstream scope bridge — `profile`, это другой этап. Доступность scope конкретному приложению подтверждается только сквозным тестом владельца.
+
+Официальный UserInfoResult — `{user: Partial<UserData>}`. Bridge требует внутри user канонический положительный user_id, совпадающий с token.user_id; безопасно нормализует string/number ID и отклоняет нецелые/небезопасные числа. Имя и аватар могут отсутствовать. Неверная оболочка/ID не создаёт bridge code; email/phone не становятся claims.
+
+Тесты теперь проверяют точный набор query и body keys, отсутствие code/access_token/client_secret в URL, связь PKCE challenge/verifier/state, missing/mismatched state и реальные варианты формы SDK-профиля. Локальные fixtures не доказывают успешный вход на живом VK; кнопка остаётся отключённой, deployment/рабочий Supabase не затрагиваются.

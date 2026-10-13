@@ -14,24 +14,33 @@ class Store {
   async limit() { return !this.blocked; }
 }
 async function setup(options={}) {
-  const config={clientId:'ryadom-supabase',clientSecret:randomSecret(),encryptionKey:randomSecret(),vkAppId:'54818827',vkSecret:'fixture-server-secret'};
+  const config={clientId:'ryadom-supabase',clientSecret:randomSecret(),encryptionKey:randomSecret(),vkAppId:'54818827'};
   const store=new Store(),calls=[];
   const upstream=async (url,init) => {
     calls.push({url,init}); assert.equal(init.method,'POST'); assert.equal(init.redirect,'error'); assert.ok(init.signal);
-    assert.ok(!url.includes('?')); assert.ok(!url.includes('fixture-server-secret'));
+    const endpoint=new URL(url),query=endpoint.searchParams;
+    assert.equal(endpoint.origin,'https://id.vk.ru');
+    for (const key of ['code','access_token','client_secret']) assert.equal(query.has(key),false);
+    assert.ok(!url.includes('PRIVATE-VK-TOKEN') && !url.includes('fixture-vk-code'));
+    assert.equal(init.headers['Content-Type'],'application/x-www-form-urlencoded');
     if (options.network) throw Error('PRIVATE-UPSTREAM-DETAILS');
     if (options.http) return new Response('PRIVATE-UPSTREAM-DETAILS',{status:401});
     if (options.invalidJson) return new Response('not-json');
     const p=new URLSearchParams(init.body);
-    if (url.endsWith('/auth')) {
-      assert.equal(p.get('device_id'),'device-fixture'); assert.equal(p.get('redirect_uri'),VK_CALLBACK);
-      assert.equal(p.get('client_id'),'54818827'); assert.equal(p.get('grant_type'),'authorization_code');
-      assert.equal(p.get('client_secret'),config.vkSecret);
-      assert.match(p.get('code_verifier'),/^[A-Za-z0-9_-]{43}$/);
-      return Response.json({access_token:'PRIVATE-VK-TOKEN',refresh_token:'PRIVATE-VK-REFRESH',user_id:42,token_type:'Bearer',expires_in:3600,state:options.wrongState?'wrong':p.get('state')});
+    if (endpoint.pathname==='/oauth2/auth') {
+      assert.deepEqual([...query.keys()].sort(),['client_id','code_verifier','device_id','grant_type','redirect_uri','state']);
+      assert.equal(query.get('device_id'),'device-fixture'); assert.equal(query.get('redirect_uri'),VK_CALLBACK);
+      assert.equal(query.get('client_id'),'54818827'); assert.equal(query.get('grant_type'),'authorization_code');
+      assert.match(query.get('code_verifier'),/^[A-Za-z0-9_-]{43}$/);
+      assert.deepEqual([...p],[['code','fixture-vk-code']]);
+      const result={access_token:'PRIVATE-VK-TOKEN',refresh_token:'PRIVATE-VK-REFRESH',user_id:Object.hasOwn(options,'invalidTokenId')?options.invalidTokenId:42,token_type:'Bearer',expires_in:3600,state:options.wrongState?'wrong':query.get('state')};
+      if (options.missingState) delete result.state;
+      return Response.json(result);
     }
-    assert.equal(url,'https://id.vk.ru/oauth2/user_info'); assert.equal(p.get('access_token'),'PRIVATE-VK-TOKEN');
-    return Response.json({user:{user_id:options.wrongId?'43':'42',first_name:'Сосед',last_name:'Рядом',email:'existing@example.test',phone:'123',avatar:options.avatar??'https://example.test/avatar.png'}});
+    assert.equal(endpoint.pathname,'/oauth2/user_info'); assert.deepEqual([...query],[['client_id','54818827']]);
+    assert.deepEqual([...p],[['access_token','PRIVATE-VK-TOKEN']]);
+    if (Object.hasOwn(options,'profile')) return Response.json(options.profile);
+    return Response.json({user:{user_id:Object.hasOwn(options,'invalidProfileId')?options.invalidProfileId:(options.wrongId?'43':'42'),first_name:'Сосед',last_name:'Рядом',email:'existing@example.test',phone:'123',avatar:options.avatar??'https://example.test/avatar.png'}});
   };
   const handle=await createBridge(config,store,upstream);
   const verifier=randomSecret(),state='supabase-original-state';
@@ -63,6 +72,10 @@ test('complete OAuth2 protocol: independent PKCE, confidential client, one-use t
   assert.equal(f.location.searchParams.get('scope'),'vkid.personal_info');
   const auth=await f.authorize(); assert.match(auth.headers.get('Set-Cookie'),/Secure; HttpOnly; SameSite=Lax/);
   const code=await f.finish(); assert.match(code,/^[A-Za-z0-9_-]{43}$/);
+  const exchangeQuery=new URL(f.calls[0].url).searchParams;
+  assert.equal(exchangeQuery.get('state'),f.vkState);
+  assert.equal(await digest(exchangeQuery.get('code_verifier')),f.location.searchParams.get('code_challenge'));
+  assert.notEqual(exchangeQuery.get('code_verifier'),f.verifier);
   assert.ok(!JSON.stringify([...f.store.records]).includes(f.state)); assert.ok(!JSON.stringify([...f.store.records]).includes('PRIVATE-VK'));
   const response=await f.token(code,{},true); assert.equal(response.status,200);
   const value=await response.json(); assert.equal(value.expires_in,60); assert.equal(value.token_type,'Bearer');
@@ -128,7 +141,7 @@ test('VK denial/error redirects only to the fixed Supabase callback with origina
   }
 });
 
-for(const failure of ['network','http','invalidJson','wrongId','wrongState']) test('VK '+failure+' fails closed and never creates a bridge code',async()=>{
+for(const failure of ['network','http','invalidJson','wrongId','wrongState','missingState']) test('VK '+failure+' fails closed and never creates a bridge code',async()=>{
   const f=await setup({[failure]:true}),response=await f.callback();
   assert.equal(new URL(response.headers.get('Location')).searchParams.get('error'),'server_error');
   assert.ok(!response.headers.get('Location').includes('PRIVATE')); assert.equal(f.store.records.size,0);
@@ -174,4 +187,28 @@ test('Postgres adapter sends server key only as headers to fixed RPC paths; opaq
   assert.ok(!calls[0].init.body.includes('PRIVATE-SERVER-KEY'));
   const broken=postgresStore('https://project.supabase.co','private',async()=>new Response('PRIVATE-DATABASE-DETAILS',{status:500}));
   await assert.rejects(broken.get('code',await digest('code')),/Bridge storage unavailable/);
+});
+
+
+test('official userinfo envelope is required; array/flat/missing user profiles fail closed',async()=>{
+  for(const profile of [[],{user_id:'42'},{user:null},{user:[]},{user:{first_name:'Unverified'}}]) {
+    const f=await setup({profile}),response=await f.callback();
+    assert.equal(new URL(response.headers.get('Location')).searchParams.get('error'),'server_error');
+    assert.equal(f.store.records.size,0);
+  }
+});
+
+test('unsafe or non-canonical VK subjects fail closed on both token and userinfo',async()=>{
+  for(const field of ['invalidTokenId','invalidProfileId']) for(const value of [null,undefined,0,-1,1.5,'042','not-an-id',{},Number.MAX_SAFE_INTEGER+1]) {
+    const f=await setup({[field]:value}),response=await f.callback();
+    assert.equal(new URL(response.headers.get('Location')).searchParams.get('error'),'server_error');
+  }
+});
+
+test('SDK partial profile and string/number subject variants preserve stable ID without inventing fields',async()=>{
+  for(const [tokenId,profileId] of [[42,'42'],['42',42]]) {
+    const f=await setup({invalidTokenId:tokenId,profile:{user:{user_id:profileId}}});
+    const bearer=await (await f.token(await f.finish())).json();
+    assert.deepEqual(await (await f.userinfo(bearer.access_token)).json(),{sub:'42',name:'',given_name:'',family_name:''});
+  }
 });

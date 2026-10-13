@@ -7,7 +7,7 @@ export const AUTH_CALLBACK=PROJECT_ORIGIN+'/auth/v1/callback';
 export const VK_CALLBACK=BASE_URL+'/callback';
 const opaque=/^[A-Za-z0-9_-]{43}$/;
 const commonHeaders={ 'Cache-Control':'no-store', Pragma:'no-cache', 'Referrer-Policy':'no-referrer', 'X-Content-Type-Options':'nosniff' };
-export interface BridgeConfig { clientId: string; clientSecret: string; encryptionKey: string; vkAppId: string; vkSecret?: string }
+export interface BridgeConfig { clientId: string; clientSecret: string; encryptionKey: string; vkAppId: string }
 interface Attempt { state: string; challenge: string; verifier: string; cookieHash: string }
 export interface Claims { sub: string; name: string; given_name: string; family_name: string; picture?: string }
 interface Code { challenge: string; claims: Claims }
@@ -78,9 +78,15 @@ export async function createBridge(config: BridgeConfig,store: BridgeStore,upstr
     return value===null?null:await crypt.open<T>(value,kind+':'+key);
   }
   async function vk(path: 'auth'|'user_info',params: URLSearchParams): Promise<Record<string,unknown>> {
-    // VK credentials/tokens are POST body only, fixed host, redirects prohibited.
+    // Match the official SDK wire format. Only allowlisted parameters enter query.
+    const queryKeys=path==='auth'?['grant_type','redirect_uri','client_id','code_verifier','state','device_id']:['client_id'];
+    const bodyKey=path==='auth'?'code':'access_token';
+    const query=new URLSearchParams(),body=new URLSearchParams();
+    for (const key of queryKeys) query.set(key,parameter(params,key,4096));
+    body.set(bodyKey,parameter(params,bodyKey,8192));
+    const endpoint=new URL('https://id.vk.ru/oauth2/'+path); endpoint.search=query.toString();
     let response: Response;
-    try { response=await upstream('https://id.vk.ru/oauth2/'+path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},body:params.toString(),redirect:'error',signal:AbortSignal.timeout(10_000)}); }
+    try { response=await upstream(endpoint.href,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},body:body.toString(),redirect:'error',signal:AbortSignal.timeout(10_000)}); }
     catch { fail(502,'upstream_error'); }
     if (!response.ok) fail(502,'upstream_error');
     let data: unknown;
@@ -127,9 +133,8 @@ export async function createBridge(config: BridgeConfig,store: BridgeStore,upstr
       if (p.has('error')) return redirect(downstream(attempt.state,undefined,p.get('error')==='access_denied'?'access_denied':'server_error'),clear);
       const code=parameter(p,'code',4096),device=parameter(p,'device_id',512);
       const params=new URLSearchParams({grant_type:'authorization_code',client_id:config.vkAppId,redirect_uri:VK_CALLBACK,code,device_id:device,code_verifier:attempt.verifier,state});
-      if (config.vkSecret) params.set('client_secret',config.vkSecret);
       const token=await vk('auth',params);
-      if (typeof token.access_token!=='string' || !token.access_token || token.access_token.length>8192 || typeof token.token_type!=='string' || token.token_type.toLowerCase()!=='bearer' || typeof token.expires_in!=='number' || token.expires_in<=0 || (token.state!==undefined && token.state!==state)) fail(502,'upstream_error');
+      if (typeof token.access_token!=='string' || !token.access_token || token.access_token.length>8192 || typeof token.token_type!=='string' || token.token_type.toLowerCase()!=='bearer' || typeof token.expires_in!=='number' || token.expires_in<=0 || token.state!==state) fail(502,'upstream_error');
       const profile=await vk('user_info',new URLSearchParams({client_id:config.vkAppId,access_token:token.access_token}));
       const claims=claimsFromVk(token,profile),bridgeCode=randomSecret();
       await put('code',bridgeCode,{challenge:attempt.challenge,claims} satisfies Code,120);

@@ -1,6 +1,7 @@
 // Local-only protocol fixture. Never deploy; no real Supabase/VK requests or sessions.
 import { createServer } from 'node:http';
 import process from 'node:process';
+import { URL } from 'node:url';
 const { Request, Response } = globalThis;
 import { createBridge } from '../supabase/functions/vk-oauth-bridge/handler.ts';
 import { randomSecret } from '../supabase/functions/vk-oauth-bridge/crypto.ts';
@@ -12,7 +13,7 @@ const store={
   take:async(kind,key)=>{const row=rows.get(kind+key);if(!row || row.expiry<=Date.now())return null;rows.delete(kind+key);return row.payload;},
   limit:async()=>true,
 };
-const upstream=async(url)=>Response.json(url.endsWith('/auth')?{access_token:'not-a-real-vk-token',user_id:42,token_type:'Bearer',expires_in:3600}:{user:{user_id:'42',first_name:'Verified Browser'}});
+const upstream=async(url)=>{const endpoint=new URL(url);return Response.json(endpoint.pathname.endsWith('/auth')?{access_token:'not-a-real-vk-token',user_id:42,token_type:'Bearer',expires_in:3600,state:endpoint.searchParams.get('state')}:{user:{user_id:'42',first_name:'Verified Browser'}});};
 const handler=await createBridge(config,store,upstream);
 const server=createServer(async(request,response)=>{
   if(request.url!=='/relay' || request.method!=='POST') {response.writeHead(404);response.end();return;}
