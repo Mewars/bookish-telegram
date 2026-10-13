@@ -52,7 +52,9 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       await db.exec("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('edited-local','Енисейск','Local test','Кафе','Valid','user_provided','draft')");
       assert.equal((await db.query("SELECT status FROM public.organizations WHERE id='edited-local'")).rows[0].status,'draft');
       await assert.rejects(db.query("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('edited-foreign','Ачинск','Foreign','Кафе','Bad','user_provided','draft')"), /row-level security/);
-      await assert.rejects(db.query("UPDATE public.organizations SET title='Bad' WHERE id='edited-foreign'"), /permission denied|row-level security/);
+      // PostgreSQL RLS silently filters invisible UPDATE targets (0 affected rows).
+      await db.query("UPDATE public.organizations SET title='Bad' WHERE id='edited-foreign'");
+      assert.equal((await db.query("SELECT count(*)::int AS n FROM public.organizations WHERE id='edited-foreign'")).rows[0].n, 0);
       await assert.rejects(db.query("UPDATE public.organizations SET city='Ачинск' WHERE id='edited-local'"), /permission denied/);
       await db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/photo.webp')");
       await assert.rejects(db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Ачинск/photo.webp')"), /row-level security/);
