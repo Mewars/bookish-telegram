@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import { URL } from 'node:url';
 
 const cityHome = await readFile(new URL('../src/components/CityHome.tsx', import.meta.url), 'utf8');
 const homeStyles = await readFile(new URL('../src/styles/home.css', import.meta.url), 'utf8');
