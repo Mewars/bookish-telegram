@@ -498,3 +498,17 @@
 .city-home [data-selection="01"] .card-title-arrow { position: absolute; right: 16px; bottom: 20px; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.58); border-radius: 50%; background: rgba(5,12,19,.35); }
 .city-home [data-selection="01"] .image-label { border-radius: 999px; font-size: 10px; padding: 5px 9px; max-width: calc(100% - 64px); }
 @media (max-width:599px) { .quick-discovery button { height: 38px; }.city-home [data-selection="01"] .card h3 { font-size: 21px; }.city-home [data-selection="01"] .card-body { padding: 16px 58px 16px 16px; }.city-home [data-selection="01"] .card-title-arrow { right: 14px; bottom: 18px; } }
+
+/* Shortcut navigation brings filtered results below the fixed desktop header. */
+#city-selections { scroll-margin-top: 96px; }
+.city-section-coming-soon {
+  border: 1px dashed rgba(255,255,255,.22);
+  border-radius: 16px;
+  padding: 26px;
+  color: #b9c2cb;
+  font-size: 13px;
+  line-height: 1.65;
+  background: rgba(255,255,255,.03);
+}
+@media (max-width:899px) { #city-selections { scroll-margin-top: 16px; } }
+
