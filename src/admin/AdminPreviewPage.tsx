@@ -1,11 +1,12 @@
 import { useState, type SubmitEvent } from 'react';
 import type { Item } from '../types';
+import cityImage from '../assets/city.svg';
 import { catalog } from '../data/catalog';
 import { Icon } from '../components/Icon';
 import { adminFields, newAdminDraft, type AdminDraft, type AdminStatus } from './model';
 import '../admin/admin.css';
 
-const demoImage = '/favicon.svg';
+const demoImage = cityImage;
 type PreviewRow = { item: Item; status: AdminStatus };
 const initialRecords = () => catalog.filter(item => item.kind === 'places' || item.kind === 'services')
   .map(item => ({ item, status: 'published' as const }));
