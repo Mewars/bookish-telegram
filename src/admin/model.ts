@@ -64,9 +64,10 @@ export function rowToAdminDraft(row: OrganizationRow): AdminDraft {
 export function validateAdminDraft(draft: AdminDraft, confirmed: boolean): Record<string, string> {
   const errors: Record<string, string> = {};
   if (!draft.city.trim() || draft.city.length > 100) errors.city = 'Выбери город.';
-  for (const { key, label, limit, required } of adminFields) {
+  for (const field of adminFields) {
+    const { key, label, limit } = field;
     const value = draft[key].trim();
-    if (required && !value) errors[key] = `Заполни поле «${label}».`;
+    if ('required' in field && field.required && !value) errors[key] = `Заполни поле «${label}».`;
     else if (value.length > limit) errors[key] = `Не более ${limit} символов.`;
     else if (/\p{Cc}/u.test(value.replace(/[\r\n\t]/g,''))) errors[key] = 'Недопустимые символы.';
   }
