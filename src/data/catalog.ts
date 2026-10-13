@@ -7,7 +7,7 @@ export const categories: Record<Kind, string[]> = {
  services: ['Все', 'Красота', 'Авто', 'Ремонт', 'Доставка', 'Обучение', 'Фото/видео', 'Другое'],
 };
 
-// Only the ten supplied real places are published. Do not invent events or service providers.
+// Only supplied places remain in the starter catalog. Do not invent events or service providers.
 export const catalog: Item[] = [...places];
 
 export const sectionTitles: Record<Kind, string> = { events: 'Афиша', places: 'Места', services: 'Услуги' };
