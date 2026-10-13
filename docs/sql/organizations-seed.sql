@@ -1,4 +1,4 @@
--- MANUAL REVIEW ONLY. Existing 10 local places, original IDs and user-provided facts.
+-- MANUAL REVIEW ONLY. Existing 8 active local places, original IDs and user-provided facts.
 -- Run AFTER organizations.sql; never invent missing coordinates or verification sources.
 BEGIN;
 INSERT INTO public.organizations (id,city,title,category,description,address,phone,hours,source_type,verified_at,status) VALUES
@@ -9,8 +9,6 @@ INSERT INTO public.organizations (id,city,title,category,description,address,pho
   ('place-spassky-monastery', 'Енисейск', 'Спасский Енисейский мужской монастырь', 'Достопримечательности', 'Один из известных историко-архитектурных и религиозных объектов Енисейска.', 'ул. Рабоче-Крестьянская, 103', NULL, NULL, 'user_provided', '2026-10-06', 'published'),
   ('place-founders-monument', 'Енисейск', 'Памятник основателям города Енисейска', 'Достопримечательности', 'Памятник, посвящённый основателям Енисейска.', NULL, NULL, NULL, 'user_provided', '2026-10-06', 'published'),
   ('place-monastery-park', 'Енисейск', 'Монастырский парк', 'Парки / Прогулки', 'Городское пространство для прогулок рядом с исторической частью Енисейска.', 'ул. Фефелова, 86', NULL, NULL, 'user_provided', '2026-10-06', 'published'),
-  ('place-don-leon', 'Енисейск', 'Пиццерия Don Leon', 'Кафе', 'Пиццерия и кафе в Енисейске.', 'ул. Кирова, 81', '+7 913 042-79-20', '12:00–21:00', 'user_provided', '2026-10-06', 'published'),
-  ('place-blinnaya-izba', 'Енисейск', 'Блинная Изба', 'Кафе', 'Кафе в Енисейске.', 'ул. Рабоче-Крестьянская, 199', '+7 983 363-30-07', '10:00–20:00', 'user_provided', '2026-10-06', 'published'),
-  ('place-pritchi', 'Енисейск', 'Кафе «Притчи»', 'Кафе', 'Кафе в Енисейске.', 'ул. Бограда, 107', NULL, '10:00–22:00', 'user_provided', '2026-10-06', 'published')
+  ('place-don-leon', 'Енисейск', 'Пиццерия Don Leon', 'Кафе', 'Пиццерия и кафе в Енисейске.', 'ул. Кирова, 81', '+7 913 042-79-20', '12:00–21:00', 'user_provided', '2026-10-06', 'published')
 ON CONFLICT (id) DO NOTHING;
 COMMIT;
