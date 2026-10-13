@@ -58,7 +58,7 @@ export async function saveAdminOrganization(client: SupabaseClient, userId: stri
   };
   const request = draft.id
     ? client.from('organizations').update(values).eq('id', draft.id).eq('city', draft.city)
-    : client.from('organizations').insert({ ...values, city: draft.city, id: `place-${crypto.randomUUID()}` });
+    : client.from('organizations').insert({ ...values, kind: draft.kind, city: draft.city, id: `${draft.kind === 'services' ? 'service' : 'place'}-${crypto.randomUUID()}` });
   const { data, error } = await withDeadline(signal => request.select(ADMIN_COLUMNS).abortSignal(signal).single());
   if (error || !data) throw new Error('Сохранение не подтверждено. Проверь список карточек и права доступа, прежде чем повторять.');
   return data as OrganizationRow;

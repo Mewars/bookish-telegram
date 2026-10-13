@@ -31,3 +31,7 @@
 .admin-message { margin-top:22px; padding:12px 14px; border-radius:10px; color:var(--text); background:var(--soft); font-size:13px; }
 .admin-save { margin-top:24px; }
 @media(max-width:700px) { .admin-panel { padding:18px 15px; }.admin-filters { flex-direction:column; }.admin-filters select { width:100%; }.admin-form-grid { grid-template-columns:minmax(0,1fr); }.admin-form-grid .admin-wide { grid-column:auto; } }
+
+/* Explicitly non-production admin preview; no network writes. */
+.admin-demo-warning { border:1px dashed var(--line); border-radius:12px; padding:16px 18px; margin:0 0 24px; font-size:13px; color:var(--muted); line-height:1.7; background:var(--surface-secondary); }
+.admin-demo-warning strong { color:var(--text); }

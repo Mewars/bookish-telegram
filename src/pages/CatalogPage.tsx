@@ -5,7 +5,7 @@ import { Card, type CardActions } from '../components/Card';
 import { Search } from '../components/Search';
 import { EmptyState } from '../components/EmptyState';
 import { matches } from '../utils/search';
-const subtitles: Record<Kind, string> = { events: 'Настоящие события Енисейска скоро появятся здесь.', places: 'Найди своё место в знакомом городе.', services: 'Здесь появятся проверенные услуги Енисейска.' };
+const subtitles: Record<Kind, string> = { events: 'Настоящие события Енисейска скоро появятся здесь.', places: 'Кафе, музеи, гостиницы, культура и интересные места Енисейска.', services: 'Полезные городские организации и услуги Енисейска.' };
 export function CatalogPage({ kind, items: cityItems, addOrganization, catalogStatus, retryCatalog, ...actions }: CardActions & { kind: Kind; items: Item[]; addOrganization?: () => void; catalogStatus?: 'loading' | 'ready' | 'fallback'; retryCatalog?: () => void }) {
  const [query, setQuery] = useState(''); const [category, setCategory] = useState('Все');
  const [when, setWhen] = useState('Все даты');

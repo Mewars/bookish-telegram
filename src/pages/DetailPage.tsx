@@ -30,6 +30,7 @@ export function DetailPage({ item, saved, toggle, goBack, favoritesBusy = false,
   const hasFacts = item.kind === 'events' || item.address || item.hours || item.price || item.phone;
   const website = externalUrl(item.website);
   const vkUrl = externalUrl(item.vkUrl, true);
+  const sourceUrl = externalUrl(item.sourceUrl);
   const related = realPlace ? relatedItems.filter(entry => entry.real && entry.id !== item.id && entry.city === item.city && entry.kind === item.kind && entry.category.split(' / ')[0] === item.category.split(' / ')[0]).slice(0, 3) : [];
   return <article className={`guide-detail ${realPlace ? 'is-real-place' : ''} ${desktop ? 'detail-desktop' : ''}`}>
     <div className="detail-breadcrumb"><button className="back-link" onClick={goBack}><Icon name="back" size={18}/> Назад к подборке</button><span>{item.city} / {item.category}</span></div>
@@ -40,7 +41,7 @@ export function DetailPage({ item, saved, toggle, goBack, favoritesBusy = false,
     <div className="guide-detail-grid"><div className="guide-detail-copy">
       {item.details && <p className="detail-intro">{item.description}</p>}
       <section className="detail-description"><h2>{item.kind === 'events' ? 'Что тебя ждёт' : item.kind === 'places' ? 'О месте' : 'Об услуге'}</h2><p>{publicDetails(item.details ?? item.description)}</p></section>
-      {item.real ? <div className="place-source">{item.sourceType === 'user_provided' && <span>Данные предоставлены пользователем{item.verifiedAt ? ` · ${suppliedDate(item.verifiedAt)}` : ''}. Независимая проверка не проводилась.</span>}</div> : <div className="demo-note">{item.kind === 'events' ? 'Билеты не продаются.' : 'Контакты и онлайн-запись недоступны.'}</div>}
+      {item.real ? <div className="place-source">{item.sourceType === 'user_provided' && <span>Данные предоставлены пользователем{item.verifiedAt ? ` · ${suppliedDate(item.verifiedAt)}` : ''}. Независимая проверка не проводилась.</span>}{item.sourceType === 'manual_verified' && <span>Информация сверена по открытым источникам{item.verifiedAt ? ` · ${suppliedDate(item.verifiedAt)}` : ''}. Режим работы и доступность услуг уточняйте у организации.</span>}{sourceUrl && <> <a href={sourceUrl} target="_blank" rel="noopener noreferrer">Источник сведений</a></>}</div> : <div className="demo-note">{item.kind === 'events' ? 'Билеты не продаются.' : 'Контакты и онлайн-запись недоступны.'}</div>}
     </div><aside id="detail-contacts" className="guide-detail-sidebar" aria-label="Контакты и действия">
       {hasFacts && <div className="detail-facts">
         {item.kind === 'events' && <div><Icon name="events" size={18}/><span><small>Когда</small><strong>{eventDate(item.dateOffset, true)} · {item.time}</strong></span></div>}

@@ -4,6 +4,7 @@
 BEGIN;
 
 CREATE TABLE public.organizations (
+  kind text NOT NULL DEFAULT 'places' CHECK (kind IN ('places', 'services')),
   id text PRIMARY KEY CHECK (id ~ '^[A-Za-z0-9][A-Za-z0-9_-]{0,159}$'),
   city text NOT NULL CHECK (length(city) <= 100 AND length(btrim(city)) > 0),
   title text NOT NULL CHECK (length(title) <= 160 AND length(btrim(title)) > 0),
