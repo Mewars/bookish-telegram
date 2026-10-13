@@ -5,7 +5,7 @@ import { ORGANIZATION_COLUMNS, withDeadline } from '../organizations/repository'
 import { canManageCity, type AdminDraft, type CityAdminAccess } from './model';
 
 const BUCKET = 'ryadom-places';
-const ADMIN_COLUMNS = `${ORGANIZATION_COLUMNS},image_url`;
+const ADMIN_COLUMNS = ORGANIZATION_COLUMNS;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
 async function requireCurrentUser(client: SupabaseClient, expectedUserId: string) {
