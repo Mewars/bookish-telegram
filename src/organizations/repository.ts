@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { APPLICATION_CONSENT_VERSION, normalizeDraft, validateDraft } from './model';
 import type { ApplicationDraft, ApplicationRow, OrganizationRow } from './model';
 
-export const ORGANIZATION_COLUMNS = 'id,city,title,category,description,address,phone,hours,website,vk_url,latitude,longitude,source_type,source_url,verified_at,status,created_at,updated_at';
+export const ORGANIZATION_COLUMNS = 'id,city,title,category,description,address,phone,hours,website,vk_url,latitude,longitude,source_type,source_url,verified_at,status,created_at,updated_at,image_url';
 const APPLICATION_COLUMNS = 'id,applicant_id,client_request_id,title,city,category,address,phone,hours,description,website,vk_url,source_note,status,created_at,review_message,organization_id';
 export const CONNECTION_MESSAGE = 'Не удалось соединиться с сервисом организаций. Попробуйте позже.';
 function clientOrThrow(client: SupabaseClient | null): SupabaseClient {

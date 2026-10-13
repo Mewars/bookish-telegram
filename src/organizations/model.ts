@@ -20,7 +20,7 @@ export interface OrganizationRow {
   address: string | null; phone: string | null; hours: string | null;
   website: string | null; vk_url: string | null; latitude: number | null; longitude: number | null;
   source_type: string; source_url: string | null; verified_at: string | null;
-  status: 'draft' | 'published' | 'archived'; created_at: string; updated_at: string;
+  status: 'draft' | 'published' | 'archived'; image_url?: string | null; created_at: string; updated_at: string;
 }
 export interface ApplicationRow extends ApplicationDraft {
   id: string; applicant_id: string; client_request_id: string; status: ApplicationStatus;
@@ -65,8 +65,8 @@ export function featureEnabled(flag: string | undefined, protocol: string, hostn
 const naturalKey = (item: Pick<Item, 'city' | 'title' | 'address'>) => [item.city, item.title, item.address ?? ''].map(value => value.trim().toLocaleLowerCase('ru').replace(/\s+/g, ' ')).join('\u0000');
 
 // Keep local IDs and illustrations, including when a legacy place is found by name/address.
-export function mergePublished(local: Item[], rows: OrganizationRow[], fallbackImage: string): Item[] {
-  const result = [...local];
+export function mergePublished(local: Item[], rows: OrganizationRow[], fallbackImage: string, authoritative = false): Item[] {
+  const result = authoritative ? local.filter(item => item.kind !== 'places') : [...local];
   const seenIds = new Set<string>();
   for (const row of rows) {
     if (row.status !== 'published' || !row.id || !row.city?.trim() || !row.title?.trim() || !row.category?.trim() || !row.description?.trim() || seenIds.has(row.id)) continue;
@@ -75,12 +75,12 @@ export function mergePublished(local: Item[], rows: OrganizationRow[], fallbackI
     const index = result.findIndex(item => item.kind === 'places' && (item.id === row.id || naturalKey(item) === key));
     // Never replace another kind's ID or duplicate an already merged remote record.
     if (index < 0 && result.some(item => item.id === row.id)) continue;
-    const existing = index >= 0 ? result[index] : undefined;
+    const existing = index >= 0 ? result[index] : authoritative ? local.find(item => item.kind === 'places' && (item.id === row.id || naturalKey(item) === key)) : undefined;
     const coordinates = typeof row.latitude === 'number' && typeof row.longitude === 'number' && Number.isFinite(row.latitude) && Number.isFinite(row.longitude) && Math.abs(row.latitude) <= 90 && Math.abs(row.longitude) <= 180 ? { lat: row.latitude, lon: row.longitude } : undefined;
     const item: Item = {
       ...existing, id: existing?.id ?? row.id, city: row.city, kind: 'places', real: true,
       title: row.title, category: row.category, description: row.description,
-      image: existing?.image ?? fallbackImage, address: row.address ?? undefined,
+      image: row.image_url && isSafeWebUrl(row.image_url) ? row.image_url : existing?.image ?? fallbackImage, address: row.address ?? undefined,
       phone: row.phone ?? undefined, hours: row.hours ?? undefined, coordinates,
       website: row.website && isSafeWebUrl(row.website) ? row.website : undefined,
       vkUrl: row.vk_url && isSafeWebUrl(row.vk_url) ? row.vk_url : undefined,
