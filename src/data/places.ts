@@ -1,6 +1,5 @@
 import type { Item } from '../types';
 import city from '../assets/city.svg';
-import coffee from '../assets/coffee.svg';
 import food from '../assets/food.svg';
 import creative from '../assets/creative.svg';
 
@@ -74,19 +73,5 @@ export const places: Item[] = [
     title: 'Пиццерия Don Leon', category: 'Кафе', image: food,
     address: 'ул. Кирова, 81', phone: '+7 913 042-79-20',
     hours: '12:00–21:00', description: 'Пиццерия и кафе в Енисейске.',
-  },
-  {
-    ...suppliedMetadata,
-    id: 'place-blinnaya-izba',
-    title: 'Блинная Изба', category: 'Кафе', image: coffee,
-    address: 'ул. Рабоче-Крестьянская, 199', phone: '+7 983 363-30-07',
-    hours: '10:00–20:00', description: 'Кафе в Енисейске.',
-  },
-  {
-    ...suppliedMetadata,
-    id: 'place-pritchi',
-    title: 'Кафе «Притчи»', category: 'Кафе', image: coffee,
-    address: 'ул. Бограда, 107', hours: '10:00–22:00',
-    description: 'Кафе в Енисейске.',
   },
 ];
