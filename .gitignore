@@ -147,3 +147,13 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Never commit Supabase/PostgreSQL backups or local credentials
+*.backup
+*.dump
+*.pgpass
+*.pgpass.conf
+*.sha256.txt
+*.partial
+*.sql.gz
+Ryadom-Private-Backups/
