@@ -1,10 +1,10 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import process from 'node:process';
 
 export default defineConfig(({ mode }) => {
   // The HTML meta and the public version endpoint MUST share the same build ID.
-  const buildId = process.env.GITHUB_SHA || process.env.COMMIT_REF || `local-${Date.now()}`;
+  const deployEnv = loadEnv(mode, '.', ['GITHUB_SHA', 'COMMIT_REF']);
+  const buildId = deployEnv.GITHUB_SHA || deployEnv.COMMIT_REF || `local-${Date.now()}`;
   return {
     base: mode === 'github-pages-test' ? '/bookish-telegram/' : '/',
     plugins: [
