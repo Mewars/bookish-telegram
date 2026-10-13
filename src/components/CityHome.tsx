@@ -22,12 +22,25 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
 
   const selected = discoveries.find(option => option.label === discovery);
   const results = items.filter(item => matches(item, query) && (!selected || selected.matches(item)));
-  const availableDiscoveries = discoveries.filter(option => items.some(item => option.matches(item)));
   const searching = !!query.trim() || !!selected;
   const reset = () => { setQuery(''); setDiscovery(null); };
+  const showResults = () => {
+    window.requestAnimationFrame(() => {
+      document.getElementById('city-selections')?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+  };
+  const chooseDiscovery = (label: string) => {
+    // A shortcut is a direct destination, not another filter applied to a prior search.
+    setQuery('');
+    setDiscovery(label);
+    showResults();
+  };
 
   const selection = (title: string, subtitle: string, kind: Kind, entries: Item[], index: string, limit = 4) =>
-    entries.length > 0 && <section className="city-section" data-selection={index}>
+    <section className="city-section" data-selection={index}>
       <div className="section-heading">
         <div>
           <span className="section-index">{index} / РЯДОМ</span>
@@ -38,9 +51,11 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
           {index === '01' ? 'Посмотреть все места' : 'Смотреть все'} <Icon name="arrow" size={18}/>
         </button>
       </div>
-      <div className="card-grid discovery-grid">
-        {entries.slice(0, limit).map(item => <Card key={item.id} item={item} featured={index === '01'} {...actions}/>)}
-      </div>
+      {entries.length > 0
+        ? <div className="card-grid discovery-grid">
+            {entries.slice(0, limit).map(item => <Card key={item.id} item={item} featured={index === '01'} {...actions}/>)}
+          </div>
+        : <p className="city-section-coming-soon">Пока нет подтверждённых {kind === 'events' ? 'событий' : kind === 'services' ? 'услуг' : 'мест'}. Раздел будем наполнять реальными карточками.</p>}
     </section>;
 
   const pick = (ids: string[]) => ids.flatMap(id => {
@@ -71,17 +86,17 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
           <button
             className="cover-search-action"
             aria-label="Показать результаты поиска"
-            onClick={() => document.getElementById('city-selections')?.scrollIntoView({ behavior: 'auto', block: 'start' })}
+            onClick={showResults}
           >
             <Icon name="arrow" size={22}/>
           </button>
         </div>
 
         <div className="quick-discovery" role="group" aria-label="Быстрые сценарии">
-          {availableDiscoveries.map(option => <button
+          {discoveries.map(option => <button
             key={option.label}
             aria-pressed={discovery === option.label}
-            onClick={() => setDiscovery(current => current === option.label ? null : option.label)}
+            onClick={() => chooseDiscovery(option.label)}
           >
             <Icon name={option.icon} size={17}/>
             {option.label}
@@ -108,7 +123,12 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
         </div>
         {results.length
           ? <div className="card-grid">{results.map(item => <Card key={item.id} item={item} {...actions}/>)}</div>
-          : <EmptyState title="Пока ничего" text="Попробуйте «музей», «кафе» или «парк»." action="Сбросить поиск" onAction={reset}/>}
+          : <EmptyState
+              title={selected ? 'Пока нет записей' : 'Ничего не найдено'}
+              text={selected ? `В разделе «${selected.label}» пока нет подтверждённых записей. Добавим их после проверки информации.` : 'Попробуйте «музей», «кафе» или «парк».'}
+              action="Посмотреть все места"
+              onAction={reset}
+            />}
       </section> : <>
         {selection('Популярные места', 'То, с чего удобно начать знакомство с Енисейском.', 'places', popular, '01', 3)}
         {selection('Куда сходить', 'Поводы выйти из дома.', 'events', items.filter(item => item.kind === 'events'), '02')}
