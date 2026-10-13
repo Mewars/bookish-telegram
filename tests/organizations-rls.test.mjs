@@ -24,7 +24,7 @@ test('manual SQL: RLS, column grants, consent, moderation, dedupe and legacy see
     await db.exec(`INSERT INTO public.organizations (id,city,title,category,description,source_type) VALUES ('private-draft','Енисейск','Private draft','Test','Test','manual_verified');`);
     const role = async (name, id = '') => { await db.exec('RESET SESSION AUTHORIZATION; RESET ROLE'); await db.query("SELECT set_config('request.jwt.claim.sub', $1, false)", [id]); await db.exec(`SET SESSION AUTHORIZATION ${name}`); };
     const insert = (id, req, extra = '') => db.query(`INSERT INTO public.organization_applications (applicant_id,client_request_id,title,city,category,address,description,source_note,consent_accepted,consent_version${extra ? ',status' : ''}) VALUES ($1,$2,'Test request','Енисейск','Test','Test address','Test description','Test source',true,'ORG-APPLICATION-1.0'${extra ? ",'approved'" : ''}) RETURNING id,status`, [id,req]);
-    await t.test('guest sees exactly 10 original places, no draft, no applications', async () => {
+    await t.test('guest sees exactly 8 active places, no draft, no applications', async () => {
       await role('anon');
       const rows = (await db.query('SELECT id FROM public.organizations ORDER BY id')).rows;
       const original = await readFile(new URL('../src/data/places.ts', import.meta.url), 'utf8');
@@ -79,7 +79,7 @@ test('manual SQL: RLS, column grants, consent, moderation, dedupe and legacy see
       await role('authenticated',a);
       const row = (await db.query('SELECT status,organization_id FROM public.organization_applications')).rows[0];
       assert.equal(row.status,'approved'); assert.equal(row.organization_id,'place-founders-monument');
-      await role('anon'); assert.equal((await db.query('SELECT * FROM public.organizations')).rows.length,10);
+      await role('anon'); assert.equal((await db.query('SELECT * FROM public.organizations')).rows.length,8);
     });
     await t.test('same natural organization cannot be inserted with a new ID', async () => {
       await role('service_role');

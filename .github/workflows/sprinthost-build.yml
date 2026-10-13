@@ -25,8 +25,8 @@ jobs:
         run: npm run test:maps
       - name: Test OpenStreetMap
         run: npm run test:osm
-      - name: Test importer
-        run: npm run test:import
+      - name: Run complete regression suite
+        run: npm test
       - name: Check public production configuration
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -58,6 +58,8 @@ jobs:
               names = archive.namelist()
               assert 'index.html' in names, 'Missing root index.html'
               assert any(name.startswith('assets/') for name in names), 'Missing root assets/'
+              assert 'version.json' in names, 'Missing release manifest'
+              assert '.htaccess' in names, 'Missing cache policy'
               for name in names:
                   path = PurePosixPath(name)
                   assert not path.is_absolute() and '..' not in path.parts, 'Unsafe ZIP path'
@@ -85,6 +87,6 @@ jobs:
           Download the **sprinthost-site** artifact from this run.
           GitHub downloads an artifact container ZIP: extract it to obtain **sprinthost-site.zip**.
           The site ZIP contains **index.html**, **assets/** and the other built files at its root.
-          Upload/extract those contents into **/home/mewars/domains/mewars.xsph.ru/public_html/**.
+          Upload/extract those contents into **/home/mewars/domains/ryadomcity.ru/public_html/**.
           This workflow does not deploy, change DNS or update hosting settings.
           EOF_SUMMARY
