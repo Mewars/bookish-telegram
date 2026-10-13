@@ -27,6 +27,8 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState('');
   const [cityFilter, setCityFilter] = useState('Все города');
+  const [kindFilter, setKindFilter] = useState('Все разделы');
+  const [statusFilter, setStatusFilter] = useState('Все статусы');
 
   useEffect(() => {
     const client = supabase;
@@ -88,6 +90,8 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
   const owner = access.some(entry => entry.city === '*' && entry.role === 'owner');
   const cities = [...new Set([...rows.map(row => row.city), ...access.filter(entry => entry.city !== '*').map(entry => entry.city), ...(owner ? availableCities.map(row => row.name) : [])])].sort((a,b) => a.localeCompare(b, 'ru'));
   const filtered = rows.filter(row => (cityFilter === 'Все города' || row.city === cityFilter)
+    && (kindFilter === 'Все разделы' || (row.kind === 'services' ? 'services' : 'places') === kindFilter)
+    && (statusFilter === 'Все статусы' || row.status === statusFilter)
     && [row.title, row.category, row.address ?? ''].some(value => value.toLocaleLowerCase('ru').includes(filter.trim().toLocaleLowerCase('ru'))));
   const published = rows.filter(row => row.status === 'published').length;
 
@@ -101,6 +105,11 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
       <div className="admin-form-heading"><h2>{draft.id ? 'Редактировать организацию' : 'Новая организация'}</h2><button type="button" className="secondary-button" disabled={busy} onClick={() => { setDraft(null); setMessage(''); }}>К списку</button></div>
       <p>Не публикуй вымышленные организации или чужие фотографии без разрешения. Для публикации проверь информацию и подтверди это ниже.</p>
       <div className="admin-form-grid">
+        <label>Раздел
+          <select disabled={busy || !!draft.id} value={draft.kind} onChange={event => change('kind', event.target.value)}>
+            <option value="places">Места и организации</option><option value="services">Услуги</option>
+          </select>
+        </label>
         <label>Город
           <select disabled={busy || !!draft.id} value={draft.city} onChange={event => change('city', event.target.value)}>
             {[...new Set([...cities, draft.city])].filter(city => canManageCity(access, city)).map(city => <option value={city} key={city}>{city}</option>)}
@@ -137,12 +146,14 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
       <div className="admin-filters">
         <input type="search" aria-label="Поиск организаций" placeholder="Поиск по названию, категории, адресу" value={filter} onChange={event => setFilter(event.target.value)}/>
         {cities.length > 1 && <select aria-label="Фильтр по городу" value={cityFilter} onChange={event => setCityFilter(event.target.value)}><option>Все города</option>{cities.map(city => <option key={city}>{city}</option>)}</select>}
+        <select aria-label="Фильтр по разделу" value={kindFilter} onChange={event => setKindFilter(event.target.value)}><option>Все разделы</option><option value="places">Места</option><option value="services">Услуги</option></select>
+        <select aria-label="Фильтр по статусу" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option>Все статусы</option><option value="published">Опубликовано</option><option value="draft">Черновики</option><option value="archived">Архив</option></select>
       </div>
       {filtered.length ? <div className="admin-table-wrap"><table className="admin-table">
-        <thead><tr><th>Организация</th><th>Город</th><th>Статус</th><th>Управление</th></tr></thead>
+        <thead><tr><th>Организация</th><th>Раздел</th><th>Город</th><th>Статус</th><th>Управление</th></tr></thead>
         <tbody>{filtered.map(row => <tr key={row.id}>
           <td><strong>{row.title}</strong><small>{row.category}</small></td>
-          <td>{row.city}</td>
+          <td>{row.kind === 'services' ? 'Услуги' : 'Места'}</td><td>{row.city}</td>
           <td><span className={`admin-status admin-status--${row.status}`}>{row.status === 'published' ? 'Опубликована' : row.status === 'draft' ? 'Черновик' : 'В архиве'}</span></td>
           <td><button type="button" className="secondary-button" onClick={() => edit(row)}>Изменить</button></td>
         </tr>)}</tbody>
