@@ -50,24 +50,28 @@ export function HomeCarousel({ title, subtitle, index, kind, items, navigate, fe
     <div className="section-heading">
       <div><span className="section-index">{index} / РЯДОМ</span><h2 id={id}>{title}</h2><p>{subtitle}</p></div>
       <div className="home-section-controls">
-        {items.length > 0 && <>
-          <button type="button" className="home-carousel-arrow" onClick={() => move(-1)}
-            disabled={limits.start} aria-controls={id + '-cards'} aria-label={`Назад: ${title}`}>
-            <Icon name="back" size={20}/>
-          </button>
-          <button type="button" className="home-carousel-arrow home-carousel-arrow--next" onClick={() => move(1)}
-            disabled={limits.end} aria-controls={id + '-cards'} aria-label={`Дальше: ${title}`}>
-            <Icon name="back" size={20}/>
-          </button>
-        </>}
         <button type="button" className="text-action" onClick={() => navigate(kind)}
           aria-label={`Смотреть каталог: ${title}`}>Смотреть все <Icon name="arrow" size={18}/></button>
       </div>
     </div>
     {items.length > 0
-      ? <div id={id + '-cards'} className="card-grid discovery-grid home-carousel-track" ref={listRef}
-          role="region" aria-label={`Карточки: ${title}`} tabIndex={0}>
-          {items.map(item => <Card key={item.id} item={item} featured={featured} {...actions}/>)}
+      ? <div className="home-carousel-stage">
+          <div id={id + '-cards'} className="card-grid discovery-grid home-carousel-track" ref={listRef}
+            role="region" aria-label={`Карточки: ${title}`} tabIndex={0}>
+            {items.map(item => <Card key={item.id} item={item} featured={featured} {...actions}/>)}
+          </div>
+          {items.length > 1 && <>
+            <button type="button" className="home-carousel-arrow home-carousel-arrow--prev"
+              onClick={() => move(-1)} disabled={limits.start}
+              aria-controls={id + '-cards'} aria-label={`Предыдущие карточки: ${title}`}>
+              <Icon name="back" size={29}/>
+            </button>
+            <button type="button" className="home-carousel-arrow home-carousel-arrow--next"
+              onClick={() => move(1)} disabled={limits.end}
+              aria-controls={id + '-cards'} aria-label={`Следующие карточки: ${title}`}>
+              <Icon name="back" size={29}/>
+            </button>
+          </>}
         </div>
       : <p className="city-section-coming-soon">Здесь пока нет подтверждённых организаций или событий. Добавим их после проверки.</p>}
   </section>;
