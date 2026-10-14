@@ -25,8 +25,11 @@ function errorText(reason:unknown):string {
 
 export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void}) {
   const {state}=useAuth();
-  const user=state.status==='authenticated'?state.user:null;
-  const userId=user?.id??null;
+  const userId=state.status==='authenticated'?state.user.id:null;
+  return <ClassifiedsSession key={JSON.stringify([city,userId])} city={city} openLogin={openLogin} userId={userId}/>;
+}
+
+function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>void;userId:string|null}) {
   const [tab,setTab]=useState<Tab>('browse');
   const [deal,setDeal]=useState<DealType|null>(null);
   const [search,setSearch]=useState('');
