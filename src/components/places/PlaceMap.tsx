@@ -6,7 +6,9 @@ import { placeMapLinks } from '../../maps/placeMapLinks';
 import './placeMap.css';
 
 export function PlaceMap({ item, desktop }: { item: Item; desktop: boolean }) {
-  const [showMap, setShowMap] = useState(false);
+  // Desktop place cards show the map beside the information by default.
+  // Mobile waits for an explicit tap to save data and reduce third-party requests.
+  const [showMap, setShowMap] = useState(desktop);
   const osm = openStreetMapUrls(item.coordinates);
   // Opening links remain ordinary public map links, not paid API calls.
   const { mapsUrl } = placeMapLinks(item);
