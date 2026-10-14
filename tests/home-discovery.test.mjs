@@ -30,6 +30,7 @@ test('today requires a real date or explicitly documented weekly schedule, never
   // Monday = 1; Wednesday = 3; Sunday = 0.
   assert.equal(hasDeclaredScheduleToday('10:00–18:00, вторник–воскресенье',3), true);
   assert.equal(hasDeclaredScheduleToday('10:00–18:00, вторник–воскресенье',1), false);
+  assert.equal(hasDeclaredScheduleToday('10:00–18:00, вторник–воскресенье; понедельник выходной',1), false);
   assert.equal(hasDeclaredScheduleToday('10:00–18:00, вторник–воскресенье',0), true);
   assert.equal(hasDeclaredScheduleToday('10:00–18:00, понедельник–пятница',0), false);
   assert.equal(hasDeclaredScheduleToday('10:00–20:00 ежедневно',1), true);
