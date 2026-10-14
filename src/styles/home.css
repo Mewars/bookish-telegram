@@ -801,3 +801,45 @@ html:root[data-a11y-contrast=high] .city-home .city-selections-backdrop {display
 html:root[data-a11y-motion=reduce] .city-home .home-carousel-arrow {transition:none;}
 
 .city-home .today-schedule-note {max-width:670px;margin-top:7px;color:#ddcfba;font-size:12px;line-height:1.5;}
+
+
+/* Visible side-mounted carousel navigation: desktop 64 px, high-contrast gold
+   outlines. These sit alongside the cards rather than next to "Смотреть все". */
+.city-home .home-carousel-stage {position:relative;min-width:0;}
+.city-home .home-carousel-stage .home-carousel-arrow {
+  position:absolute;z-index:6;top:46%;
+  width:64px;height:64px;margin:0;
+  transform:translateY(-50%);
+  display:grid;place-items:center;
+  border:2px solid #f5c76b;border-radius:50%;
+  color:#fff9ea;background:#102638;
+  box-shadow:0 6px 28px rgba(0,0,0,.58),0 0 0 3px rgba(8,20,32,.44);
+  opacity:1;
+}
+.city-home .home-carousel-stage .home-carousel-arrow--prev {left:-28px;}
+.city-home .home-carousel-stage .home-carousel-arrow--next {right:-28px;}
+.city-home .home-carousel-stage .home-carousel-arrow--next svg {transform:rotate(180deg);}
+.city-home .home-carousel-stage .home-carousel-arrow:hover:not(:disabled) {
+  background:#eeb754;color:#081925;border-color:#ffe6a1;
+  transform:translateY(-50%) scale(1.06);
+}
+.city-home .home-carousel-stage .home-carousel-arrow:disabled {
+  opacity:.48;color:#a4aeb7;cursor:default;
+  border-color:rgba(255,255,255,.45);background:#102638;
+}
+.city-home .home-carousel-stage .home-carousel-arrow:focus-visible {
+  outline:3px solid #fff;outline-offset:4px;
+}
+@media(max-width:899px) {
+  .city-home .home-carousel-stage .home-carousel-arrow {
+    width:52px;height:52px;top:39%;box-shadow:0 5px 15px rgba(0,0,0,.52);
+  }
+  .city-home .home-carousel-stage .home-carousel-arrow--prev {left:-12px;}
+  .city-home .home-carousel-stage .home-carousel-arrow--next {right:-12px;}
+}
+@media(max-width:599px) {
+  .city-home .home-carousel-stage .home-carousel-arrow {width:48px;height:48px;top:94px;}
+  .city-home .home-carousel-stage .home-carousel-arrow--prev {left:3px;}
+  .city-home .home-carousel-stage .home-carousel-arrow--next {right:3px;}
+  .city-home .home-carousel-stage .home-carousel-arrow svg {width:25px;height:25px;}
+}
