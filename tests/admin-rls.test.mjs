@@ -8,6 +8,8 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
   const owner = '11111111-1111-4111-8111-111111111111';
   const editor = '22222222-2222-4222-8222-222222222222';
   const stranger = '33333333-3333-4333-8333-333333333333';
+  const cityPrefix = city => 'city-' + Buffer.from(city, 'utf8').toString('hex');
+  const cityFile = (city, suffix) => `${cityPrefix(city)}/${suffix}.webp`;
   const setRole = async (name, userId = '') => {
     await db.exec('RESET SESSION AUTHORIZATION; RESET ROLE');
     await db.query("SELECT set_config('request.jwt.claim.sub', $1, false)", [userId]);
@@ -33,6 +35,7 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
     await db.exec(await readFile('docs/sql/organizations-seed.sql','utf8'));
     await db.exec(await readFile('docs/sql/city-admin-mvp.sql','utf8'));
     await db.exec(await readFile('docs/sql/storage-admin-photo-access-2026-10.sql','utf8'));
+    await db.exec(await readFile('docs/sql/storage-admin-photo-safe-keys-2026-10.sql','utf8'));
     await db.query('INSERT INTO public.city_admin_access (user_id,city,role) VALUES ($1,$2,$3),($4,$5,$6)', [owner,'*','owner',editor,'Енисейск','editor']);
     // Test-only privileged action that mirrors a trusted billing/suspension job.
     // Created by the test superuser, callable only by service_role.
@@ -54,7 +57,7 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       assert.equal((await db.query('SELECT * FROM public.city_admin_access')).rows.length,0);
       await assert.rejects(db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'*','owner')",[stranger]), /permission denied/);
       await assert.rejects(db.query("INSERT INTO public.organizations(id,city,title,category,description,source_type) VALUES ('bad','Енисейск','Bad','Кафе','No','user_provided')"), /row-level security/);
-      await assert.rejects(db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/untrusted.webp')"), /row-level security/);
+      await assert.rejects(db.query(`INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','${cityFile("Енисейск","11111111-1111-4111-8111-111111111111")}')`), /row-level security/);
     });
     await t.test('editor may write own city but never another city', async () => {
       await setRole('authenticated',editor);
@@ -67,10 +70,13 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       assert.equal((await db.query("SELECT count(*)::int AS n FROM public.organizations WHERE id='edited-foreign'")).rows[0].n, 0);
       await assert.rejects(db.query("UPDATE public.organizations SET city='Ачинск' WHERE id='edited-local'"), /permission denied/);
       // Supabase Storage INSERT ... RETURNING requires SELECT for the new object.
-      const uploaded = await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/photo.webp') RETURNING name");
-      assert.equal(uploaded.rows[0].name, 'Енисейск/photo.webp');
+      const ownPhoto = cityFile('Енисейск', '22222222-2222-4222-8222-222222222222');
+      const otherPhoto = cityFile('Ачинск', '22222222-2222-4222-8222-222222222222');
+      const uploaded = await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places',$1) RETURNING name", [ownPhoto]);
+      assert.equal(uploaded.rows[0].name, ownPhoto);
       assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-places'")).rows.length, 1);
-      await assert.rejects(db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Ачинск/photo.webp') RETURNING name"), /row-level security/);
+      await assert.rejects(db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places',$1) RETURNING name", [otherPhoto]), /row-level security/);
+      await assert.rejects(db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/22222222-2222-4222-8222-222222222222.webp') RETURNING name"), /row-level security/);
       assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-city-covers'")).rows.length,0);
       await assert.rejects(db.exec("UPDATE public.organizations SET status='published' WHERE id='edited-local'"), /check constraint/);
       await db.exec("UPDATE public.organizations SET verified_at='2026-10-14',status='published' WHERE id='edited-local'");
@@ -90,7 +96,7 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       const result = await db.exec("UPDATE public.organizations SET title = 'Should remain unchanged' WHERE id = 'edited-local'");
       assert.equal(result[0]?.rowCount ?? 0, 0);
       await assert.rejects(
-        db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/suspended.webp')"),
+        db.exec(`INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','${cityFile("Енисейск","55555555-5555-4555-8555-555555555555")}')`),
         /row-level security/
       );
       assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-places'")).rows.length,0);
@@ -102,7 +108,8 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       assert.equal((await db.query("SELECT status FROM public.organizations WHERE id = 'edited-local'")).rows[0].status, 'published');
 
       await setRole('authenticated', owner);
-      const ownerPhoto = await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Ачинск/11111111-1111-4111-8111-111111111111.jpg') RETURNING name");
+      const ownerPhoto = await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places',$1) RETURNING name",
+        [`${cityPrefix('Ачинск')}/11111111-1111-4111-8111-111111111111.jpg`]);
       assert.ok(ownerPhoto.rows[0].name.endsWith('.jpg'));
       const removed = await db.query("DELETE FROM storage.objects WHERE bucket_id='ryadom-places' RETURNING name");
       assert.equal(removed.rows.length,2);
