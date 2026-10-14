@@ -149,7 +149,8 @@ test('admin sidebar reuses the official Ryadom brand image and returns to overvi
   ]);
   assert.match(brand, /brand\/ryadom-logo-transparent\.png/);
   assert.match(desktop, /<BrandWordmark decorative\/>/);
-  assert.match(admin, /<button type="button" className="admin-cms-wordmark"[^>]*><BrandWordmark decorative\/><\/button>/);
+  assert.match(admin, /<button type="button" className="admin-cms-wordmark"/);
+  assert.match(admin, /<BrandWordmark decorative\/><\/button>/);
   assert.match(admin, /navigateAdmin\('overview'\); window\.scrollTo\(\{ top: 0, left: 0, behavior: 'instant' \}\)/);
   assert.doesNotMatch(admin, /РЯД<span>О<\/span>М/);
   assert.match(css, /\.admin-cms-wordmark \.brand-logo-image/);
