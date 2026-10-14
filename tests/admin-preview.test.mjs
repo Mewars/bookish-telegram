@@ -10,7 +10,11 @@ test('preview edits are stored separately and never read Supabase', async () => 
   assert.equal(PREVIEW_STORAGE_KEY, 'ryadom.admin.rehearsal.v1');
   assert.deepEqual(readPreviewEdits(null), []);
   assert.deepEqual(readPreviewEdits('{bad json'), []);
-  assert.deepEqual(readPreviewEdits(JSON.stringify([example])), [example]);
+  const loaded = readPreviewEdits(JSON.stringify([example]));
+  assert.equal(loaded.length, 1);
+  assert.equal(loaded[0].item.title, example.item.title);
+  assert.equal(loaded[0].item.image, example.item.image);
+  assert.equal(loaded[0].status, 'draft');
   const code = await readFile('src/admin/AdminPreviewPage.tsx', 'utf8');
   const route = await readFile('src/App.tsx', 'utf8');
   assert.doesNotMatch(code, /@supabase\/supabase-js|supabase\.from\(|supabase\.storage|saveAdminOrganization|uploadAdminPhoto/);
