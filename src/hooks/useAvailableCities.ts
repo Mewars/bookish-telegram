@@ -20,9 +20,10 @@ export function useAvailableCities(enabled: boolean) {
   const [ready, setReady] = useState(!enabled || !supabase);
   const [version, setVersion] = useState(0);
   useEffect(() => {
-    if (!enabled || !supabase) return;
+    const client = supabase;
+    if (!enabled || !client) return;
     let active = true;
-    Promise.resolve().then(() => withDeadline(signal => supabase.from('city_directory')
+    Promise.resolve().then(() => withDeadline(signal => client.from('city_directory')
       .select('name,region,cover_url,tagline,summary').eq('active', true).order('name').abortSignal(signal)))
       .then(({ data, error }) => {
         if (error || !Array.isArray(data)) throw new Error('City registry unavailable');
