@@ -8,7 +8,7 @@ export interface ClassifiedPhoto {
 }
 export interface VisiblePhoto extends ClassifiedPhoto { url:string; }
 
-const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function db(client:SupabaseClient|null):SupabaseClient {
   if(!client)throw Error('Тестовое хранилище фотографий не подключено.');
   return client;
