@@ -55,12 +55,14 @@ test('prepared SQL seed matches 17 entries, is idempotent and protected by RLS',
 });
 
 
-test('interactive admin preview cannot connect to Supabase and is Netlify-only', async () => {
+test('interactive admin preview is browser-local even when available on production', async () => {
   const app = await readFile('src/App.tsx', 'utf8');
   const demo = await readFile('src/admin/AdminPreviewPage.tsx', 'utf8');
-  assert.match(app, /hostname\.endsWith\('\.netlify\.app'\)/);
+  assert.match(app, /const adminPreviewEnabled = true/);
   assert.match(app, /adminPreviewEnabled \? <AdminPreviewPage/);
+  assert.match(app, /VITE_ADMIN_PANEL_ENABLED/);
   assert.doesNotMatch(demo, /import .*supabase|readCityAccess|saveAdminOrganization|uploadAdminPhoto|fetch\(/i);
-  assert.match(demo, /Демонстрационный режим/);
-  assert.match(demo, /Сохранить в демо/);
+  assert.match(demo, /Пробный кабинет, не публикация/);
+  assert.match(demo, /Сохранить в пробном кабинете/);
+  assert.match(demo, /localStorage\.setItem/);
 });
