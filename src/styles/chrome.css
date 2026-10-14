@@ -98,3 +98,21 @@
   .app-header .city-pill > svg { display: none; }
   .web-footer-inner { padding-inline: 16px; }
 }
+
+
+/* Show the avatar linked to the signed-in VK/Yandex profile in both headers.
+   Keep the fallback profile pictogram visible until a valid photo loads. */
+.web-profile-button {position:relative;overflow:hidden;}
+.web-profile-button .header-user-avatar {
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  border-radius:inherit;background:var(--surface);
+}
+.app-header .header-profile-button {width:38px;height:38px;flex-shrink:0;}
+@media(max-width:599px) {
+  .app-header .header-profile-button {width:36px;height:36px;}
+  .app-header .header-heart {flex-shrink:0;}
+  .app-header .header-profile-button {border-color:rgba(255,255,255,.24);}
+}
+@media(max-width:359px) {
+  .app-header .header-profile-button {width:32px;height:32px;}
+}
