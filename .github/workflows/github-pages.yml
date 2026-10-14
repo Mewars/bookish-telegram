@@ -22,6 +22,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
       VITE_ADMIN_PANEL_ENABLED: ${{ vars.VITE_ADMIN_PANEL_ENABLED || 'false' }}
       VITE_CARD_PHOTOS_ENABLED: ${{ vars.VITE_CARD_PHOTOS_ENABLED || 'false' }}
+      VITE_CITY_DIRECTORY_ENABLED: ${{ vars.VITE_CITY_DIRECTORY_ENABLED || 'false' }}
       CONTEXT: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/mewars' && 'production' || 'deploy-preview' }}
     steps:
       - name: Checkout
