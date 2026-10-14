@@ -1,4 +1,4 @@
-/* global process, fetch, AbortSignal, console, document, window */
+/* global process, fetch, AbortSignal, console, document, window, getComputedStyle, innerWidth, innerHeight */
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -49,6 +49,19 @@ try {
         assert(titles.includes(name), `Missing section: ${name}`);
       }
       result.checks.push('All agreed editorial sections');
+      assert.equal(await page.locator('.city-selections-backdrop').count(), 0, 'Repeated photo backdrop should be off');
+      result.checks.push('Single photo hero, solid dark lower background');
+      const a11y = page.locator('.accessibility-button--fixed');
+      await a11y.waitFor({ state: 'visible', timeout: 10000 });
+      const placement = await a11y.evaluate(element => {
+        const bounds = element.getBoundingClientRect();
+        return { position: getComputedStyle(element).position, right: innerWidth - bounds.right, bottom: innerHeight - bounds.bottom };
+      });
+      assert.equal(placement.position, 'fixed');
+      assert(placement.right >= 0 && placement.right < 50, 'Accessibility button is not docked to the right');
+      assert(placement.bottom >= 0 && placement.bottom < (scenario.name === 'desktop-1440' ? 55 : 180),
+        'Accessibility button is not docked near the bottom');
+      result.checks.push('Accessibility launcher fixed near lower-right corner');
 
       const track = page.locator('.home-carousel-track').first();
       await track.scrollIntoViewIfNeeded();
@@ -66,16 +79,17 @@ try {
           const element = document.elementFromPoint(x, y);
           return { tag: element?.tagName ?? null, onCarousel: !!element?.closest('.home-carousel-track') };
         }, { x, y });
-        result.checks.push(`Touch hit target: ${JSON.stringify(hit)}`);
-        const cdp = await context.newCDPSession(page);
-        await cdp.send('Input.synthesizeScrollGesture', {
-          x, y, xDistance: 230, yDistance: 0, gestureSourceType: 'touch', speed: 500, preventFling: true,
-        });
+        result.checks.push(`Wheel hit target: ${JSON.stringify(hit)}`);
+        // Headless Chromium's CDP touch synthesis does not scroll even a plain
+        // standalone overflow-x:auto test element. Verify horizontal scrolling
+        // in a mobile viewport without falsely claiming a real finger gesture.
+        await page.mouse.move(x, y);
+        await page.mouse.wheel(230, 0);
         await page.waitForTimeout(750);
       }
       const end = await track.evaluate(el => el.scrollLeft);
       assert(end > start.x + 10, `Carousel did not move: ${start.x} -> ${end}`);
-      result.checks.push('Carousel arrow or genuine mobile touch swipe');
+      result.checks.push(scenario.name === 'desktop-1440' ? 'Desktop carousel arrow' : 'Mobile-viewport horizontal scrolling (not a physical touch test)');
 
       const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: window.innerWidth }));
       assert(size.scroll <= size.viewport + 3, `Horizontal page overflow: ${JSON.stringify(size)}`);
@@ -94,6 +108,14 @@ try {
       await page.locator('#city-selections .section-heading h2').getByText('Поесть', { exact: true }).waitFor();
       result.checks.push('Food shortcut opens filtered results');
       await page.screenshot({ path: `${folder}/${scenario.name}-food.png`, fullPage: true, animations: 'disabled' });
+      if (scenario.name === 'desktop-1440') {
+        await page.goto(`${base}/#/contacts`, { waitUntil: 'domcontentloaded' });
+        await page.getByRole('heading', { name: 'Контакты владельца' }).waitFor();
+        const vk = page.locator('a[href="https://vk.ru/mewarspro"]');
+        assert(await vk.isVisible(), 'Owner VK contact link missing');
+        result.checks.push('Owner contacts page and VK link');
+        await page.screenshot({ path: `${folder}/${scenario.name}-contacts.png`, fullPage: true, animations: 'disabled' });
+      }
     } catch (error) {
       failed = true;
       result.errors.push(error.stack || String(error));
