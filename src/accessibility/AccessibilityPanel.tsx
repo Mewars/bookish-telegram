@@ -11,10 +11,7 @@ interface AccessibilityPanelProps {
   onReset: () => void;
 }
 
-export function AccessibilityButton({ onClick, mobile = false }: {
-  onClick: () => void;
-  mobile?: boolean;
-}) {
+export function AccessibilityButton({ onClick }: { onClick: () => void }) {
   return <button type="button" className="accessibility-button accessibility-button--fixed"
     onClick={onClick} aria-label="Версия для слабовидящих и слабослышащих. Настройки доступности"
     aria-haspopup="dialog" aria-controls="ryadom-accessibility-dialog" title="Настройки доступности">Аа</button>;
