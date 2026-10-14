@@ -184,8 +184,13 @@ export async function createBridge(config: BridgeConfig,store: BridgeStore,upstr
   return async (request: Request): Promise<Response> => {
     try {
       const url=new URL(request.url);
-      if (url.origin!==PROJECT_ORIGIN || !url.pathname.startsWith(new URL(BASE_URL).pathname+'/')) fail(404,'not_found');
-      const route=url.pathname.slice(new URL(BASE_URL).pathname.length);
+      // Edge gateways may rewrite request.url to an internal origin and strip
+      // /functions/v1/ or the function slug. The gateway owns function routing.
+      // Match only these four exact paths; all OAuth redirect origins stay pinned.
+      const routes=['/authorize','/callback','/token','/userinfo'] as const;
+      const prefixes=[new URL(BASE_URL).pathname,'/vk-oauth-bridge',''];
+      const route=routes.find(path=>prefixes.some(prefix=>url.pathname===prefix+path));
+      if (!route) fail(404,'not_found');
       const method=route==='/token'?'POST':'GET';
       if (!['/authorize','/callback','/token','/userinfo'].includes(route)) fail(404,'not_found');
       if (request.method!==method) return json({error:'invalid_request'},405,{Allow:method});
