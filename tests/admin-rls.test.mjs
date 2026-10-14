@@ -33,6 +33,15 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
     await db.exec(await readFile('docs/sql/organizations-seed.sql','utf8'));
     await db.exec(await readFile('docs/sql/city-admin-mvp.sql','utf8'));
     await db.query('INSERT INTO public.city_admin_access (user_id,city,role) VALUES ($1,$2,$3),($4,$5,$6)', [owner,'*','owner',editor,'Енисейск','editor']);
+    // Test-only privileged action that mirrors a trusted billing/suspension job.
+    // Created by the test superuser, callable only by service_role.
+    // NOT part of any production SQL migration.
+    await db.exec(`CREATE FUNCTION public.test_suspend_city_editor() RETURNS void
+      LANGUAGE sql SECURITY DEFINER SET search_path = ''
+      AS $ UPDATE public.city_admin_access SET active = false
+        WHERE user_id = '22222222-2222-4222-8222-222222222222'::uuid AND city = 'Енисейск' AND role = 'editor'; $;
+      REVOKE ALL ON FUNCTION public.test_suspend_city_editor() FROM PUBLIC;
+      GRANT EXECUTE ON FUNCTION public.test_suspend_city_editor() TO service_role;`);
     await t.test('anonymous sees published rows, never drafts or access grants', async () => {
       await setRole('anon');
       assert.equal((await db.query('SELECT count(*)::int AS n FROM public.organizations')).rows[0].n,8);
@@ -64,8 +73,8 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
     await t.test('suspended city editor loses write access while city stays visible and owner retains access', async () => {
       // This simulates the future billing suspension action on the existing
       // server-side access flag; no content/status rows are modified.
-      await db.exec('RESET SESSION AUTHORIZATION; RESET ROLE');
-      await db.query("UPDATE public.city_admin_access SET active = false WHERE user_id = $1 AND city = $2 AND role = 'editor'", [editor, 'Енисейск']);
+      await setRole('service_role');
+      await db.exec('SELECT public.test_suspend_city_editor()');
 
       await setRole('authenticated', editor);
       assert.equal((await db.query("SELECT active FROM public.city_admin_access WHERE city = 'Енисейск'")).rows[0].active, false);
