@@ -18,7 +18,9 @@ test('city-scoped pages do not reuse Eniseysk photos or SEO text', async () => {
   const home = await readFile('src/components/CityHome.tsx','utf8');
   const app = await readFile('src/App.tsx','utf8');
   const footer = await readFile('src/components/web/WebFooter.tsx','utf8');
-  assert.match(home,/isEniseysk \? pick/);
+  assert.match(home,/editorialPicks\(items, city\)/);
+  const editorial = await readFile('src/components/homeDiscovery.ts', 'utf8');
+  assert.match(editorial,/if \(city !== 'Енисейск'\) return \[\]/);
   assert.match(home,/city-cover--no-image/);
   assert.match(home,/cityProfile\?\.summary/);
   assert.match(app,/const cityItems = filterByCity\(photoCatalog.items, city\)/);
