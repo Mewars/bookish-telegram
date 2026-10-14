@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Item, Section } from '../types';
-import { type CardActions } from './Card';
+import { Card, type CardActions } from './Card';
 import { HomeCarousel } from './HomeCarousel';
 import { editorialPicks, isCulturalPlace, isFoodVenue, isService, isShop, isTodayRecommendation, weekdayInCity } from './homeDiscovery';
 import { Search } from './Search';
