@@ -9,6 +9,7 @@ import {
 import type { ChatMessage,Classified,ClassifiedReport,Conversation,DealType,Draft } from './repository';
 import { ClassifiedReportControl } from './ClassifiedReportControl';
 import { ClassifiedPhotoGallery } from './ClassifiedPhotoGallery';
+import { classifiedsSessionKey } from './sessionKey';
 import './classifieds.css';
 
 type Tab='browse'|'mine'|'messages'|'moderate'|'reports';
@@ -26,7 +27,7 @@ function errorText(reason:unknown):string {
 export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void}) {
   const {state}=useAuth();
   const userId=state.status==='authenticated'?state.user.id:null;
-  return <ClassifiedsSession key={JSON.stringify([city,userId])} city={city} openLogin={openLogin} userId={userId}/>;
+  return <ClassifiedsSession key={classifiedsSessionKey(city,userId)} city={city} openLogin={openLogin} userId={userId}/>;
 }
 
 function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>void;userId:string|null}) {
