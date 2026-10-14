@@ -12,6 +12,7 @@ export function HomeCarousel({ title, subtitle, index, kind, items, navigate, fe
   const id = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const [limits, setLimits] = useState({ start: true, end: true });
+  const itemKeys = items.map(item => item.id).join('|');
   const updateLimits = () => {
     const node = listRef.current;
     if (!node) return;
@@ -25,13 +26,14 @@ export function HomeCarousel({ title, subtitle, index, kind, items, navigate, fe
     const node = listRef.current;
     if (!node) return;
     const sync = () => updateLimits();
+    node.scrollLeft = 0;
     sync();
     node.addEventListener('scroll', sync, { passive: true });
     const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(sync) : null;
     observer?.observe(node);
     window.addEventListener('resize', sync);
     return () => { node.removeEventListener('scroll', sync); observer?.disconnect(); window.removeEventListener('resize', sync); };
-  }, [items.length]);
+  }, [itemKeys]);
 
   const move = (direction: -1 | 1) => {
     const node = listRef.current;
