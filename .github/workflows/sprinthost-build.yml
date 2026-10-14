@@ -50,7 +50,7 @@ jobs:
           VITE_CARD_PHOTOS_ENABLED: ${{ vars.VITE_CARD_PHOTOS_ENABLED || 'false' }}
           VITE_CITY_DIRECTORY_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
           VITE_ORGANIZATIONS_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
-      VITE_VK_ID_ENABLED: 'true'
+          VITE_VK_ID_ENABLED: 'true'
       - name: Package dist contents without a wrapper folder
         working-directory: dist
         run: zip -r ../sprinthost-site.zip .
