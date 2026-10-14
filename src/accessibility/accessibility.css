@@ -107,7 +107,7 @@
 
 /* High contrast: readable content and opaque navigation over photo covers.
    Keep Ryadom gold accent, never invert photographs or personal images. */
-:root[data-a11y-contrast=high] {
+html:root[data-a11y-contrast=high] {
   --bg: #070707; --surface: #121212; --surface-secondary: #202020;
   --text: #fff; --muted: #f0f0f0; --border: #d0d0d0; --line: #d0d0d0;
   --primary: #ffda70; --primary-hover: #ffe99c; --primary-ink: #ffda70;
@@ -117,24 +117,24 @@
   --violet-ink: #f1e5ff;
   color-scheme: dark;
 }
-:root[data-a11y-contrast=high] .app-shell:has(.city-home) .web-header {
+html:root[data-a11y-contrast=high] .app-shell:has(.city-home) .web-header {
   background: #070707; backdrop-filter: none; border-bottom: 1px solid #eee;
 }
-:root[data-a11y-contrast=high] .app-shell:has(.city-home) .city-pill,
-:root[data-a11y-contrast=high] .app-shell:has(.city-home) .web-profile-button {
+html:root[data-a11y-contrast=high] .app-shell:has(.city-home) .city-pill,
+html:root[data-a11y-contrast=high] .app-shell:has(.city-home) .web-profile-button {
   background: #181818; color: #fff; border: 1px solid #eee;
 }
-:root[data-a11y-contrast=high] .city-cover::before {
+html:root[data-a11y-contrast=high] .city-cover::before {
   background: linear-gradient(90deg, #000d, #0008);
 }
-:root[data-a11y-contrast=high] .app-shell :is(button,a,input,textarea,select):focus-visible,
-:root[data-a11y-contrast=high] .accessibility-dialog :is(button,input):focus-visible {
+html:root[data-a11y-contrast=high] .app-shell :is(button,a,input,textarea,select):focus-visible,
+html:root[data-a11y-contrast=high] .accessibility-dialog :is(button,input):focus-visible {
   outline: 3px solid #ffda70; outline-offset: 3px;
 }
-:root[data-a11y-contrast=high] .web-nav button,
-:root[data-a11y-contrast=high] .web-favorites,
-:root[data-a11y-contrast=high] .web-header .music-launch { color: #fff; }
-:root[data-a11y-contrast=high] .web-nav button[aria-current=page] { color: #ffda70; }
+html:root[data-a11y-contrast=high] .web-nav button,
+html:root[data-a11y-contrast=high] .web-favorites,
+html:root[data-a11y-contrast=high] .web-header .music-launch { color: #fff; }
+html:root[data-a11y-contrast=high] .web-nav button[aria-current=page] { color: #ffda70; }
 
 /* Motion preferences from the user take precedence over animation defaults. */
 :root[data-a11y-motion=reduce] *,
