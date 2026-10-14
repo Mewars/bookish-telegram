@@ -32,7 +32,16 @@ const sections: Record<Section | 'import', PageMetadata> = {
 };
 
 // Hash screens have no independent HTML URL. Do not invent per-card canonicals.
-export function pageMetadata(section: Section | 'import', id?: string, item?: Item): PageMetadata {
+export function pageMetadata(section: Section | 'import', id?: string, item?: Item, city = 'Енисейск'): PageMetadata {
+  // The hash router has no independent city URL: keep the canonical homepage
+  // for the original Eniseysk index; never claim a new city's page is Eniseysk.
+  if (!id && city !== 'Енисейск' && ['home','places','events','services'].includes(section)) {
+    const labels: Partial<Record<Section, string>> = { home: 'Городской гид', places: 'Места и организации', events: 'Афиша', services: 'Услуги' };
+    return {
+      title: `${labels[section as Section]} — ${city} | Рядом`,
+      description: `Рядом — городской справочник ${city}. Выбирайте места, организации, мероприятия и полезные услуги.`,
+    };
+  }
   if (id && !item) return { title: 'Карточка не найдена — Рядом', description: 'Карточка по этой ссылке не найдена. Посмотрите места в городском гиде Рядом.' };
   if (id && item?.real && (item.kind === 'places' || item.kind === 'services')) return {
     title: `${item.title} — ${item.city} | Рядом`,
