@@ -60,16 +60,18 @@ try {
       } else {
         const bounds = await track.boundingBox();
         assert(bounds, 'Carousel has no dimensions');
-        const x = bounds.x + Math.min(bounds.width - 85, 250);
-        const y = bounds.y + Math.min(170, bounds.height * 0.72);
+        const x = Math.round(bounds.x + Math.min(bounds.width - 85, 250));
+        const y = Math.round(bounds.y + Math.min(170, bounds.height * 0.72));
+        const hit = await page.evaluate(({ x, y }) => {
+          const element = document.elementFromPoint(x, y);
+          return { tag: element?.tagName ?? null, onCarousel: !!element?.closest('.home-carousel-track') };
+        }, { x, y });
+        result.checks.push(`Touch hit target: ${JSON.stringify(hit)}`);
         const cdp = await context.newCDPSession(page);
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
-        for (let i = 1; i <= 6; i++) {
-          await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x - i * 30, y }] });
-          await page.waitForTimeout(40);
-        }
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-        await page.waitForTimeout(650);
+        await cdp.send('Input.synthesizeScrollGesture', {
+          x, y, xDistance: -230, yDistance: 0, gestureSourceType: 'touch', speed: 500, preventFling: true,
+        });
+        await page.waitForTimeout(750);
       }
       const end = await track.evaluate(el => el.scrollLeft);
       assert(end > start.x + 10, `Carousel did not move: ${start.x} -> ${end}`);
@@ -84,6 +86,8 @@ try {
         assert(await hero.evaluate(img => img.naturalWidth > 0), 'Cover image is broken');
         result.checks.push('Cover image loads');
       }
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(100);
       await page.screenshot({ path: `${folder}/${scenario.name}-home.png`, fullPage: true, animations: 'disabled' });
 
       await page.locator('.quick-discovery button').filter({ hasText: 'Поесть' }).click();
