@@ -52,9 +52,14 @@ export function hasDeclaredScheduleToday(hours: string | undefined, day: number)
   const dayName = '(?:воскресенье|понедельник|вторник|среда|четверг|пятница|суббота|вс|пн|вт|ср|чт|пт|сб)';
   const range = new RegExp(`(${dayName})\\s*[–—-]\\s*(${dayName})`, 'g');
   let match: RegExpExecArray | null;
+  let hasRanges = false;
   while ((match = range.exec(value)) !== null) {
+    hasRanges = true;
     if (inRange(day, weekdayIndex(match[1]), weekdayIndex(match[2]))) return true;
   }
+  // When a weekday range is present, never infer that a weekday mentioned
+  // separately (for example "понедельник — выходной") is an opening day.
+  if (hasRanges) return false;
   // Explicit single weekdays are valid too.
   const dayWords = value.match(new RegExp(`\\b(?:пн|вт|ср|чт|пт|сб|вс)\\b`, 'g')) ?? [];
   if (dayWords.includes(SHORT_DAYS[day])) return true;
