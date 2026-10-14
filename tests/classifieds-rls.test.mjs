@@ -33,8 +33,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       assert.equal(made.rows[0].status,'draft');
       await assert.rejects(db.query("INSERT INTO public.classifieds(city,deal_type,category,title,description,author_id) VALUES ('Енисейск','sell','Дом','Отдам диван','Есть готовый диван',$1)",[buyer]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.classifieds SET author_id=$1 WHERE id=$2",[buyer,id]),/permission denied/);
-      const noPublish=await db.query("UPDATE public.classifieds SET status='published' WHERE id=$1 RETURNING id",[id]);
-      assert.equal(noPublish.rows.length,0);
+      await assert.rejects(db.query("UPDATE public.classifieds SET status='published' WHERE id=$1 RETURNING id",[id]),/row-level security/);
       await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[id]);
       assert.equal((await db.query("UPDATE public.classifieds SET title='Подмена' WHERE id=$1 RETURNING id",[id])).rows.length,0);
       await assert.rejects(db.query("SELECT public.review_classified($1,true)",[id]),/Not authorized/);
