@@ -107,7 +107,7 @@ export function validateAdminDraft(draft: AdminDraft, confirmed: boolean): Recor
   const hasLongitude = draft.longitude.trim() !== '';
   if (hasLatitude !== hasLongitude) errors.latitude = 'Для отметки на карте укажи широту и долготу вместе.';
   if (hasLatitude && hasLongitude) {
-    const decimal = /^-?\\d+(?:[.,]\\d+)?$/;
+    const decimal = /^-?\d+(?:[.,]\d+)?$/;
     const lat = Number(draft.latitude.trim().replace(',', '.'));
     const lon = Number(draft.longitude.trim().replace(',', '.'));
     if (!decimal.test(draft.latitude.trim()) || !Number.isFinite(lat) || Math.abs(lat) > 90)
