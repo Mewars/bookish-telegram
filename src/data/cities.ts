@@ -2,6 +2,8 @@ export interface DirectoryCity {
   name: string;
   region: string;
   cover_url?: string | null;
+  tagline?: string;
+  summary?: string;
 }
 
 // Public fallback cities. The city-directory table can add more without a redeploy
