@@ -20,7 +20,8 @@ const initialEdits = () => {
 const toDraft = (item: Item, status: AdminStatus): AdminDraft => ({
   id: item.id, kind: item.kind === 'services' ? 'services' : 'places', city: item.city,
   title: item.title, category: item.category, description: item.description,
-  address: item.address ?? '', phone: item.phone ?? '', hours: item.hours ?? '',
+  address: item.address ?? '', latitude: item.coordinates ? String(item.coordinates.lat) : '',
+  longitude: item.coordinates ? String(item.coordinates.lon) : '', phone: item.phone ?? '', hours: item.hours ?? '',
   website: item.website ?? '', vk_url: item.vkUrl ?? '', source_url: item.sourceUrl ?? '',
   image_url: '', status, verified_at: item.verifiedAt ?? '',
 });
