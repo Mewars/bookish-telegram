@@ -22,9 +22,10 @@ jobs:
       CONTEXT: production
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-      VITE_ADMIN_PANEL_ENABLED: ${{ vars.VITE_ADMIN_PANEL_ENABLED || 'false' }}
+      VITE_ADMIN_PANEL_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
       VITE_CARD_PHOTOS_ENABLED: ${{ vars.VITE_CARD_PHOTOS_ENABLED || 'false' }}
-      VITE_CITY_DIRECTORY_ENABLED: ${{ vars.VITE_CITY_DIRECTORY_ENABLED || 'false' }}
+      VITE_CITY_DIRECTORY_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
+      VITE_ORGANIZATIONS_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
       VITE_VK_ID_ENABLED: 'true'
       SPRINTHOST_HOST: ${{ secrets.SPRINTHOST_SSH_HOST }}
       SPRINTHOST_USER: ${{ secrets.SPRINTHOST_SSH_USER }}
