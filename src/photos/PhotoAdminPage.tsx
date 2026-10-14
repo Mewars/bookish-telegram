@@ -34,9 +34,10 @@ export function PhotoAdminPage({ enabled, goHome, openLogin }: {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!enabled || !userId || !supabase) return;
+    const client = supabase;
+    if (!enabled || !userId || !client) return;
     let active = true;
-    Promise.resolve().then(() => readCityAccess(supabase, userId)).then(result => {
+    Promise.resolve().then(() => readCityAccess(client, userId)).then(result => {
       if (!active) return;
       setCheckedFor(userId);
       setAccess(result.filter(entry => canManageCity([entry], CARD_PHOTO_CITY)));
