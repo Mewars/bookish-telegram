@@ -2,15 +2,16 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import {
-  createDraft,dealLabels,getConversations,getMessages,getMine,getPending,
-  getPublished,markComplete,mayReview,moderate,openConversation,sendMessage,
+  createDraft,dealLabels,getBlockedClassifiedUsers,getConversations,getMessages,getMine,getOpenClassifiedReports,getPending,
+  getPublished,markComplete,mayReview,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
   submitForReview,validateDraft,
 } from './repository';
-import type { ChatMessage,Classified,Conversation,DealType,Draft } from './repository';
+import type { ChatMessage,Classified,ClassifiedReport,Conversation,DealType,Draft } from './repository';
+import { ClassifiedReportControl } from './ClassifiedReportControl';
 import { ClassifiedPhotoGallery } from './ClassifiedPhotoGallery';
 import './classifieds.css';
 
-type Tab='browse'|'mine'|'messages'|'moderate';
+type Tab='browse'|'mine'|'messages'|'moderate'|'reports';
 const deals:DealType[]=['sell','buy','rent_out','rent_in'];
 function priceLabel(value:number|null):string {
   return value===null?'Цена договорная':new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(value)+' ₽';
@@ -31,6 +32,8 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
   const [search,setSearch]=useState('');
   const [items,setItems]=useState<Classified[]>([]);
   const [threads,setThreads]=useState<Conversation[]>([]);
+  const [reports,setReports]=useState<ClassifiedReport[]>([]);
+  const [blockedUsers,setBlockedUsers]=useState<string[]>([]);
   const [messages,setMessages]=useState<ChatMessage[]>([]);
   const [threadId,setThreadId]=useState<string|null>(null);
   const [messageDraft,setMessageDraft]=useState('');
@@ -65,10 +68,16 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
         if(!canReview){if(active)setItems([]);return;}
         const result=await getPending(supabase,city);
         if(active)setItems(result);
+      } else if(tab==='reports') {
+        if(!canReview){if(active)setReports([]);return;}
+        const result=await getOpenClassifiedReports(supabase,city);
+        if(active)setReports(result);
       } else if(tab==='messages') {
         if(!userId){if(active)setThreads([]);return;}
-        const result=await getConversations(supabase,userId);
-        if(active)setThreads(result);
+        const [result,blocks]=await Promise.all([
+          getConversations(supabase,userId),getBlockedClassifiedUsers(supabase,userId),
+        ]);
+        if(active){setThreads(result);setBlockedUsers(blocks);}
       }
     };
     void load().catch(reason=>{if(active)setNotice(errorText(reason));})
@@ -101,6 +110,8 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
     (!search.trim()||(entry.title+' '+entry.description+' '+entry.category).toLocaleLowerCase('ru')
       .includes(search.trim().toLocaleLowerCase('ru'))));
   const activeThread=threads.find(x=>x.id===threadId);
+  const otherParticipant=activeThread ? activeThread.buyer_id===userId?activeThread.seller_id:activeThread.buyer_id : null;
+  const isBlocked=otherParticipant ? blockedUsers.includes(otherParticipant) : false;
   const currentMessages=messagesFor===threadId?messages:[];
   return <section className="classifieds-page">
     <header className="classifieds-hero">
@@ -112,6 +123,7 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
         <button aria-pressed={tab==='mine'} onClick={()=>userId?setTab('mine'):openLogin()}>Мои объявления</button>
         <button aria-pressed={tab==='messages'} onClick={()=>userId?setTab('messages'):openLogin()}>Сообщения</button>
         {canReview&&<button aria-pressed={tab==='moderate'} onClick={()=>setTab('moderate')}>На проверке</button>}
+        {canReview&&<button aria-pressed={tab==='reports'} onClick={()=>setTab('reports')}>Жалобы</button>}
       </div>
     </header>
     {notice&&<p className="classifieds-feedback" role="status">{notice}</p>}
@@ -184,6 +196,8 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
           </div>
           {tab==='browse'&&entry.status==='published'&&entry.author_id!==userId&&
             <button className="classifieds-card-button" disabled={busy} onClick={()=>startChat(entry)}>Написать автору</button>}
+          {tab==='browse'&&entry.status==='published'&&entry.author_id!==userId&&
+            <ClassifiedReportControl listingId={entry.id} userId={userId} openLogin={openLogin}/>}
           {tab==='browse'&&entry.status==='completed'&&<small>Сделка завершена</small>}
           {tab==='mine'&&<div className="classifieds-card-actions">
             <small>Статус: {({draft:'Черновик',pending:'На проверке',published:'Опубликовано',rejected:'Отклонено',archived:'В архиве',completed:'Завершено'} as Record<string,string>)[entry.status]}</small>
@@ -195,6 +209,18 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
             <button disabled={busy} onClick={()=>void execute(()=>moderate(supabase,entry.id,false))}>Отклонить</button>
           </div>}
         </article>)}</div>)}
+    {tab==='reports'&&<section className="classifieds-reports">
+      <h2>Жалобы жителей · {city}</h2>
+      {loading?<p role="status">Загружаем жалобы…</p>:reports.length===0?<p>Новых жалоб нет.</p>:
+        reports.map(report=><article className="classifieds-report-card" key={report.id}>
+          <h3>{report.classifieds.title}</h3><p>{report.reason}</p>
+          <small>{new Date(report.created_at).toLocaleString('ru-RU')}</small>
+          <div className="classifieds-card-actions">
+            <button disabled={busy} onClick={()=>void execute(()=>reviewClassifiedReport(supabase,report.id,false))}>Жалобу отклонить</button>
+            <button disabled={busy} onClick={()=>void execute(()=>reviewClassifiedReport(supabase,report.id,true))}>Скрыть объявление</button>
+          </div>
+        </article>)}
+    </section>}
     {tab==='messages'&&<div className="classifieds-messages">
       <aside className="classifieds-thread-list">
         <h2>Переписки</h2>
@@ -208,6 +234,12 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
       <section className="classifieds-chat" aria-label="Чат по объявлению">
         {activeThread?<><h2>Личная переписка</h2>
           <p className="classifieds-note">Сообщения видны только двум участникам.</p>
+          {otherParticipant&&userId&&<div className="classifieds-chat-block">
+            {isBlocked&&<p role="status">Вы заблокировали этого собеседника. Отправка сообщений отключена.</p>}
+            <button type="button" disabled={busy} onClick={()=>void execute(
+              ()=>setClassifiedUserBlock(supabase,userId,otherParticipant,!isBlocked)
+            )}>{isBlocked?'Разблокировать собеседника':'Заблокировать собеседника'}</button>
+          </div>}
           <div className="classifieds-chat-stream">
             {currentMessages.length===0?<p>Напишите первое сообщение.</p>:currentMessages.map(m=>
               <div className={m.sender_id===userId?'classifieds-message self':'classifieds-message'} key={m.id}>
@@ -221,7 +253,7 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
             <label htmlFor="classifieds-message-body" className="sr-only">Сообщение</label>
             <textarea id="classifieds-message-body" rows={2} maxLength={2000} value={messageDraft}
               onChange={e=>setMessageDraft(e.target.value)} placeholder="Написать сообщение…"/>
-            <button className="classifieds-main-action" type="submit" disabled={busy||!messageDraft.trim()}>Отправить</button>
+            <button className="classifieds-main-action" type="submit" disabled={busy||isBlocked||!messageDraft.trim()}>Отправить</button>
           </form>
           <button className="classifieds-refresh" onClick={()=>setReload(v=>v+1)}>Обновить сообщения</button>
         </>:<p>Выберите диалог слева или начните новую переписку из объявления.</p>}

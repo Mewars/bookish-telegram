@@ -105,3 +105,46 @@ export async function sendMessage(client:SupabaseClient|null,threadId:string,bod
   const {error}=await db(client).rpc('send_classified_message',{p_conversation_id:threadId,p_body:body.trim()});
   check(error);
 }
+
+
+export interface ClassifiedReport {
+  id:string;listing_id:string;reason:string;state:'open'|'dismissed'|'action_taken';
+  created_at:string;
+  classifieds:{city:string;title:string};
+}
+export async function submitClassifiedReport(client:SupabaseClient|null,listingId:string,reason:string):Promise<void> {
+  const message=reason.trim();
+  if(message.length<10 || message.length>1000) throw Error('Причина жалобы: от 10 до 1000 символов.');
+  const {error}=await db(client).from('classified_reports').insert({listing_id:listingId,reason:message});
+  if(error?.code==='23505') throw Error('Вы уже отправляли жалобу на это объявление.');
+  check(error);
+}
+export async function getOpenClassifiedReports(client:SupabaseClient|null,city:string):Promise<ClassifiedReport[]> {
+  const {data,error}=await db(client).from('classified_reports')
+    .select('id,listing_id,reason,state,created_at,classifieds!inner(city,title)')
+    .eq('state','open').eq('classifieds.city',city)
+    .order('created_at',{ascending:true}).limit(100);
+  check(error);
+  return (data??[]) as unknown as ClassifiedReport[];
+}
+export async function reviewClassifiedReport(client:SupabaseClient|null,id:string,hide:boolean):Promise<void> {
+  const {error}=await db(client).rpc('review_classified_report',{p_report_id:id,p_hide_listing:hide});
+  check(error);
+}
+export async function getBlockedClassifiedUsers(client:SupabaseClient|null,userId:string):Promise<string[]> {
+  const {data,error}=await db(client).from('classified_user_blocks').select('blocked_id').eq('blocker_id',userId);
+  check(error);
+  return (data??[]).map(row=>String(row.blocked_id));
+}
+export async function setClassifiedUserBlock(client:SupabaseClient|null,blockerId:string,targetId:string,blocked:boolean):Promise<void> {
+  if(blockerId===targetId) throw Error('Нельзя заблокировать самого себя.');
+  if(blocked) {
+    const {error}=await db(client).from('classified_user_blocks')
+      .insert({blocker_id:blockerId,blocked_id:targetId});
+    if(error?.code!=='23505')check(error);
+  } else {
+    const {error}=await db(client).from('classified_user_blocks')
+      .delete().eq('blocker_id',blockerId).eq('blocked_id',targetId);
+    check(error);
+  }
+}
