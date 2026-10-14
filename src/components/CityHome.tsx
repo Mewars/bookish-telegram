@@ -71,7 +71,7 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
     'place-kytmanov-museum',
     'place-borodkin-house',
   ]) : items.filter(item => item.kind === 'places').slice(0,3);
-  const highlights = isEniseysk ? highlights : items.filter(item => item.kind === 'places' && ['Музеи','Достопримечательности','Культура','Парки'].includes(item.category.split(' / ')[0])).slice(0,4);
+  const highlights = isEniseysk ? pick(['place-kytmanov-museum', 'place-borodkin-house', 'place-photoizba', 'place-spassky-monastery']) : items.filter(item => item.kind === 'places' && ['Музеи','Достопримечательности','Культура','Парки'].includes(item.category.split(' / ')[0])).slice(0,4);
 
   return <div className="city-home">
     <section className={`city-cover${cover ? "" : " city-cover--no-image"}${city.length > 9 ? " city-cover--long-name" : ""}`} aria-labelledby="city-cover-title">
@@ -135,7 +135,7 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
         {selection('Популярные места', 'То, с чего удобно начать знакомство с городом.', 'places', popular, '01', 3)}
         {selection('Куда сходить', 'Поводы выйти из дома.', 'events', items.filter(item => item.kind === 'events'), '02')}
         {selection('Где поесть', 'Кофе, обед и разговоры без спешки.', 'places', items.filter(item => discoveries[1].matches(item)), '03')}
-        {selection('Места, которые стоит увидеть', 'История города в деталях.', 'places', pick(['place-kytmanov-museum', 'place-borodkin-house', 'place-photoizba', 'place-spassky-monastery']), '04')}
+        {selection('Места, которые стоит увидеть', 'История города в деталях.', 'places', highlights, '04')}
         {selection('Услуги рядом', 'Нужные люди и полезные дела.', 'services', items.filter(item => item.kind === 'services'), '05')}
       </>}
     </div>
