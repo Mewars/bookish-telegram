@@ -23,23 +23,27 @@ GRANT SELECT (id,listing_id,uploaded_by,slot,format,object_path,created_at)
 GRANT INSERT (id,listing_id,slot,format) ON public.classified_photos TO authenticated;
 GRANT DELETE ON public.classified_photos TO authenticated;
 
-CREATE POLICY classified_photos_read ON public.classified_photos
+-- Separate public SELECT from authenticated staff policies.
+-- Guests must never need SELECT privilege on city_admin_access.
+CREATE POLICY classified_photos_read_public ON public.classified_photos
 FOR SELECT TO anon,authenticated USING (
-  EXISTS (
-    SELECT 1 FROM public.classifieds l
-    WHERE l.id=listing_id AND (
-      l.status IN ('published','completed')
-      OR l.author_id=(SELECT auth.uid())
-      OR (
-        l.status='pending' AND EXISTS (
-          SELECT 1 FROM public.city_admin_access a
-          WHERE a.user_id=(SELECT auth.uid()) AND a.active AND
-            (a.city=l.city OR (a.city='*' AND a.role='owner'))
-        )
-      )
-    )
-  )
+  EXISTS (SELECT 1 FROM public.classifieds l
+    WHERE l.id=listing_id AND l.status IN ('published','completed'))
 );
+CREATE POLICY classified_photos_read_author ON public.classified_photos
+FOR SELECT TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.classifieds l
+    WHERE l.id=listing_id AND l.author_id=(SELECT auth.uid()))
+);
+CREATE POLICY classified_photos_read_moderator ON public.classified_photos
+FOR SELECT TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.classifieds l
+    WHERE l.id=listing_id AND l.status='pending'
+    AND EXISTS(SELECT 1 FROM public.city_admin_access a
+      WHERE a.user_id=(SELECT auth.uid()) AND a.active
+      AND (a.city=l.city OR (a.city='*' AND a.role='owner'))))
+);
+
 CREATE POLICY classified_photos_add_own_draft ON public.classified_photos
 FOR INSERT TO authenticated WITH CHECK (
   uploaded_by=(SELECT auth.uid()) AND EXISTS (
@@ -64,22 +68,31 @@ ON CONFLICT (id) DO NOTHING;
 -- Storage metadata must match a reserved slot in classified_photos.
 -- Public visitors can sign/read ONLY images of published/completed listings.
 -- The private bucket prevents anonymous direct URL discovery.
-CREATE POLICY ryadom_classified_photos_read
-ON storage.objects FOR SELECT TO anon,authenticated USING (
-  bucket_id='ryadom-classified-photos' AND EXISTS (
+CREATE POLICY ryadom_classified_photos_read_public ON storage.objects
+FOR SELECT TO anon,authenticated USING (
+  bucket_id='ryadom-classified-photos' AND EXISTS(
     SELECT 1 FROM public.classified_photos p
     JOIN public.classifieds l ON l.id=p.listing_id
-    WHERE p.object_path=name AND (
-      l.status IN ('published','completed')
-      OR l.author_id=(SELECT auth.uid())
-      OR (
-        l.status='pending' AND EXISTS (
-          SELECT 1 FROM public.city_admin_access a
-          WHERE a.user_id=(SELECT auth.uid()) AND a.active
-          AND (a.city=l.city OR (a.city='*' AND a.role='owner'))
-        )
-      )
-    )
+    WHERE p.object_path=name AND l.status IN ('published','completed')
+  )
+);
+CREATE POLICY ryadom_classified_photos_read_author ON storage.objects
+FOR SELECT TO authenticated USING (
+  bucket_id='ryadom-classified-photos' AND EXISTS(
+    SELECT 1 FROM public.classified_photos p
+    JOIN public.classifieds l ON l.id=p.listing_id
+    WHERE p.object_path=name AND l.author_id=(SELECT auth.uid())
+  )
+);
+CREATE POLICY ryadom_classified_photos_read_moderator ON storage.objects
+FOR SELECT TO authenticated USING (
+  bucket_id='ryadom-classified-photos' AND EXISTS(
+    SELECT 1 FROM public.classified_photos p
+    JOIN public.classifieds l ON l.id=p.listing_id
+    WHERE p.object_path=name AND l.status='pending'
+    AND EXISTS (SELECT 1 FROM public.city_admin_access a
+      WHERE a.user_id=(SELECT auth.uid()) AND a.active
+      AND (a.city=l.city OR (a.city='*' AND a.role='owner')))
   )
 );
 CREATE POLICY ryadom_classified_photos_insert
