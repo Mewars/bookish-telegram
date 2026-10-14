@@ -45,7 +45,7 @@ test('isolated photo editor SQL: guests only read, admins alone can upload and e
 
     await t.test('ordinary user cannot assign role or add photo',async () => {
       await setRole('authenticated',stranger);
-      assert.equal((await db.query('SELECT * FROM public.city_admin_access')).rows.length,0);
+      assert.equal((await db.query('SELECT user_id,city,role,active FROM public.city_admin_access')).rows.length,0);
       await assert.rejects(db.query('INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,$2,$3)',[stranger,'*','owner']),/permission denied/);
       await assert.rejects(db.query('INSERT INTO public.directory_card_photos(card_id,city,storage_path) VALUES ($1,$2,$3)',['place-myasorubka','Енисейск',path('place-myasorubka')]),/row-level security/);
       await assert.rejects(db.query('INSERT INTO storage.objects(bucket_id,name) VALUES ($1,$2)',['ryadom-card-photos',path('place-myasorubka')]),/row-level security/);
