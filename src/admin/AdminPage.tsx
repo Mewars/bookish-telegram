@@ -75,7 +75,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     setStatusFilter('Все статусы');
     setFilter('');
   };
-  const navigateAdmin = (next: 'overview' | 'catalog' | 'photos') => {
+  const navigateAdmin = (next: 'overview' | 'catalog' | 'photos' | 'cities') => {
     setDraft(null); setMessage(''); setScreen(next);
     setCategoryFilter('all'); setFilter(''); setStatusFilter('Все статусы');
   };
