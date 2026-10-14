@@ -47,6 +47,9 @@ export function readPreviewEdits(raw: string | null): PreviewRow[] {
 
 export function previewRows(baseline: PreviewRow[], edits: PreviewRow[]): PreviewRow[] {
   const additions = new Map(baseline.map(row => [row.item.id, row]));
-  for (const row of edits) additions.set(row.item.id, row);
+  for (const row of edits) {
+    const previous = additions.get(row.item.id);
+    additions.set(row.item.id, { ...row, item: { ...row.item, image: row.item.image || previous?.item.image || '' } });
+  }
   return [...additions.values()];
 }
