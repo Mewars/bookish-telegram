@@ -21,7 +21,7 @@
     "test:osm": "node --loader ./tests/typescript-loader.mjs tests/openstreetmap.test.mjs",
     "test:verified": "node tests/verified-eniseysk.test.mjs",
     "test:photo-editor": "node tests/directory-photos-rls.test.mjs",
-    "test:admin": "node --loader ./tests/typescript-loader.mjs tests/admin.test.mjs && node tests/admin-rls.test.mjs",
+    "test:admin": "node --loader ./tests/typescript-loader.mjs tests/admin.test.mjs && node tests/admin-rls.test.mjs && node tests/city-directory-rls.test.mjs",
     "test:organizations": "node --loader ./tests/typescript-loader.mjs tests/organizations.test.mjs && node tests/organizations-rls.test.mjs",
     "test:startup": "node --loader ./tests/typescript-loader.mjs tests/startup-loading.test.mjs && node --loader ./tests/typescript-loader.mjs tests/theme-startup.test.mjs",
     "test:vk-bridge": "tsc -p supabase/functions/vk-oauth-bridge/tsconfig.json && node --loader ./tests/typescript-loader.mjs tests/vk-bridge.test.mjs && node --loader ./tests/typescript-loader.mjs tests/vk-bridge-sql.test.mjs && node --loader ./tests/typescript-loader.mjs tests/vk-profile.test.mjs"
