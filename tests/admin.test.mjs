@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { canManageCity, newAdminDraft, rowToAdminDraft, validateAdminDraft } from '../src/admin/model.ts';
+import { directoryCategories, categoryForOrganization } from '../src/admin/directoryCategories.ts';
 import { mergePublished } from '../src/organizations/model.ts';
 import { readFile } from 'node:fs/promises';
 
@@ -73,4 +74,35 @@ test('admin UI is feature gated, requires a member row and does not contain priv
   assert.match(app, /VITE_ADMIN_PANEL_ENABLED/);
   assert.match(repo, /requireCurrentUser/);
   assert.doesNotMatch(repo, /service_role|sb_secret_|localStorage/);
+});
+
+test('unified dashboard preserves categories for existing listings and supports new city categories', () => {
+  assert.equal(directoryCategories.length, 19);
+  const identifiers = new Set(directoryCategories.map(category => category.id));
+  assert.equal(identifiers.size, 19);
+  const examples = [
+    ['Кафе','food'], ['Гостиницы','hotel'], ['Музеи / История','museum'],
+    ['Парки / Прогулки','park'], ['Госуслуги','services'], ['Почта','mail'],
+    ['Салоны красоты','beauty'], ['Достопримечательности','landmark'],
+    ['Библиотеки','library'], ['Культура','culture'], ['Другое','general'],
+  ];
+  for (const [category,expected] of examples)
+    assert.equal(categoryForOrganization({ category }),expected,category);
+  assert.ok(directoryCategories.every(category => category.color.startsWith('#')));
+  assert.ok(directoryCategories.every(category => category.value.length > 0));
+});
+
+test('organization owners never receive admin roles or management links', async () => {
+  const roles = await readFile('src/admin/model.ts','utf8');
+  const sql = await readFile('docs/sql/city-admin-mvp.sql','utf8');
+  const profile = await readFile('src/pages/ProfilePage.tsx','utf8');
+  const page = await readFile('src/admin/AdminPage.tsx','utf8');
+  assert.match(roles,/AdminRole = 'owner' \| 'editor'/);
+  assert.match(sql,/role IN \('owner', 'editor'\)/);
+  assert.doesNotMatch(sql,/organization_owner|franchisee_user|business_owner/i);
+  assert.doesNotMatch(profile,/Мои организации/);
+  assert.match(profile,/canOpenAdmin/);
+  assert.match(page,/directoryCategories/);
+  assert.match(page,/categoryForOrganization/);
+  assert.match(page,/validateAdminDraft\(draft, confirmed\)/);
 });
