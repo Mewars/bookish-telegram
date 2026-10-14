@@ -2,6 +2,7 @@ import { MusicButton } from '../../music/MusicPlayer';
 import type { Section } from '../../types';
 import { Icon } from '../Icon';
 import { BrandWordmark } from '../BrandWordmark';
+import { AccessibilityButton } from '../../accessibility/AccessibilityPanel';
 
 interface WebHeaderProps {
   city: string;
@@ -10,9 +11,10 @@ interface WebHeaderProps {
   favoritesCount: number;
   cityPickerOpen: boolean;
   openCityPicker: () => void;
+  openAccessibility: () => void;
 }
 
-export function WebHeader({ city, section, navigate, favoritesCount, cityPickerOpen, openCityPicker }: WebHeaderProps) {
+export function WebHeader({ city, section, navigate, favoritesCount, cityPickerOpen, openCityPicker, openAccessibility }: WebHeaderProps) {
   return <header className="web-header"><div className="web-header-inner">
     <button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Рядом — на главную"><BrandWordmark decorative/></button>
     <button className="city-pill" onClick={openCityPicker} aria-label={`Выбрать город: ${city}`} aria-haspopup="dialog" aria-expanded={cityPickerOpen}>
@@ -22,6 +24,7 @@ export function WebHeader({ city, section, navigate, favoritesCount, cityPickerO
       { id: 'home', label: 'Главная' }, { id: 'events', label: 'Афиша' }, { id: 'places', label: 'Места' }, { id: 'services', label: 'Услуги' },
     ] as const).map(tab => <button key={tab.id} data-section={tab.id} aria-current={section === tab.id ? 'page' : undefined} onClick={() => navigate(tab.id)}>{tab.label}</button>)}</nav>
     <div className="web-header-actions"><MusicButton/>
+      <AccessibilityButton onClick={openAccessibility}/>
       <button className="web-favorites" onClick={() => navigate('favorites')} aria-current={section === 'favorites' ? 'page' : undefined}><Icon name="heart" size={19}/>Избранное{favoritesCount > 0 && <span>{favoritesCount}</span>}</button>
       <button className="web-profile-button" aria-label="Открыть профиль" aria-current={section === 'profile' ? 'page' : undefined} onClick={() => navigate('profile')}><Icon name="profile" size={20}/></button>
     </div>
