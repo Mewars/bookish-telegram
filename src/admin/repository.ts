@@ -52,7 +52,10 @@ export async function saveAdminOrganization(client: SupabaseClient, userId: stri
   const verifiedAt = draft.status === 'published' ? new Date().toISOString().slice(0, 10) : normalizedOrNull(draft.verified_at);
   const values = {
     title: draft.title.trim(), category: draft.category.trim(), description: draft.description.trim(),
-    address: normalizedOrNull(draft.address), phone: normalizedOrNull(draft.phone),
+    address: normalizedOrNull(draft.address),
+    latitude: draft.latitude.trim() ? Number(draft.latitude.trim().replace(',', '.')) : null,
+    longitude: draft.longitude.trim() ? Number(draft.longitude.trim().replace(',', '.')) : null,
+    phone: normalizedOrNull(draft.phone),
     hours: normalizedOrNull(draft.hours), website: normalizedOrNull(draft.website), vk_url: normalizedOrNull(draft.vk_url),
     source_url: normalizedOrNull(draft.source_url), image_url: normalizedOrNull(draft.image_url),
     source_type: confirmed ? 'manual_verified' : 'user_provided', verified_at: verifiedAt,
