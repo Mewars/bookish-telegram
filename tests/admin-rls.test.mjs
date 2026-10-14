@@ -61,6 +61,35 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       await assert.rejects(db.exec("UPDATE public.organizations SET status='published' WHERE id='edited-local'"), /check constraint/);
       await db.exec("UPDATE public.organizations SET verified_at='2026-10-14',status='published' WHERE id='edited-local'");
     });
+    await t.test('suspended city editor loses write access while city stays visible and owner retains access', async () => {
+      // This simulates the future billing suspension action on the existing
+      // server-side access flag; no content/status rows are modified.
+      await db.exec('RESET SESSION AUTHORIZATION; RESET ROLE');
+      await db.query("UPDATE public.city_admin_access SET active = false WHERE user_id = $1 AND city = $2 AND role = 'editor'", [editor, 'Енисейск']);
+
+      await setRole('authenticated', editor);
+      assert.equal((await db.query("SELECT active FROM public.city_admin_access WHERE city = 'Енисейск'")).rows[0].active, false);
+      await assert.rejects(
+        db.exec("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('blocked-editor','Енисейск','Blocked','Кафе','Cannot publish','user_provided','draft')"),
+        /row-level security/
+      );
+      const result = await db.exec("UPDATE public.organizations SET title = 'Should remain unchanged' WHERE id = 'edited-local'");
+      assert.equal(result[0]?.rowCount ?? 0, 0);
+      await assert.rejects(
+        db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/suspended.webp')"),
+        /row-level security/
+      );
+
+      await setRole('anon');
+      // Published cards are still readable for all visitors and were not archived.
+      assert.equal((await db.query("SELECT count(*)::int AS n FROM public.organizations")).rows[0].n, 9);
+      assert.equal((await db.query("SELECT status FROM public.organizations WHERE id = 'edited-local'")).rows[0].status, 'published');
+
+      await setRole('authenticated', owner);
+      await db.exec("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('owner-during-suspension','Енисейск','Still manageable','Кафе','Platform owner can edit','user_provided','draft')");
+      assert.equal((await db.query("SELECT status FROM public.organizations WHERE id = 'owner-during-suspension'")).rows[0].status, 'draft');
+    });
+
     await t.test('owner can create a second city, ordinary users still see only published', async () => {
       await setRole('authenticated',owner);
       await db.exec("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('new-foreign','Ачинск','Real future','Места','Draft','user_provided','draft')");
