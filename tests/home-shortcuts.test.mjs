@@ -5,6 +5,7 @@ import { URL } from 'node:url';
 
 const cityHome = await readFile(new URL('../src/components/CityHome.tsx', import.meta.url), 'utf8');
 const homeStyles = await readFile(new URL('../src/styles/home.css', import.meta.url), 'utf8');
+const carousel = await readFile(new URL('../src/components/HomeCarousel.tsx', import.meta.url), 'utf8');
 
 test('all five home shortcuts remain visible even when a category has no cards', () => {
   for (const label of ['Сегодня', 'Поесть', 'Культура', 'Магазины', 'Услуги']) {
@@ -25,7 +26,7 @@ test('shortcut click clears old text search, selects destination and auto-scroll
 
 test('empty shortcuts and sections explain there are no confirmed listings', () => {
   assert.match(cityHome, /selected \? 'Пока нет записей'/);
-  assert.match(cityHome, /city-section-coming-soon/);
+  assert.match(carousel, /city-section-coming-soon/);
   assert.doesNotMatch(cityHome, /entries\.length > 0 && <section/);
 });
 
