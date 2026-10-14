@@ -6,6 +6,7 @@ import { CityManagement } from './CityManagement';
 import type { OrganizationRow } from '../organizations/model';
 import { EmptyState } from '../components/EmptyState';
 import { Icon } from '../components/Icon';
+import { BrandWordmark } from '../components/BrandWordmark';
 import {
   canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft,
   validateAdminDraft, type AdminDraft, type CityAdminAccess, type AdminStatus,
@@ -174,7 +175,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
 
   return <div className="admin-cms-layout">
     <aside className="admin-cms-sidebar" aria-label="Управление каталогом">
-      <div className="admin-cms-wordmark">РЯД<span>О</span>М</div>
+      <button type="button" className="admin-cms-wordmark" aria-label="Рядом — к обзору админки" onClick={() => { navigateAdmin('overview'); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }}><BrandWordmark decorative/></button>
       <p className="admin-cms-sidebar-caption">Панель управления</p>
       <p className="admin-cms-nav-label">РАЗДЕЛЫ</p>
       <nav className="admin-cms-nav" aria-label="Разделы админки">
