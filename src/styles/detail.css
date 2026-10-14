@@ -103,3 +103,7 @@
  .detail-map-rail .detail-map-tile {padding:13px;}
  .guide-detail--mapped .detail-content-grid {grid-template-columns:1fr;}
 }
+
+.detail-quick-tabs a {display:inline-flex;align-items:center;gap:6px;flex:none;min-height:44px;padding:8px 15px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:750;background:var(--primary);color:var(--primary-text);}
+.detail-quick-tabs a:hover {background:var(--primary-hover);}
+.detail-quick-tabs a:focus-visible {outline:3px solid var(--primary);outline-offset:2px;}
