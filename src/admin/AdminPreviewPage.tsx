@@ -7,7 +7,7 @@ import { adminFields, newAdminDraft, type AdminDraft, type AdminStatus } from '.
 import { PREVIEW_STORAGE_KEY, previewRows, readPreviewEdits, type PreviewRow } from './previewStorage';
 import './admin.css';
 
-// Public, browser-only trial: does not import a Supabase client or any write API.
+// Public browser-only trial: completely independent of backend data and write APIs.
 // It is intentionally separate from AdminPage and its production permissions.
 const demoImage = cityImage;
 const supportedCities = ['Енисейск', 'Лесосибирск'] as const;
