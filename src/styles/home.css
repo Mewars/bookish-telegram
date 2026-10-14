@@ -375,11 +375,10 @@
   .cover-search .search input { font-size: 11px; }
   .cover-search-action { width: 39px; height: 40px; border-radius: 12px; }
   .quick-discovery {
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    overflow-x: visible;
     margin-top: 12px;
     padding-bottom: 4px;
-    scrollbar-width: none;
   }
   .quick-discovery::-webkit-scrollbar { display: none; }
   .quick-discovery button {
