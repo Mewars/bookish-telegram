@@ -67,15 +67,16 @@ try {
           return { tag: element?.tagName ?? null, onCarousel: !!element?.closest('.home-carousel-track') };
         }, { x, y });
         result.checks.push(`Touch hit target: ${JSON.stringify(hit)}`);
-        const cdp = await context.newCDPSession(page);
-        await cdp.send('Input.synthesizeScrollGesture', {
-          x, y, xDistance: 230, yDistance: 0, gestureSourceType: 'touch', speed: 500, preventFling: true,
-        });
+        // Headless Chromium's CDP touch synthesis does not scroll even a plain
+        // standalone overflow-x:auto test element. Verify horizontal scrolling
+        // in a mobile viewport without falsely claiming a real finger gesture.
+        await page.mouse.move(x, y);
+        await page.mouse.wheel(230, 0);
         await page.waitForTimeout(750);
       }
       const end = await track.evaluate(el => el.scrollLeft);
       assert(end > start.x + 10, `Carousel did not move: ${start.x} -> ${end}`);
-      result.checks.push('Carousel arrow or genuine mobile touch swipe');
+      result.checks.push(scenario.name === 'desktop-1440' ? 'Desktop carousel arrow' : 'Mobile-viewport horizontal scrolling (not a physical touch test)');
 
       const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: window.innerWidth }));
       assert(size.scroll <= size.viewport + 3, `Horizontal page overflow: ${JSON.stringify(size)}`);
