@@ -10,6 +10,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
   const stranger='33333333-3333-4333-8333-333333333333';
   const editor='44444444-4444-4444-8444-444444444444';
   const owner='55555555-5555-4555-8555-555555555555';
+  const foreignEditor='66666666-6666-4666-8666-666666666666';
   const switchTo=async(name,id='')=>{
     await db.exec('RESET SESSION AUTHORIZATION; RESET ROLE');
     await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)",[id]);
@@ -19,11 +20,11 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     "INSERT INTO public.classifieds(city,deal_type,category,title,description,price_rub) VALUES ($1,'sell','Для дома','Стол письменный','Стол из дерева, хорошее состояние',2500) RETURNING id,status",[city]);
   try {
     await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS; CREATE SCHEMA auth; CREATE TABLE auth.users(id uuid PRIMARY KEY);");
-    await db.query("INSERT INTO auth.users(id) VALUES ($1),($2),($3),($4),($5)",[seller,buyer,stranger,editor,owner]);
+    await db.query("INSERT INTO auth.users(id) VALUES ($1),($2),($3),($4),($5),($6)",[seller,buyer,stranger,editor,owner,foreignEditor]);
     await db.exec("CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$; GRANT USAGE ON SCHEMA auth,public TO anon,authenticated,service_role; GRANT EXECUTE ON FUNCTION auth.uid() TO anon,authenticated;");
     await db.exec("CREATE TABLE public.city_directory(name text PRIMARY KEY,active boolean NOT NULL DEFAULT true); INSERT INTO public.city_directory(name) VALUES ('Енисейск'),('Лесосибирск'); GRANT SELECT ON public.city_directory TO anon,authenticated;");
     await db.exec("CREATE TABLE public.city_admin_access(user_id uuid REFERENCES auth.users(id),city text,role text,active boolean NOT NULL DEFAULT true,PRIMARY KEY(user_id,city)); GRANT SELECT ON public.city_admin_access TO authenticated;");
-    await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'*','owner'),($2,'Енисейск','editor')",[owner,editor]);
+    await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'*','owner'),($2,'Енисейск','editor'),($3,'Лесосибирск','editor')",[owner,editor,foreignEditor]);
     await db.exec(await readFile('docs/sql/classifieds-private-messaging-v1.sql','utf8'));
     await db.exec(await readFile('docs/sql/classifieds-editor-privacy-v2.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-reports-review-v1.sql','utf8'));
@@ -109,11 +110,19 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
 
       await switchTo('authenticated',seller);
       assert.equal((await db.query('SELECT id FROM public.classified_reports')).rows.length,0);
+      await assert.rejects(db.query("INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'Попытка пожаловаться на собственное объявление')",[reportListing]),/row-level security/);
       await assert.rejects(db.query("SELECT public.review_classified_report($1,true)",[complaint]),/Not authorized/);
 
       await switchTo('authenticated',stranger);
       assert.equal((await db.query('SELECT id FROM public.classified_reports')).rows.length,0);
       await assert.rejects(db.query("SELECT public.review_classified_report($1,true)",[complaint]),/Not authorized/);
+
+      await switchTo('authenticated',foreignEditor);
+      assert.equal((await db.query('SELECT id FROM public.classified_reports')).rows.length,0);
+      await assert.rejects(db.query("SELECT public.review_classified_report($1,true)",[complaint]),/Not authorized/);
+
+      await switchTo('authenticated',stranger);
+      const otherComplaint=(await db.query("INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'Подозрение на поддельную информацию в объявлении') RETURNING id",[reportListing])).rows[0].id;
 
       await switchTo('authenticated',editor);
       assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'open');
@@ -123,6 +132,8 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       // the original reporter retains their own resolution status.
       await switchTo('authenticated',buyer);
       assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'action_taken');
+      await switchTo('authenticated',stranger);
+      assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[otherComplaint])).rows[0].state,'action_taken');
 
       await switchTo('anon');
       assert.equal((await db.query("SELECT id FROM public.classifieds WHERE id=$1",[reportListing])).rows.length,0);
