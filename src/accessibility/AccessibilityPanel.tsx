@@ -15,7 +15,7 @@ export function AccessibilityButton({ onClick, mobile = false }: {
   onClick: () => void;
   mobile?: boolean;
 }) {
-  return <button type="button" className={mobile ? 'accessibility-button accessibility-button--mobile' : 'accessibility-button'}
+  return <button type="button" className="accessibility-button accessibility-button--fixed"
     onClick={onClick} aria-label="Версия для слабовидящих и слабослышащих. Настройки доступности"
     aria-haspopup="dialog" aria-controls="ryadom-accessibility-dialog" title="Настройки доступности">Аа</button>;
 }
