@@ -27,7 +27,7 @@
     "test:vk-bridge": "tsc -p supabase/functions/vk-oauth-bridge/tsconfig.json && node --loader ./tests/typescript-loader.mjs tests/vk-bridge.test.mjs && node --loader ./tests/typescript-loader.mjs tests/vk-bridge-sql.test.mjs && node --loader ./tests/typescript-loader.mjs tests/vk-profile.test.mjs",
     "test:rutube": "node --loader ./tests/typescript-loader.mjs tests/rutube-video.test.mjs",
     "test:accessibility": "node --loader ./tests/typescript-loader.mjs tests/accessibility.test.mjs",
-    "test:classifieds": "node tests/classifieds-rls.test.mjs && node tests/classified-photos-rls.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-beta.test.mjs"
+    "test:classifieds": "node tests/classifieds-rls.test.mjs && node tests/classified-photos-rls.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classified-photos-ui.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-beta.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
