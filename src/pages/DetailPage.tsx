@@ -1,21 +1,22 @@
+import type { Item } from '../types';
 import { placeMapLinks } from '../maps/placeMapLinks';
 import { PlaceMap } from '../components/places/PlaceMap';
-import type { Item } from '../types';
 import { Icon } from '../components/Icon';
 import { Card } from '../components/Card';
 import { PlaceMedia } from '../components/MediaImage';
 import { eventDate } from '../utils/date';
 import { hoursDisclaimer, phoneHref, suppliedDate } from '../utils/place';
+
 function externalUrl(value?: string, vk = false) {
   try {
     if (!value) return;
     const url = new URL(value);
-    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return;
+    if (url.protocol !== 'https:' || url.username || url.password) return;
     if (vk && !['vk.com', 'vk.ru'].some(host => url.hostname === host || url.hostname.endsWith(`.${host}`))) return;
     return url.href;
-  } catch { /* Only safe supplied links become actions. */ }
+  } catch { /* Unsafe links must never become actions. */ }
 }
-// Presentation-only wording: preserve source catalog entries and unavailable actions.
+
 function publicDetails(text: string) {
   return text
     .replace('Это демонстрационная карточка, билеты не продаются.', 'Билеты не продаются.')
@@ -24,37 +25,124 @@ function publicDetails(text: string) {
     .replace('Заказы в демо не принимаются.', 'Заказы пока не принимаются.')
     .replace('Это демонстрационная карточка, реальный заказ недоступен.', 'Заказ недоступен.');
 }
-export function DetailPage({ item, saved, toggle, goBack, favoritesBusy = false, desktop = false, relatedItems = [], favorites = [], openRelated }: { item: Item; saved: boolean; toggle: (id: string) => void; goBack: () => void; desktop?: boolean; favoritesBusy?: boolean; relatedItems?: Item[]; favorites?: string[]; openRelated?: (item: Item) => void }) {
-  const realPlace = item.real && item.kind === 'places';
-  const mobileMapLinks = realPlace ? placeMapLinks(item) : undefined;
-  const hasFacts = item.kind === 'events' || item.address || item.hours || item.price || item.phone;
+
+interface DetailPageProps {
+  item: Item;
+  saved: boolean;
+  toggle: (id: string) => void;
+  goBack: () => void;
+  desktop?: boolean;
+  favoritesBusy?: boolean;
+  relatedItems?: Item[];
+  favorites?: string[];
+  openRelated?: (item: Item) => void;
+}
+
+export function DetailPage({
+  item, saved, toggle, goBack, favoritesBusy = false, desktop = false,
+  relatedItems = [], favorites = [], openRelated,
+}: DetailPageProps) {
+  const maps = placeMapLinks(item);
   const website = externalUrl(item.website);
   const vkUrl = externalUrl(item.vkUrl, true);
   const sourceUrl = externalUrl(item.sourceUrl);
-  const related = realPlace ? relatedItems.filter(entry => entry.real && entry.id !== item.id && entry.city === item.city && entry.kind === item.kind && entry.category.split(' / ')[0] === item.category.split(' / ')[0]).slice(0, 3) : [];
-  return <article className={`guide-detail ${realPlace ? 'is-real-place' : ''} ${desktop ? 'detail-desktop' : ''}`}>
-    <div className="detail-breadcrumb"><button className="back-link" onClick={goBack}><Icon name="back" size={18}/> Назад к подборке</button><span>{item.city} / {item.category}</span></div>
-    <div className="detail-cover"><PlaceMedia images={[{ src: item.image, alt: `Изображение: ${item.title}` }]}/><div className="detail-heading"><span className="eyebrow">{item.city} · {item.category}</span><h1>{item.title}</h1>{!item.real && item.rating && <span className="detail-rating"><Icon name="star" size={14} filled/>{item.rating}</span>}</div>
-      {item.image.split(/[?#]/)[0].endsWith('.svg') && <p className="illustration-caption">Стилизованная иллюстрация, не фотография {realPlace ? 'места' : 'события или услуги'}</p>}
+  const realPlace = item.real && item.kind === 'places';
+  const related = realPlace
+    ? relatedItems.filter(entry => entry.real && entry.id !== item.id && entry.city === item.city
+      && entry.kind === item.kind && entry.category.split(' / ')[0] === item.category.split(' / ')[0]).slice(0, 3)
+    : [];
+  const title = item.kind === 'events' ? 'О событии' : item.kind === 'services' ? 'Об услуге' : 'О месте';
+
+  return <article className="guide-detail">
+    <div className="detail-breadcrumb">
+      <button className="back-link" onClick={goBack}>
+        <Icon name="back" size={18}/>
+        {item.kind === 'events' ? 'Назад в афишу' : item.kind === 'services' ? 'Назад к услугам' : 'Назад в каталог мест'}
+      </button>
+      <span>{item.city} / {item.category}</span>
     </div>
-    <div className="detail-mobile-actions">{mobileMapLinks?.mapsUrl && <a className="secondary-button" href={mobileMapLinks.mapsUrl} target="_blank" rel="noopener noreferrer">Открыть карту</a>}{item.phone && <a className="secondary-button" href={phoneHref(item.phone)}><Icon name="phone" size={17}/>Позвонить</a>}<button className="secondary-button" disabled={favoritesBusy} aria-pressed={saved} onClick={() => toggle(item.id)}><Icon name="heart" size={18} filled={saved}/>{saved ? 'Сохранено' : 'В избранное'}</button><button className="secondary-button" onClick={() => document.getElementById('detail-contacts')?.scrollIntoView({ behavior: 'auto', block: 'start' })}><Icon name="pin" size={17}/>Контакты</button></div>
-    <div className="guide-detail-grid"><div className="guide-detail-copy">
-      {item.details && <p className="detail-intro">{item.description}</p>}
-      <section className="detail-description"><h2>{item.kind === 'events' ? 'Что тебя ждёт' : item.kind === 'places' ? 'О месте' : 'Об услуге'}</h2><p>{publicDetails(item.details ?? item.description)}</p></section>
-      {item.real ? <div className="place-source">{item.sourceType === 'user_provided' && <span>Данные предоставлены пользователем{item.verifiedAt ? ` · ${suppliedDate(item.verifiedAt)}` : ''}. Независимая проверка не проводилась.</span>}{item.sourceType === 'manual_verified' && <span>Информация сверена по открытым источникам{item.verifiedAt ? ` · ${suppliedDate(item.verifiedAt)}` : ''}. Режим работы и доступность услуг уточняйте у организации.</span>}{sourceUrl && <> <a href={sourceUrl} target="_blank" rel="noopener noreferrer">Источник сведений</a></>}</div> : <div className="demo-note">{item.kind === 'events' ? 'Билеты не продаются.' : 'Контакты и онлайн-запись недоступны.'}</div>}
-    </div><aside id="detail-contacts" className="guide-detail-sidebar" aria-label="Контакты и действия">
-      {hasFacts && <div className="detail-facts">
-        {item.kind === 'events' && <div><Icon name="events" size={18}/><span><small>Когда</small><strong>{eventDate(item.dateOffset, true)} · {item.time}</strong></span></div>}
-        {item.address && <div><Icon name="pin" size={18}/><span><small>{item.kind === 'services' ? 'Где работает' : 'Адрес'}</small><strong>{item.address}</strong></span></div>}
-        {item.hours && <div><Icon name="clock" size={18}/><span><small>Часы работы</small><strong>{item.hours}{!item.real && ' · дни указаны ниже'}</strong>{item.real && <small className="hours-disclaimer">{hoursDisclaimer}</small>}</span></div>}
-        {item.phone && <div><Icon name="phone" size={18}/><span><small>Телефон</small><a className="phone-link" href={phoneHref(item.phone)}>{item.phone}</a></span></div>}
-        {item.price && <div><Icon name="services" size={18}/><span><small>{item.kind === 'places' ? 'Стоимость' : item.kind === 'events' ? 'Вход' : 'Ориентировочная цена'}</small><strong>{item.price}</strong></span></div>}
-      </div>}
-      {realPlace && <PlaceMap key={item.id} item={item} desktop={desktop}/>}
-      <div className="detail-actions">{item.phone && <a className="secondary-button" href={phoneHref(item.phone)}><Icon name="phone" size={17}/>Позвонить</a>}{website && <a className="secondary-button" href={website} target="_blank" rel="noopener noreferrer">Сайт <Icon name="arrow" size={17}/></a>}{vkUrl && <a className="secondary-button" href={vkUrl} target="_blank" rel="noopener noreferrer">VK <Icon name="arrow" size={17}/></a>}
-        <button className={`secondary-button detail-save ${saved ? 'is-saved' : ''}`} disabled={favoritesBusy} aria-pressed={saved} onClick={() => toggle(item.id)}><Icon name="heart" size={18} filled={saved}/>{saved ? 'Сохранено · убрать' : 'В избранное'}</button>
+
+    <div className="detail-cover">
+      <PlaceMedia images={[{ src: item.image, alt: `Изображение: ${item.title}` }]}/>
+      <div className="detail-heading">
+        <span className="eyebrow">{item.city} · {item.category}</span>
+        <h1>{item.title}</h1>
       </div>
-    </aside></div>
-    {!!related.length && openRelated && <section className="city-section related-section"><div className="section-heading"><div><span className="section-index">ПРОДОЛЖАЙ ОТКРЫВАТЬ</span><h2>Ещё рядом</h2><p>{item.city} · {item.category.split(' / ')[0]}</p></div></div><div className="card-grid discovery-grid">{related.map(entry => <Card key={entry.id} item={entry} favorites={favorites} toggle={toggle} favoritesBusy={favoritesBusy} open={openRelated}/>)}</div></section>}
+      {item.image.split(/[?#]/)[0].endsWith('.svg') && <p className="illustration-caption">Иллюстрация, не фотография организации</p>}
+    </div>
+
+    <div className="detail-content-grid">
+      <section className="detail-info-tile" id="detail-about" aria-labelledby="detail-about-heading">
+        <span className="detail-tile-kicker"><Icon name="places" size={16}/> ИНФОРМАЦИЯ</span>
+        <h2 id="detail-about-heading">{title}</h2>
+        <p>{publicDetails(item.details ?? item.description)}</p>
+        {item.real && <div className="place-source">
+          {item.sourceType === 'user_provided'
+            ? <span>Данные предоставлены пользователем. Независимая проверка не проводилась.</span>
+            : <span>Сведения собраны из открытых источников{item.verifiedAt ? ` · ${suppliedDate(item.verifiedAt)}` : ''}. Уточняйте актуальность перед посещением.</span>}
+          {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener noreferrer">Проверить источник <Icon name="arrow" size={13}/></a>}
+        </div>}
+        {!item.real && <p className="detail-demo-notice">Бронирование и оплата через сервис пока не доступны.</p>}
+      </section>
+
+      <section className="detail-contact-tiles" aria-label="Адрес, контакты и полезная информация">
+        {item.kind === 'events' && <div className="detail-contact-tile">
+          <span className="detail-contact-icon"><Icon name="events" size={20}/></span>
+          <span className="detail-contact-label">Когда</span>
+          <strong>{eventDate(item.dateOffset, true)}{item.time ? ` · ${item.time}` : ''}</strong>
+        </div>}
+        {item.address && (maps.mapsUrl
+          ? <a className="detail-contact-tile detail-contact-tile--link" href={maps.mapsUrl} target="_blank" rel="noopener noreferrer">
+              <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
+              <span className="detail-contact-label">Адрес · открыть на карте</span>
+              <strong>{item.city}, {item.address}</strong>
+              <span className="detail-contact-action">Построить маршрут <Icon name="arrow" size={15}/></span>
+            </a>
+          : <div className="detail-contact-tile">
+              <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
+              <span className="detail-contact-label">Адрес</span><strong>{item.city}, {item.address}</strong>
+            </div>)}
+        {item.phone && <a className="detail-contact-tile detail-contact-tile--link" href={phoneHref(item.phone)}>
+          <span className="detail-contact-icon"><Icon name="phone" size={20}/></span>
+          <span className="detail-contact-label">Телефон · позвонить</span>
+          <strong>{item.phone}</strong><span className="detail-contact-action">Позвонить <Icon name="arrow" size={15}/></span>
+        </a>}
+        {item.hours && <div className="detail-contact-tile">
+          <span className="detail-contact-icon"><Icon name="clock" size={20}/></span>
+          <span className="detail-contact-label">Режим работы</span>
+          <strong>{item.hours}</strong>
+          {item.real && <small>{hoursDisclaimer}</small>}
+        </div>}
+        {item.price && <div className="detail-contact-tile">
+          <span className="detail-contact-icon"><Icon name="services" size={20}/></span>
+          <span className="detail-contact-label">Стоимость</span><strong>{item.price}</strong>
+        </div>}
+        {website && <a className="detail-contact-tile detail-contact-tile--link" href={website} target="_blank" rel="noopener noreferrer">
+          <span className="detail-contact-icon"><Icon name="arrow" size={20}/></span>
+          <span className="detail-contact-label">Официальный сайт</span>
+          <strong>Перейти на сайт</strong>
+          <span className="detail-contact-action">Открыть <Icon name="arrow" size={15}/></span>
+        </a>}
+        {vkUrl && <a className="detail-contact-tile detail-contact-tile--link" href={vkUrl} target="_blank" rel="noopener noreferrer">
+          <span className="detail-contact-icon"><Icon name="profile" size={20}/></span>
+          <span className="detail-contact-label">ВКонтакте</span>
+          <strong>Страница организации</strong>
+          <span className="detail-contact-action">Открыть <Icon name="arrow" size={15}/></span>
+        </a>}
+        <button type="button" className="detail-contact-tile detail-contact-tile--link detail-contact-save"
+          disabled={favoritesBusy} aria-pressed={saved} onClick={() => toggle(item.id)}>
+          <span className="detail-contact-icon"><Icon name="heart" size={20} filled={saved}/></span>
+          <span className="detail-contact-label">Избранное</span>
+          <strong>{saved ? 'Сохранено' : 'Сохранить место'}</strong>
+          <span className="detail-contact-action">{saved ? 'Убрать из избранного' : 'Добавить в избранное'} <Icon name="arrow" size={15}/></span>
+        </button>
+      </section>
+    </div>
+
+    {item.coordinates && <div className="detail-map-tile"><PlaceMap key={item.id} item={item} desktop={desktop}/></div>}
+    {!!related.length && openRelated && <section className="city-section related-section">
+      <div className="section-heading"><div><span className="section-index">ПРОДОЛЖАЙ ОТКРЫВАТЬ</span><h2>Ещё рядом</h2><p>{item.city} · {item.category.split(' / ')[0]}</p></div></div>
+      <div className="card-grid discovery-grid">{related.map(entry => <Card key={entry.id} item={entry} favorites={favorites} toggle={toggle} favoritesBusy={favoritesBusy} open={openRelated}/>)}</div>
+    </section>}
   </article>;
 }
