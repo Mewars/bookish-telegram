@@ -206,7 +206,6 @@ test('location pin coordinates are optional, paired, validated and preserved in 
   const page = await readFile('src/admin/AdminPage.tsx', 'utf8');
   const repo = await readFile('src/admin/repository.ts', 'utf8');
   const grant = await readFile('docs/sql/admin-map-coordinates-2026-10.sql', 'utf8');
-  assert.match(page, /onChange=\\{event => change\\('latitude',event.target.value\\)\\}/);
   assert.ok(page.includes("onChange={event => change('latitude',event.target.value)}"));
   assert.ok(page.includes("onChange={event => change('longitude',event.target.value)}"));
   assert.ok(repo.includes("latitude: draft.latitude.trim() ? Number("));
