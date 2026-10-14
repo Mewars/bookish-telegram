@@ -4,6 +4,12 @@ import type { OrganizationRow } from '../organizations/model';
 export type AdminRole = 'owner' | 'editor';
 export type AdminStatus = 'draft' | 'published' | 'archived';
 
+/** Closing a place is reversible, but reopening requires separate review. */
+export function nextAvailabilityStatus(current: AdminStatus): 'archived' | 'draft' {
+  return current === 'archived' ? 'draft' : 'archived';
+}
+
+
 export interface CityAdminAccess {
   user_id: string;
   city: string;

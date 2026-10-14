@@ -11,7 +11,7 @@ import {
   canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft,
   validateAdminDraft, type AdminDraft, type CityAdminAccess, type AdminStatus,
 } from './model';
-import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto, removeOrphanedAdminPhoto } from './repository';
+import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto, removeOrphanedAdminPhoto, changeAdminOrganizationAvailability } from './repository';
 import { directoryCategories, categoryForOrganization, type DirectoryCategoryId } from './directoryCategories';
 import './admin.css';
 
@@ -31,7 +31,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   const [filter, setFilter] = useState('');
   const [cityFilter, setCityFilter] = useState('Все города');
   const [kindFilter, setKindFilter] = useState('Все разделы');
-  const [statusFilter, setStatusFilter] = useState('Все статусы');
+  const [statusFilter, setStatusFilter] = useState('Действующие');
   const [categoryFilter, setCategoryFilter] = useState<DirectoryCategoryId | 'all'>('all');
   const [screen, setScreen] = useState<'overview' | 'catalog' | 'photos' | 'cities'>('overview');
   const [previewUrl, setPreviewUrl] = useState('');
@@ -73,12 +73,12 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   const chooseCategory = (id: DirectoryCategoryId) => {
     setCategoryFilter(id);
     setScreen('catalog');
-    setStatusFilter('Все статусы');
+    setStatusFilter('Действующие');
     setFilter('');
   };
   const navigateAdmin = (next: 'overview' | 'catalog' | 'photos' | 'cities') => {
     setDraft(null); setMessage(''); setScreen(next);
-    setCategoryFilter('all'); setFilter(''); setStatusFilter('Все статусы');
+    setCategoryFilter('all'); setFilter(''); setStatusFilter('Действующие');
   };
   const change = (key: keyof AdminDraft, value: string) => {
     setDraft(current => current ? { ...current, [key]: value } : current);
@@ -111,6 +111,29 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     } finally { setBusy(false); }
   };
 
+
+  const toggleAvailability = async (row: OrganizationRow) => {
+    if (busy || !userId || !supabase || !access) return;
+    const restoring = row.status === 'archived';
+    if (!restoring && !window.confirm(
+      `Убрать организацию «${row.title}» (${row.city}) с сайта?\n\nКарточка перейдёт в архив, но её данные и фото сохранятся. Позже её можно будет восстановить.`
+    )) return;
+    if (restoring && !window.confirm(
+      `Вернуть организацию «${row.title}» в черновики?\nОна не появится на сайте до повторной проверки и публикации.`
+    )) return;
+    setBusy(true); setMessage('');
+    try {
+      const updated = await changeAdminOrganizationAvailability(supabase, userId, access, row);
+      setRows(current => current.map(item => item.id === updated.id ? updated : item));
+      setMessage(restoring
+        ? `«${updated.title}» восстановлена в черновики. Для публикации проверь информацию.`
+        : `«${updated.title}» убрана с сайта и перенесена в архив. Восстановление — через фильтр «Архив».`);
+      window.dispatchEvent(new Event('ryadom:organizations-changed'));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Не удалось изменить статус организации.');
+    } finally { setBusy(false); }
+  };
+
   if (!enabled) return <EmptyState title="Админка готовится к запуску" text="Пока мы не проверили права в Supabase и не включили защищённый доступ, управление организациями выключено." action="На главную" onAction={goHome}/>;
   if (state.status === 'loading') return <p role="status">Проверяем вход администратора…</p>;
   if (!userId) return <EmptyState title="Для входа в админку нужна авторизация" text="Войди под своей учётной записью «Рядом». Доступ к управлению выдаётся отдельно." action="Войти" onAction={openLogin}/>;
@@ -124,10 +147,11 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     owner ? directoryCities.map(city => city.name) : [],
   );
   const cityRows = rows.filter(row => cityFilter === 'Все города' || row.city === cityFilter);
+  const activeRows = cityRows.filter(row => row.status !== 'archived');
   const filtered = cityRows.filter(row =>
     (categoryFilter === 'all' || categoryForOrganization(row) === categoryFilter)
     && (kindFilter === 'Все разделы' || (row.kind === 'services' ? 'services' : 'places') === kindFilter)
-    && (statusFilter === 'Все статусы' || row.status === statusFilter)
+    && (statusFilter === 'Все статусы' || (statusFilter === 'Действующие' ? row.status !== 'archived' : row.status === statusFilter))
     && (screen !== 'photos' || Boolean(row.image_url))
     && [row.title, row.category, row.address ?? ''].some(value => value.toLocaleLowerCase('ru').includes(filter.trim().toLocaleLowerCase('ru')))
   ).sort((left, right) => left.title.localeCompare(right.title, 'ru'));
@@ -137,7 +161,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     directoryCategories.find(category => category.id === categoryFilter)?.label ?? 'Все организации';
   const categories = <div className="admin-cms-tiles">
     {directoryCategories.map(category => {
-      const count = cityRows.filter(row => categoryForOrganization(row) === category.id).length;
+      const count = activeRows.filter(row => categoryForOrganization(row) === category.id).length;
       return <button key={category.id} type="button"
         className={'admin-cms-tile' + (categoryFilter === category.id && screen === 'catalog' ? ' is-selected' : '')}
         aria-label={category.label + ': ' + count} aria-pressed={categoryFilter === category.id && screen === 'catalog'}
@@ -154,22 +178,34 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   const organizationCards = <div className="admin-cms-cards">
     {filtered.map(row => {
       const group = directoryCategories.find(category => category.id === categoryForOrganization(row));
-      return <button type="button" className="admin-cms-card" key={row.id} onClick={() => edit(row)}>
-        <span className="admin-cms-card-icon" aria-hidden="true">
-          {row.image_url ? <img src={row.image_url} alt="" loading="lazy"/> :
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d={group?.path ?? 'M12 2v20M2 12h20'}/>
-            </svg>}
-        </span>
-        <span className="admin-cms-card-main">
-          <strong>{row.title}</strong>
-          <small>{row.address || 'Адрес не указан'} · {row.category} · {row.city}</small>
-          <em className={'admin-cms-status admin-cms-status--' + row.status}>
-            {row.status === 'published' ? '● Опубликовано' : row.status === 'draft' ? '● Черновик' : '● Архив'}
-          </em>
-        </span>
-        <span aria-hidden="true" className="admin-cms-card-arrow">›</span>
-      </button>;
+      return <div className="admin-cms-card" key={row.id}>
+        <button type="button" className="admin-cms-card-open" onClick={() => edit(row)}
+          disabled={busy} aria-label={`Редактировать: ${row.title}`}>
+          <span className="admin-cms-card-icon" aria-hidden="true">
+            {row.image_url ? <img src={row.image_url} alt="" loading="lazy"/> :
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d={group?.path ?? 'M12 2v20M2 12h20'}/>
+              </svg>}
+          </span>
+          <span className="admin-cms-card-main">
+            <strong>{row.title}</strong>
+            <small>{row.address || 'Адрес не указан'} · {row.category} · {row.city}</small>
+            <em className={'admin-cms-status admin-cms-status--' + row.status}>
+              {row.status === 'published' ? '● Опубликовано' : row.status === 'draft' ? '● Черновик' : '● Архив'}
+            </em>
+          </span>
+          <span aria-hidden="true" className="admin-cms-card-arrow">›</span>
+        </button>
+        <button type="button" className="admin-cms-card-action"
+          disabled={busy}
+          aria-label={row.status === 'archived' ? `Восстановить в черновики: ${row.title}` : `Убрать в архив: ${row.title}`}
+          title={row.status === 'archived' ? 'Восстановить в черновики' : 'Убрать с сайта в архив'}
+          onClick={() => { void toggleAvailability(row); }}>
+          {row.status === 'archived' ?
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11a9 9 0 1 1 2.3 6M3 4v7h7"/></svg> :
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v6m4-6v6"/></svg>}
+        </button>
+      </div>;
     })}
   </div>;
 
@@ -204,7 +240,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
         <header className="admin-cms-header">
           <div><span className="eyebrow">РЯДОМ · УПРАВЛЕНИЕ ГОРОДОМ</span>
             <h1>{draft ? draft.id ? 'Редактирование организации' : 'Новая организация' : screen === 'overview' ? 'Управление каталогом' : screen === 'photos' ? 'Фотографии организаций' : screen === 'cities' ? 'Управление городами' : selectedLabel}</h1>
-            <p>{owner ? 'Главный администратор' : 'Редактор города'} · {cityFilter === 'Все города' ? 'Все доступные города' : cityFilter} · {cityRows.length} карточек</p>
+            <p>{owner ? 'Главный администратор' : 'Редактор города'} · {cityFilter === 'Все города' ? 'Все доступные города' : cityFilter} · {activeRows.length} карточек</p>
           </div>
           {!draft && <button className="primary-button" onClick={() => create()}>＋ Добавить организацию</button>}
         </header>
@@ -327,7 +363,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             </div>
           </section>}
           {screen === 'overview' && <section className="admin-cms-stats" aria-label="Статистика каталога">
-            <div><small>Всего организаций</small><strong>{cityRows.length}</strong></div>
+            <div><small>Действующие карточки</small><strong>{activeRows.length}</strong></div>
             <div><small>Опубликовано</small><strong>{published}</strong></div>
             <div><small>Черновики</small><strong>{draftCount}</strong></div>
           </section>}
@@ -339,6 +375,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             <p>Выбери раздел, чтобы посмотреть и изменить организации. Пустые разделы готовы для новых карточек.</p>
             {categories}
           </section>}
+          {message && <p role="status" className="admin-message admin-cms-list-message">{message}</p>}
           <section className="admin-panel admin-cms-directory">
             <div className="admin-cms-panel-heading"><h2>{screen === 'overview' ? 'Последние карточки' : screen === 'photos' ? 'Организации с фотографиями' : selectedLabel}</h2>
               {screen === 'overview' && <button type="button" className="admin-cms-link" onClick={() => navigateAdmin('catalog')}>Все организации →</button>}
@@ -349,7 +386,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
                 <option>Все разделы</option><option value="places">Места</option><option value="services">Услуги</option>
               </select>
               <select aria-label="Статус организации" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
-                <option>Все статусы</option><option value="published">Опубликовано</option><option value="draft">Черновики</option><option value="archived">Архив</option>
+                <option>Действующие</option><option>Все статусы</option><option value="published">Опубликовано</option><option value="draft">Черновики</option><option value="archived">Архив</option>
               </select>
             </div>}
             {filtered.length ? screen === 'overview' ? <div className="admin-cms-overview-items">{organizationCards}</div> : organizationCards

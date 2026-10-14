@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft, validateAdminDraft } from '../src/admin/model.ts';
+import { canManageCity, nextAvailabilityStatus, manageableAdminCities, newAdminDraft, rowToAdminDraft, validateAdminDraft } from '../src/admin/model.ts';
 import { directoryCategories, categoryForOrganization } from '../src/admin/directoryCategories.ts';
 import { mergePublished } from '../src/organizations/model.ts';
 import { readFile } from 'node:fs/promises';
@@ -155,4 +155,33 @@ test('admin sidebar reuses the official Ryadom brand image and returns to overvi
   assert.doesNotMatch(admin, /РЯД<span>О<\/span>М/);
   assert.match(css, /\.admin-cms-wordmark \.brand-logo-image/);
   assert.match(css, /--brand-logo-width:120px/);
+});
+
+test('closing a business archives it; restoring does not publish it automatically', () => {
+  assert.equal(nextAvailabilityStatus('published'), 'archived');
+  assert.equal(nextAvailabilityStatus('draft'), 'archived');
+  assert.equal(nextAvailabilityStatus('archived'), 'draft');
+});
+
+test('quick archive control is independent of card edit and asks confirmation', async () => {
+  const [panel, repo, css] = await Promise.all([
+    readFile('src/admin/AdminPage.tsx', 'utf8'),
+    readFile('src/admin/repository.ts', 'utf8'),
+    readFile('src/admin/admin.css', 'utf8'),
+  ]);
+  assert.match(panel, /className="admin-cms-card-open"/);
+  assert.match(panel, /className="admin-cms-card-action"/);
+  assert.match(panel, /window\.confirm\(/);
+  assert.match(panel, /onClick=\{\(\) => \{ void toggleAvailability\(row\); \}\}/);
+  assert.match(panel, /aria-label=\{row\.status === 'archived' \?/);
+  assert.match(panel, /<option>Действующие<\/option><option>Все статусы<\/option>/);
+  assert.match(panel, /statusFilter === 'Действующие' \? row\.status !== 'archived'/);
+  assert.match(panel, /window\.dispatchEvent\(new Event\('ryadom:organizations-changed'\)\)/);
+  assert.match(panel, /Восстановление — через фильтр «Архив»/);
+  assert.match(repo, /await requireCurrentUser\(client, userId\)/);
+  assert.match(repo, /if \(!canManageCity\(access, row\.city\)\)/);
+  assert.match(repo, /\.eq\('id', row\.id\)\.eq\('city', row\.city\)\.eq\('status', row\.status\)/);
+  assert.match(repo, /\.update\(\{ status: target \}\)/);
+  assert.doesNotMatch(repo, /\.delete\(\)\.eq\('id', row\.id\)/);
+  assert.match(css, /\.admin-cms-card-action \{[^}]*min-width:44px/);
 });

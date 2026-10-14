@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { isSafeWebUrl } from '../organizations/model';
 import type { OrganizationRow } from '../organizations/model';
 import { ORGANIZATION_COLUMNS, withDeadline } from '../organizations/repository';
-import { canManageCity, type AdminDraft, type CityAdminAccess } from './model';
+import { canManageCity, nextAvailabilityStatus, type AdminDraft, type CityAdminAccess } from './model';
 import { prepareAdminImage, adminImageExtension } from '../photos/adminImage';
 import { storageAdminPhotoKey } from './storagePaths';
 
@@ -63,6 +63,31 @@ export async function saveAdminOrganization(client: SupabaseClient, userId: stri
     : client.from('organizations').insert({ ...values, kind: draft.kind, city: draft.city, id: `${draft.kind === 'services' ? 'service' : 'place'}-${crypto.randomUUID()}` });
   const { data, error } = await withDeadline(signal => request.select(ADMIN_COLUMNS).abortSignal(signal).single());
   if (error || !data) throw new Error('Сохранение не подтверждено. Проверь список карточек и права доступа, прежде чем повторять.');
+  return data as OrganizationRow;
+}
+
+/**
+ * Immediately removes a closed business from the public directory without
+ * deleting its history or images. Restore always returns it to an unpublished
+ * draft, requiring a separate review before it can be republished.
+ *
+ * Checks actual session and server-side RLS; a suspended editor cannot archive
+ * another city's listing, even by calling the API directly.
+ */
+export async function changeAdminOrganizationAvailability(
+  client: SupabaseClient,
+  userId: string,
+  access: CityAdminAccess[],
+  row: OrganizationRow,
+): Promise<OrganizationRow> {
+  await requireCurrentUser(client, userId);
+  if (!canManageCity(access, row.city)) throw new Error('Нет прав для управления этой организацией.');
+  const target = nextAvailabilityStatus(row.status);
+  const { data, error } = await withDeadline(signal => client.from('organizations')
+    .update({ status: target })
+    .eq('id', row.id).eq('city', row.city).eq('status', row.status)
+    .select(ADMIN_COLUMNS).abortSignal(signal).single());
+  if (error || !data) throw new Error('Статус не изменился. Возможно, карточку уже обновили или права доступа изменились. Обнови админку.');
   return data as OrganizationRow;
 }
 
