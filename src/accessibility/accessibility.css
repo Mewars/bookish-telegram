@@ -1,0 +1,158 @@
+/* Accessibility controls: defaults do not alter the Ryadom brand styling. */
+.accessibility-button {
+  display: inline-grid; place-items: center;
+  min-width: 44px; min-height: 44px; border: 1px solid var(--line);
+  border-radius: 12px; padding: 0 8px; background: var(--surface);
+  color: var(--text); font-size: 17px; font-weight: 800;
+  letter-spacing: -.035em; flex-shrink: 0;
+}
+.accessibility-button:hover { border-color: var(--primary); }
+.accessibility-button--mobile {
+  position: fixed; right: 12px; bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+  z-index: 27; min-width: 48px; min-height: 48px;
+  color: var(--text); box-shadow: 0 3px 18px #0003;
+}
+.accessibility-dialog {
+  inset: 0; margin: auto; width: min(calc(100% - 24px), 540px);
+  max-height: min(90dvh, 850px); overflow-y: auto;
+  padding: 26px; border-radius: 20px; border: 2px solid var(--line);
+  background: var(--surface); color: var(--text); box-shadow: 0 20px 60px #0005;
+}
+.accessibility-dialog::backdrop { background: #071622b8; }
+.accessibility-dialog-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.accessibility-dialog-head h2 { font-size: 26px; line-height: 1.2; letter-spacing: -.02em; }
+.accessibility-eyebrow { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 750; color: var(--primary-ink); }
+.accessibility-close { display: grid; place-items: center; min-width: 44px; min-height: 44px; border-radius: 11px; border: 1px solid var(--line); font-size: 18px; }
+.accessibility-intro { margin: 16px 0 22px; color: var(--muted); font-size: 14px; line-height: 1.65; }
+.accessibility-field { margin: 0 0 18px; padding: 0; border: 0; min-width: 0; }
+.accessibility-field legend { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+.accessibility-choices { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; }
+.accessibility-choices button { min-height: 47px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; line-height: 1.35; }
+.accessibility-choices button[aria-pressed=true] { border: 2px solid var(--primary-ink); background: var(--primary-soft); color: var(--text); font-weight: 750; }
+.accessibility-option { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); cursor: pointer; }
+.accessibility-option span { min-width: 0; }
+.accessibility-option strong, .accessibility-option small { display: block; }
+.accessibility-option strong { font-size: 15px; }
+.accessibility-option small { font-size: 12px; line-height: 1.55; margin-top: 5px; color: var(--muted); }
+.accessibility-option input { flex-shrink: 0; width: 22px; height: 22px; accent-color: var(--primary-ink); }
+.accessibility-hearing-note { padding: 12px; background: var(--surface-secondary); border: 1px solid var(--line); border-radius: 10px; font-size: 13px; line-height: 1.65; }
+.accessibility-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 19px; }
+.accessibility-actions button { min-height: 46px; padding: 10px 14px; border-radius: 11px; font-size: 14px; }
+.accessibility-reset { border: 1px solid var(--line); }
+.accessibility-done { color: var(--primary-text); background: var(--primary); font-weight: 700; min-width: 110px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* The small header labels shown on desktop in the screenshot are enlarged
+   even when an accessibility mode has not been selected. */
+@media (min-width: 1151px) {
+  .web-nav button { font-size: 15px; }
+  .web-favorites { font-size: 14px; }
+  .web-header .city-pill { font-size: 13px; }
+  .web-header .music-launch { font-size: 13px; }
+  .web-header-actions { gap: 10px; }
+}
+@media (min-width: 900px) and (max-width: 1150px) {
+  .web-nav button { font-size: 13px; }
+  .web-favorites { font-size: 12px; }
+  .web-header-actions { gap: 6px; }
+  .web-header .music-launch > span:not(.music-live):not(.music-state-label) { display: none; }
+}
+
+/* Readability preferences also enlarge explicitly sized labels, not just
+   the browser root font, because the existing website uses pixel sizes. */
+:root[data-a11y-text=large] { --a11y-scale: 1.16; }
+:root[data-a11y-text=extra] { --a11y-scale: 1.34; }
+:root[data-a11y-text=large] .app-shell,
+:root[data-a11y-text=extra] .app-shell { line-height: 1.65; }
+:root[data-a11y-text=large] .web-nav button,
+:root[data-a11y-text=extra] .web-nav button { font-size: calc(15px * var(--a11y-scale)); }
+:root[data-a11y-text=large] .web-favorites,
+:root[data-a11y-text=extra] .web-favorites,
+:root[data-a11y-text=large] .web-header .city-pill,
+:root[data-a11y-text=extra] .web-header .city-pill,
+:root[data-a11y-text=large] .web-header .music-launch,
+:root[data-a11y-text=extra] .web-header .music-launch { font-size: calc(13px * var(--a11y-scale)); }
+:root[data-a11y-text=large] .app-shell :is(
+ .card h3, .card-title-button, .detail-contact-tile strong, .profile-row strong,
+ .theme-options button, .city-option strong, .section-heading p, .footer-slogan,
+ .cover-tagline, .cover-summary, .quick-discovery button, .chip, .primary-button,
+ .secondary-button, .search input, .login-provider, .city-pill),
+:root[data-a11y-text=extra] .app-shell :is(
+ .card h3, .card-title-button, .detail-contact-tile strong, .profile-row strong,
+ .theme-options button, .city-option strong, .section-heading p, .footer-slogan,
+ .cover-tagline, .cover-summary, .quick-discovery button, .chip, .primary-button,
+ .secondary-button, .search input, .login-provider, .city-pill) {
+  font-size: calc(16px * var(--a11y-scale));
+}
+:root[data-a11y-text=large] .app-shell :is(
+ .card-body > p, .card-meta, .card-footer, .detail-info-tile > p,
+ .profile-card p, .profile-row small, .footer-navigation button, .footer-city,
+ .results-caption, .detail-contact-label, .detail-contact-tile small, .detail-breadcrumb,
+ .related-section p, .city-section .section-heading p, .city-section .section-index),
+:root[data-a11y-text=extra] .app-shell :is(
+ .card-body > p, .card-meta, .card-footer, .detail-info-tile > p,
+ .profile-card p, .profile-row small, .footer-navigation button, .footer-city,
+ .results-caption, .detail-contact-label, .detail-contact-tile small, .detail-breadcrumb,
+ .related-section p, .city-section .section-heading p, .city-section .section-index) {
+  font-size: calc(13px * var(--a11y-scale));
+}
+:root[data-a11y-text=large] .bottom-nav button,
+:root[data-a11y-text=extra] .bottom-nav button { font-size: calc(10px * var(--a11y-scale)); }
+:root[data-a11y-text=large] .accessibility-dialog,
+:root[data-a11y-text=extra] .accessibility-dialog { font-size: calc(16px * var(--a11y-scale)); }
+:root[data-a11y-text=large] .accessibility-dialog :is(p,small,button,strong,legend),
+:root[data-a11y-text=extra] .accessibility-dialog :is(p,small,button,strong,legend) {
+  font-size: max(14px, calc(14px * var(--a11y-scale)));
+}
+
+/* High contrast: readable content and opaque navigation over photo covers.
+   Keep Ryadom gold accent, never invert photographs or personal images. */
+:root[data-a11y-contrast=high] {
+  --bg: #070707; --surface: #121212; --surface-secondary: #202020;
+  --text: #fff; --muted: #f0f0f0; --border: #d0d0d0; --line: #d0d0d0;
+  --primary: #ffda70; --primary-hover: #ffe99c; --primary-ink: #ffda70;
+  --primary-text: #080808; --primary-soft: #373020;
+  --soft: #202020; --blue-soft: #26384b; --blue-ink: #e3efff;
+  --coral-soft: #432721; --coral-ink: #ffded4; --violet-soft: #37294b;
+  --violet-ink: #f1e5ff;
+  color-scheme: dark;
+}
+:root[data-a11y-contrast=high] .app-shell:has(.city-home) .web-header {
+  background: #070707; backdrop-filter: none; border-bottom: 1px solid #eee;
+}
+:root[data-a11y-contrast=high] .app-shell:has(.city-home) .city-pill,
+:root[data-a11y-contrast=high] .app-shell:has(.city-home) .web-profile-button {
+  background: #181818; color: #fff; border: 1px solid #eee;
+}
+:root[data-a11y-contrast=high] .city-cover::before {
+  background: linear-gradient(90deg, #000d, #0008);
+}
+:root[data-a11y-contrast=high] .app-shell :is(button,a,input,textarea,select):focus-visible,
+:root[data-a11y-contrast=high] .accessibility-dialog :is(button,input):focus-visible {
+  outline: 3px solid #ffda70; outline-offset: 3px;
+}
+:root[data-a11y-contrast=high] .web-nav button,
+:root[data-a11y-contrast=high] .web-favorites,
+:root[data-a11y-contrast=high] .web-header .music-launch { color: #fff; }
+:root[data-a11y-contrast=high] .web-nav button[aria-current=page] { color: #ffda70; }
+
+/* Motion preferences from the user take precedence over animation defaults. */
+:root[data-a11y-motion=reduce] *,
+:root[data-a11y-motion=reduce] *::before,
+:root[data-a11y-motion=reduce] *::after {
+  animation: none !important; transition: none !important; scroll-behavior: auto !important;
+}
+
+/* Deaf / hard-of-hearing support: display an explicit playing state,
+   rather than relying on a small animated dot or on sound alone. */
+.music-state-label { display: none; font-size: 12px; font-weight: 700; }
+:root[data-a11y-hearing=on] .web-header .music-state-label { display: inline; }
+:root[data-a11y-hearing=on] .app-header .music-launch > .music-state-label { display: inline; }
+:root[data-a11y-hearing=on] .web-header .music-live { display: none; }
+@media (max-width: 599px) {
+ .accessibility-dialog { padding: 22px 18px; }
+ .accessibility-dialog-head h2 { font-size: 23px; }
+ .accessibility-choices { grid-template-columns: 1fr; }
+ .accessibility-choices button { min-height: 40px; }
+ :root[data-a11y-hearing=on] .app-header .music-state-label { font-size: 10px; }
+}
