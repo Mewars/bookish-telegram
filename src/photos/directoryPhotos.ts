@@ -103,9 +103,21 @@ export async function uploadDirectoryPhoto(client: SupabaseClient, expectedUserI
   const { error: uploadError } = await client.storage.from(CARD_PHOTO_BUCKET)
     .upload(path, optimized, { contentType: 'image/webp', upsert: false, cacheControl: '31536000' });
   if (uploadError) throw new Error('Не удалось загрузить фото. Проверь права администратора и хранилище.');
-  const { data, error } = await withDeadline(signal => client.from('directory_card_photos')
-    .upsert({card_id: item.id, city: CARD_PHOTO_CITY, storage_path: path}, { onConflict:'card_id' })
-    .select('card_id,city,storage_path,updated_at').abortSignal(signal).single());
+  // Column privileges forbid changing an existing card_id/city. Separate
+  // INSERT and storage_path-only UPDATE instead of Supabase upsert, which would
+  // try updating those protected columns on an existing row.
+  const { data: prior, error: priorError } = await withDeadline(signal =>
+    client.from('directory_card_photos').select('card_id')
+      .eq('card_id', item.id).abortSignal(signal).maybeSingle());
+  if (priorError) {
+    await client.storage.from(CARD_PHOTO_BUCKET).remove([path]);
+    throw new Error('Не удалось проверить карточку перед сохранением фото.');
+  }
+  const request = prior
+    ? client.from('directory_card_photos').update({storage_path: path}).eq('card_id',item.id)
+    : client.from('directory_card_photos').insert({card_id: item.id, city: CARD_PHOTO_CITY, storage_path: path});
+  const { data, error } = await withDeadline(signal =>
+    request.select('card_id,city,storage_path,updated_at').abortSignal(signal).single());
   if (error || !data) {
     // An unattached photo must never appear in the directory; best-effort cleanup.
     await client.storage.from(CARD_PHOTO_BUCKET).remove([path]);
