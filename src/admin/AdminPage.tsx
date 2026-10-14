@@ -7,7 +7,7 @@ import type { OrganizationRow } from '../organizations/model';
 import { EmptyState } from '../components/EmptyState';
 import { Icon } from '../components/Icon';
 import {
-  canManageCity, newAdminDraft, rowToAdminDraft,
+  canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft,
   validateAdminDraft, type AdminDraft, type CityAdminAccess, type AdminStatus,
 } from './model';
 import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto } from './repository';
@@ -63,7 +63,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   };
   const create = (groupId?: DirectoryCategoryId) => {
     const preferred = cityFilter !== 'Все города' && access && canManageCity(access, cityFilter) ? cityFilter : null;
-    const city = preferred ?? access?.find(entry => entry.city !== '*')?.city ?? availableCities[0].name;
+    const city = preferred ?? access?.find(entry => entry.active && entry.city !== '*')?.city ?? directoryCities[0]?.name ?? availableCities[0].name;
     const group = directoryCategories.find(entry => entry.id === groupId) ?? directoryCategories[0];
     setDraft({ ...newAdminDraft(city), category: group.value, kind: group.kind });
     chooseFile(null); setConfirmed(false); setMessage('');
@@ -113,7 +113,10 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   if (!access) return <p role="status">Проверяем права на управление городами…</p>;
 
   const owner = access.some(entry => entry.city === '*' && entry.role === 'owner');
-  const cities = [...new Set([...rows.map(row => row.city), ...access.filter(entry => entry.city !== '*').map(entry => entry.city), ...(owner ? availableCities.map(row => row.name) : [])])].sort((a,b) => a.localeCompare(b, 'ru'));
+  const cities = manageableAdminCities(
+    access, rows.map(row => row.city),
+    owner ? directoryCities.map(city => city.name) : [],
+  );
   const cityRows = rows.filter(row => cityFilter === 'Все города' || row.city === cityFilter);
   const filtered = cityRows.filter(row =>
     (categoryFilter === 'all' || categoryForOrganization(row) === categoryFilter)
@@ -291,7 +294,8 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             </div>
           </section>
         </form> : screen === 'cities' && owner ? (cityDirectoryEnabled
-          ? <CityManagement cities={directoryCities} refreshCities={refreshCities}/>
+          ? <CityManagement cities={directoryCities} refreshCities={refreshCities}
+              onCitySaved={cityName => { setCityFilter(cityName); setCategoryFilter('all'); setFilter(''); }}/>
           : <section className="admin-panel"><h2>Подключение городов</h2><p>Настройка новых городов пока выключена до резервной копии и безопасного подключения Supabase.</p></section>
         ) : <>
           {screen === 'overview' && <section className="admin-cms-stats" aria-label="Статистика каталога">
