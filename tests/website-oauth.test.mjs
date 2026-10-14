@@ -78,3 +78,17 @@ test('network rejection stays actionable', async () => {
   const client = { auth: { signInWithOAuth: async () => { throw new Error('Network offline'); } } };
   await assert.rejects(startWebsiteOAuth(client, 'vk', 'https://ryadomcity.ru/'), /Network offline/);
 });
+
+test('public VK ID sign-in uses production build flag without a hidden preview query', () => {
+  const providers = readFileSync(new URL('../src/auth/providers.ts', import.meta.url), 'utf8');
+  assert.match(providers, /import\.meta\.env\.VITE_VK_ID_ENABLED === 'true'/);
+  assert.doesNotMatch(providers, /vkPreviewEnabled|ryadom_vk_test/);
+  for (const workflow of [
+    'sprinthost-deploy.yml',
+    'sprinthost-build.yml',
+    'github-pages.yml',
+  ]) {
+    const yaml = readFileSync(new URL('../.github/workflows/' + workflow, import.meta.url), 'utf8');
+    assert.match(yaml, /^\s+VITE_VK_ID_ENABLED: 'true'\s*$/m, workflow);
+  }
+});
