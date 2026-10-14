@@ -20,28 +20,28 @@ for (const raw of [null, '', 'light', 'dark', 'system', '"light"', '"dark"', '"s
       globalThis.localStorage = storage;
       try {
         const preference = readTheme();
-        const expectedPreference = ['light', 'dark', 'system'].find(value => raw === value || raw === JSON.stringify(value)) ?? 'system';
+        const expectedPreference = ['light', 'dark'].find(value => raw === value || raw === JSON.stringify(value)) ?? 'dark';
         assert.equal(preference, expectedPreference);
-        assert.equal(document.documentElement.dataset.theme, preference === 'system' ? (systemDark ? 'dark' : 'light') : preference);
+        assert.equal(document.documentElement.dataset.theme, preference === 'system' ? 'dark' : preference);
       } finally { delete globalThis.localStorage; }
     });
   }
 }
 
-test('blocked storage follows the system without breaking startup', () => {
+test('blocked storage defaults to the brand dark theme without breaking startup', () => {
   const storage = { getItem: () => { throw new Error('SecurityError'); } };
   const document = { documentElement: { dataset: {} } };
   runInNewContext(script, { localStorage: storage, document, window: { matchMedia: () => ({ matches: true }) } });
   assert.equal(document.documentElement.dataset.theme, 'dark');
   globalThis.localStorage = storage;
-  try { assert.equal(readTheme(), 'system'); } finally { delete globalThis.localStorage; }
+  try { assert.equal(readTheme(), 'dark'); } finally { delete globalThis.localStorage; }
 });
 
 test('missing matchMedia falls back safely and explicit dark still works', () => {
   for (const raw of [null, '"dark"']) {
     const document = { documentElement: { dataset: {} } };
     runInNewContext(script, { localStorage: { getItem: () => raw }, document, window: {} });
-    assert.equal(document.documentElement.dataset.theme, raw ? 'dark' : 'light');
+    assert.equal(document.documentElement.dataset.theme, 'dark');
   }
 });
 

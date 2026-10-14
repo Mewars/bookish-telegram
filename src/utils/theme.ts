@@ -6,6 +6,8 @@ export function readTheme(): Theme {
     const raw = localStorage.getItem('ryadom.theme');
     let value: unknown = raw;
     try { value = JSON.parse(raw ?? 'null'); } catch { /* Legacy unquoted value. */ }
-    return value === 'light' || value === 'dark' || value === 'system' ? value : 'system';
-  } catch { return 'system'; }
+    // A dark-first city guide: migrate the old implicit 'system' default to dark.
+    // Explicitly chosen light mode remains available in Profile settings.
+    return value === 'light' || value === 'dark' ? value : 'dark';
+  } catch { return 'dark'; }
 }

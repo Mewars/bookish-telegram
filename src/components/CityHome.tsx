@@ -12,7 +12,7 @@ const discoveries: { label: string; icon: IconName; matches: (item: Item) => boo
   { label: 'Сегодня', icon: 'events', matches: item => item.kind === 'events' && item.dateOffset === 0 },
   { label: 'Поесть', icon: 'places', matches: item => item.kind === 'places' && item.category.split(' / ')[0] === 'Кафе' },
   { label: 'Погулять', icon: 'pin', matches: item => item.kind === 'places' && ['Парки', 'Достопримечательности'].includes(item.category.split(' / ')[0]) },
-  { label: 'Культура', icon: 'star', matches: item => item.kind === 'places' && item.category.split(' / ')[0] === 'Музеи' },
+  { label: 'Культура', icon: 'star', matches: item => item.kind === 'places' && ['Музеи', 'Культура', 'Библиотеки'].includes(item.category.split(' / ')[0]) },
   { label: 'Услуги', icon: 'services', matches: item => item.kind === 'services' },
 ];
 
