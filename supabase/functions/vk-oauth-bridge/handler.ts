@@ -109,7 +109,10 @@ export async function createBridge(config: BridgeConfig,store: BridgeStore,upstr
   }
   async function authorize(url: URL) {
     const p=url.searchParams;
-    unique(p,['response_type','client_id','redirect_uri','state','code_challenge','code_challenge_method','scope']);
+    // Hosted Supabase Auth sends redirect_to alongside its OAuth2 parameters.
+    // Accept only this site's exact approved callback; never use it for redirects.
+    unique(p,['response_type','client_id','redirect_uri','state','code_challenge','code_challenge_method','scope','redirect_to']);
+    if (p.has('redirect_to') && p.get('redirect_to')!=='https://ryadomcity.ru/') fail();
     if (parameter(p,'response_type')!=='code' || parameter(p,'client_id')!==config.clientId || parameter(p,'redirect_uri')!==AUTH_CALLBACK || parameter(p,'code_challenge_method')!=='S256') fail();
     const challenge=parameter(p,'code_challenge',43); if (!opaque.test(challenge)) fail();
     const state=parameter(p,'state',8192);
