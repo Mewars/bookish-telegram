@@ -90,8 +90,18 @@
 .admin-cms-layout .admin-filters input,.admin-cms-layout .admin-filters select {border-radius:10px;background:#fff;font-size:13px;padding:10px 12px;min-height:44px;border-color:var(--line);color:var(--text);}
 .admin-cms-layout .admin-filters select {width:auto;max-width:220px;}
 .admin-cms-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-.admin-cms-card {display:flex;align-items:center;gap:13px;min-width:0;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;color:var(--text);}
-.admin-cms-card:hover {border-color:#91BDE1;}
+.admin-cms-card {display:flex;align-items:center;gap:0;min-width:0;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:0;color:var(--text);overflow:hidden;}
+.admin-cms-card:hover,.admin-cms-card:focus-within {border-color:#91BDE1;}
+.admin-cms-card-open {display:flex;align-items:center;gap:13px;flex:1;min-width:0;text-align:left;padding:13px;min-height:90px;}
+.admin-cms-card-open:disabled {cursor:wait;opacity:.7;}
+.admin-cms-card-action {display:grid;place-items:center;flex:none;min-width:44px;height:44px;margin:0 10px 0 2px;color:#9C5C5C;border:1px solid transparent;border-radius:11px;transition:background-color .15s ease,color .15s ease;}
+.admin-cms-card-action svg {width:20px;height:20px;}
+.admin-cms-card-action:hover:not(:disabled) {background:#FDEDED;color:#B22E2E;}
+.admin-cms-card-action[title="Восстановить в черновики"] {color:#246F56;}
+.admin-cms-card-action[title="Восстановить в черновики"]:hover:not(:disabled) {background:#E8F5ED;color:#165D3F;}
+.admin-cms-card-action:disabled {opacity:.45;cursor:wait;}
+.admin-cms-card-open:focus-visible,.admin-cms-card-action:focus-visible {outline:3px solid #4186BD;outline-offset:-3px;}
+.admin-cms-list-message {margin:0 0 14px;border-radius:10px;line-height:1.6;}
 .admin-cms-card-icon {width:60px;height:60px;flex:none;display:grid;place-items:center;border-radius:11px;background:#EEF1F5;color:#66819A;overflow:hidden;}
 .admin-cms-card-icon svg {width:27px;height:27px;}
 .admin-cms-card-icon img {width:100%;height:100%;object-fit:cover;}
