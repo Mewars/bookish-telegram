@@ -80,8 +80,8 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
 
       <div className="city-cover-content">
         <h1 id="city-cover-title">{city}</h1>
-        <p className="cover-tagline">Открывай город по-новому</p>
-        <p className="cover-summary">Места, события и полезные услуги города в одном месте.</p>
+        <p className="cover-tagline">{cityProfile?.tagline || "Открывай город по-новому"}</p>
+        <p className="cover-summary">{cityProfile?.summary || "Места, события и полезные услуги города в одном месте."}</p>
 
         <div className="cover-search">
           <Search value={query} onChange={setQuery} placeholder="Поиск мест, событий, услуг…"/>
