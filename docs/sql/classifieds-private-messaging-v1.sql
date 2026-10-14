@@ -210,7 +210,7 @@ BEGIN
   SELECT c.buyer_id,c.seller_id,l.status INTO v_buyer,v_seller,v_status
     FROM public.classified_conversations c JOIN public.classifieds l ON l.id=c.listing_id
     WHERE c.id=p_conversation_id;
-  IF v_user NOT IN (v_buyer,v_seller) OR v_status NOT IN ('published','completed') THEN
+  IF v_buyer IS NULL OR v_seller IS NULL OR v_user NOT IN (v_buyer,v_seller) OR v_status IS NULL OR v_status NOT IN ('published','completed') THEN
     RAISE EXCEPTION 'Conversation unavailable' USING ERRCODE='42501';
   END IF;
   IF EXISTS(SELECT 1 FROM public.classified_user_blocks b
