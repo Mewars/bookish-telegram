@@ -9,5 +9,7 @@ export interface Item extends SourceMetadata {
   yandexMapsUrl?: string;
   website?: string; vkUrl?: string;
   real?: boolean; phone?: string;
+  // Licensed image metadata. Stock photos must never be mistaken for an actual venue.
+  photoIllustrative?: boolean; photoCredit?: string; photoSourceUrl?: string; photoLicenseUrl?: string;
   dateOffset?: number; time?: string; label?: string;
 }
