@@ -8,7 +8,7 @@ import { MediaImage } from '../components/MediaImage';
 import { EmptyState } from '../components/EmptyState';
 import { readCityAccess } from '../admin/repository';
 import { canManageCity, type CityAdminAccess } from '../admin/model';
-import { CARD_PHOTO_CITY, publicCardPhotoUrl, removeDirectoryPhoto, uploadDirectoryPhoto } from './directoryPhotos';
+import { CARD_PHOTO_CITY, removeDirectoryPhoto, uploadDirectoryPhoto } from './directoryPhotos';
 import { useDirectoryPhotos } from './useDirectoryPhotos';
 import './photoAdmin.css';
 
@@ -51,10 +51,11 @@ export function PhotoAdminPage({ enabled, goHome, openLogin }: {
   }, [enabled, userId, attempt]);
 
   useEffect(() => {
-    if (!file) { setPreviewUrl(''); return; }
+    if (!file) return;
     const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
+    let active = true;
+    Promise.resolve().then(() => { if (active) setPreviewUrl(url); });
+    return () => { active = false; URL.revokeObjectURL(url); };
   }, [file]);
 
   const photosById = useMemo(() => new Map(photos.map(photo => [photo.card_id, photo])), [photos]);
@@ -79,7 +80,7 @@ export function PhotoAdminPage({ enabled, goHome, openLogin }: {
     setBusy(true); setMessage('');
     try {
       await uploadDirectoryPhoto(supabase, userId, selected, file);
-      setFile(null); setCanPublish(false);
+      setFile(null); setPreviewUrl(''); setCanPublish(false);
       setMessage('Готово: фотография сохранена. Она появится в карточке для посетителей.');
       refresh();
       window.dispatchEvent(new Event('ryadom:card-photos-changed'));
@@ -124,14 +125,14 @@ export function PhotoAdminPage({ enabled, goHome, openLogin }: {
     <p className="photo-admin-explainer">Выбирай настоящие фотографии конкретных мест. Загруженное изображение появится на сайте без GitHub и ожидания публикации. Подойдут JPG, PNG, WebP и совместимые фото iPhone — они автоматически сжимаются до WebP. Геометки и EXIF удаляются при обработке.</p>
     {status === 'unavailable' && <div role="alert" className="photo-admin-alert">Хранилище временно недоступно. Не загружай фото, пока не восстановится соединение. <button className="secondary-button" onClick={refresh}>Повторить</button></div>}
     {selected ? <section className="photo-admin-editor" aria-busy={busy}>
-      <button className="back-link" onClick={() => { setSelectedId(null); setFile(null); setMessage(''); }} disabled={busy}><Icon name="back" size={18}/> К списку организаций</button>
+      <button className="back-link" onClick={() => { setSelectedId(null); setFile(null); setPreviewUrl(''); setMessage(''); }} disabled={busy}><Icon name="back" size={18}/> К списку организаций</button>
       <h2>{selected.title}</h2><p>{selected.city}{selected.address ? ` · ${selected.address}` : ''}</p>
       <div className="photo-admin-image">
         {previewUrl ? <img src={previewUrl} alt="Выбранная фотография перед публикацией"/> : <MediaImage src={selected.image} alt={`Текущее изображение: ${selected.title}`}/>}
       </div>
       <p className="photo-admin-note">{previewUrl ? 'Предпросмотр. Изображение ещё не сохранено.' : selectedPhoto ? 'Сейчас используется загруженная фотография.' : 'Пока используется нейтральная иллюстрация либо ранее подтверждённый снимок.'}</p>
       <label className="photo-admin-file-label">Выбрать фотографию
-        <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" disabled={busy || loading || status !== 'ready'} onChange={event => { setFile(event.target.files?.[0] ?? null); setMessage(''); setCanPublish(false); }}/>
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" disabled={busy || loading || status !== 'ready'} onChange={event => { setFile(event.target.files?.[0] ?? null); setPreviewUrl(''); setMessage(''); setCanPublish(false); }}/>
       </label>
       {file && <p className="photo-admin-note">Выбрано: {file.name} · {(file.size / 1024 / 1024).toFixed(1)} МБ</p>}
       <label className="photo-admin-confirm"><input type="checkbox" checked={canPublish} disabled={!file || busy} onChange={event => setCanPublish(event.target.checked)}/>
