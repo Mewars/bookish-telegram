@@ -7,6 +7,7 @@ import {
   submitForReview,validateDraft,
 } from './repository';
 import type { ChatMessage,Classified,Conversation,DealType,Draft } from './repository';
+import { ClassifiedPhotoGallery } from './ClassifiedPhotoGallery';
 import './classifieds.css';
 
 type Tab='browse'|'mine'|'messages'|'moderate';
@@ -162,7 +163,7 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
             onChange={e=>setDraft(d=>({...d,description:e.target.value}))} placeholder="Состояние товара, условия сделки, другая полезная информация"/>
         </label>
       </div>
-      <p className="classifieds-note">Фотографии появятся после отдельной проверки безопасной загрузки. Контактный телефон и точный адрес не публикуются автоматически.</p>
+      <p className="classifieds-note">После сохранения черновика можно добавить до 10 фотографий. Контактный телефон и точный адрес не публикуются автоматически.</p>
       <button className="classifieds-main-action" disabled={busy} type="submit">Сохранить черновик</button>
     </form>}
     {(tab==='browse'||tab==='mine'||tab==='moderate')&&
@@ -174,6 +175,7 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
         </div>:<div className="classifieds-grid">{filtered.map(entry=>
         <article className="classifieds-card" key={entry.id}>
           <div className="classifieds-card-meta"><span>{dealLabels[entry.deal_type]}</span><span>{entry.category}</span></div>
+          <ClassifiedPhotoGallery listing={entry} editable={tab==='mine' && entry.author_id===userId && (entry.status==='draft' || entry.status==='rejected')}/>
           <h2>{entry.title}</h2>
           <p>{entry.description}</p>
           <div className="classifieds-card-foot">
