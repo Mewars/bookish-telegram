@@ -29,8 +29,8 @@ test('desktop and mobile have a keyboard accessible AA launcher and modal', asyn
   const app = await readFile('src/App.tsx','utf8');
   const header = await readFile('src/components/web/WebHeader.tsx','utf8');
   const panel = await readFile('src/accessibility/AccessibilityPanel.tsx','utf8');
-  assert.match(header,/AccessibilityButton onClick=\{openAccessibility\}/);
-  assert.match(app,/!isDesktopWeb && <AccessibilityButton mobile onClick=/);
+  assert.doesNotMatch(header,/AccessibilityButton/);
+  assert.match(app,/<AccessibilityButton onClick=\{\(\) => setAccessibilityOpen\(true\)\}\/ >/.replace('\\/ >', '\\/\>'));
   assert.match(app,/<AccessibilityPanel open=\{accessibilityOpen\}/);
   assert.match(panel,/aria-label="Версия для слабовидящих и слабослышащих/);
   assert.match(panel,/aria-haspopup="dialog"/);
