@@ -60,19 +60,19 @@ ON CONFLICT(id) DO NOTHING;
 
 DROP POLICY IF EXISTS ryadom_city_covers_owner_insert ON storage.objects;
 CREATE POLICY ryadom_city_covers_owner_insert ON storage.objects FOR INSERT TO authenticated WITH CHECK (
-  bucket_id='ryadom-city-covers' AND name ~ '^covers/[0-9a-f-]{36}\\.webp$'
+  bucket_id='ryadom-city-covers' AND name ~ '^covers/[0-9a-f-]{36}\.webp$'
   AND EXISTS(SELECT 1 FROM public.city_admin_access a WHERE
     a.user_id=(SELECT auth.uid()) AND a.active AND a.city='*' AND a.role='owner')
 );
 DROP POLICY IF EXISTS ryadom_city_covers_owner_select ON storage.objects;
 CREATE POLICY ryadom_city_covers_owner_select ON storage.objects FOR SELECT TO authenticated USING (
-  bucket_id='ryadom-city-covers' AND name ~ '^covers/[0-9a-f-]{36}\\.webp$'
+  bucket_id='ryadom-city-covers' AND name ~ '^covers/[0-9a-f-]{36}\.webp$'
   AND EXISTS(SELECT 1 FROM public.city_admin_access a WHERE
     a.user_id=(SELECT auth.uid()) AND a.active AND a.city='*' AND a.role='owner')
 );
 DROP POLICY IF EXISTS ryadom_city_covers_owner_delete ON storage.objects;
 CREATE POLICY ryadom_city_covers_owner_delete ON storage.objects FOR DELETE TO authenticated USING (
-  bucket_id='ryadom-city-covers' AND name ~ '^covers/[0-9a-f-]{36}\\.webp$'
+  bucket_id='ryadom-city-covers' AND name ~ '^covers/[0-9a-f-]{36}\.webp$'
   AND EXISTS(SELECT 1 FROM public.city_admin_access a WHERE
     a.user_id=(SELECT auth.uid()) AND a.active AND a.city='*' AND a.role='owner')
 );
