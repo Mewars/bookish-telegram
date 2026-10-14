@@ -33,7 +33,7 @@ const sections: Record<Section | 'import', PageMetadata> = {
 // Hash screens have no independent HTML URL. Do not invent per-card canonicals.
 export function pageMetadata(section: Section | 'import', id?: string, item?: Item): PageMetadata {
   if (id && !item) return { title: 'Карточка не найдена — Рядом', description: 'Карточка по этой ссылке не найдена. Посмотрите места в городском гиде Рядом.' };
-  if (id && item?.real && item.kind === 'places') return {
+  if (id && item?.real && (item.kind === 'places' || item.kind === 'services')) return {
     title: `${item.title} — ${item.city} | Рядом`,
     description: item.description,
   };
