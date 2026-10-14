@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { canManageCity, newAdminDraft, rowToAdminDraft, validateAdminDraft } from '../src/admin/model.ts';
+import { canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft, validateAdminDraft } from '../src/admin/model.ts';
 import { directoryCategories, categoryForOrganization } from '../src/admin/directoryCategories.ts';
 import { mergePublished } from '../src/organizations/model.ts';
 import { readFile } from 'node:fs/promises';
@@ -18,6 +18,30 @@ test('owner can manage cities but city editor cannot cross city boundaries', () 
   assert.equal(canManageCity([{ ...editor, active: false }], city), false);
   assert.equal(canManageCity([{ ...editor, city: '*' }], city), false);
   assert.equal(canManageCity([], city), false);
+});
+
+test('new empty city can immediately receive its first owner-created listing', () => {
+  const directory = ['Енисейск', 'Лесосибирск', 'Ачинск'];
+  assert.deepEqual(manageableAdminCities([owner], ['Енисейск'], directory),
+    ['Ачинск', 'Енисейск', 'Лесосибирск']);
+  assert.equal(manageableAdminCities([owner], [], ['Новый город'])[0], 'Новый город');
+});
+
+test('franchisee never sees public but unassigned cities in admin selector', () => {
+  const directory = ['Енисейск', 'Лесосибирск', 'Ачинск'];
+  assert.deepEqual(manageableAdminCities([editor], ['Енисейск', 'Ачинск'], directory), ['Енисейск']);
+  assert.deepEqual(manageableAdminCities([{ ...editor, active: false }], ['Енисейск'], directory), []);
+  assert.deepEqual(manageableAdminCities([], ['Енисейск'], directory), []);
+  assert.deepEqual(manageableAdminCities([{ ...editor, city: '*' }], ['Енисейск'], directory), []);
+  assert.deepEqual(manageableAdminCities([{ ...editor, city: 'Ачинск' }], [], directory), ['Ачинск']);
+});
+
+test('owner city management notifies admin filter after successful save', async () => {
+  const component = await readFile('src/admin/CityManagement.tsx','utf8');
+  const page = await readFile('src/admin/AdminPage.tsx','utf8');
+  assert.match(component, /onCitySaved\?\.\(trimmed\)/);
+  assert.match(page, /owner \? directoryCities\.map\(city => city\.name\) : \[\]/);
+  assert.match(page, /onCitySaved=\{cityName => \{ setCityFilter\(cityName\)/);
 });
 
 test('a listing needs real information; publishing requires separate verification', () => {

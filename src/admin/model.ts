@@ -47,6 +47,23 @@ export function canManageCity(access: CityAdminAccess[], city: string): boolean 
   return access.some(entry => entry.active && (entry.city === city || (entry.city === '*' && entry.role === 'owner')));
 }
 
+/** Owner may start a listing in a newly registered but still empty city.
+ * Editors see only explicitly assigned cities, even if the public city
+ * directory contains others. Server-side RLS remains authoritative.
+ */
+export function manageableAdminCities(
+  access: CityAdminAccess[],
+  organizationCities: readonly string[],
+  directoryCities: readonly string[],
+): string[] {
+  const owner = access.some(entry => entry.active && entry.city === '*' && entry.role === 'owner');
+  const candidates = owner
+    ? [...directoryCities, ...organizationCities]
+    : access.filter(entry => entry.active && entry.city !== '*').map(entry => entry.city);
+  return [...new Set(candidates.filter(city => city.length > 0 && canManageCity(access, city)))]
+    .sort((a, b) => a.localeCompare(b, 'ru'));
+}
+
 export function newAdminDraft(city: string): AdminDraft {
   return { id: '', city, kind: 'places', title: '', category: '', description: '', address: '', phone: '',
     hours: '', website: '', vk_url: '', source_url: '', image_url: '', status: 'draft', verified_at: '' };

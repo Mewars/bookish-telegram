@@ -7,8 +7,9 @@ const BUCKET = 'ryadom-city-covers';
 const defaultTagline = 'Открывай город по-новому';
 const defaultSummary = 'Места, события и полезные услуги города в одном месте.';
 
-export function CityManagement({ cities, refreshCities }: {
+export function CityManagement({ cities, refreshCities, onCitySaved }: {
   cities: readonly DirectoryCity[]; refreshCities: () => void;
+  onCitySaved?: (cityName: string) => void;
 }) {
   const [existing, setExisting] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -75,6 +76,7 @@ export function CityManagement({ cities, refreshCities }: {
       setExisting(trimmed); setCoverUrl(nextCover ?? ''); chooseImage(null);
       setFeedback('Город сохранён. Он появится в переключателе после обновления списка.');
       refreshCities();
+      onCitySaved?.(trimmed);
     } catch (error) {
       if (uploadedPath) await supabase.storage.from(BUCKET).remove([uploadedPath]);
       setFeedback(error instanceof Error ? error.message : 'Не удалось сохранить город.');
