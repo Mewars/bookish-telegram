@@ -28,10 +28,11 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
       GRANT USAGE ON SCHEMA storage TO authenticated;
       GRANT EXECUTE ON FUNCTION storage.foldername(text) TO authenticated;
-      GRANT INSERT, SELECT ON storage.objects TO authenticated;`);
+      GRANT INSERT, SELECT, DELETE ON storage.objects TO authenticated;`);
     await db.exec(await readFile('docs/sql/organizations.sql','utf8'));
     await db.exec(await readFile('docs/sql/organizations-seed.sql','utf8'));
     await db.exec(await readFile('docs/sql/city-admin-mvp.sql','utf8'));
+    await db.exec(await readFile('docs/sql/storage-admin-photo-access-2026-10.sql','utf8'));
     await db.query('INSERT INTO public.city_admin_access (user_id,city,role) VALUES ($1,$2,$3),($4,$5,$6)', [owner,'*','owner',editor,'Енисейск','editor']);
     // Test-only privileged action that mirrors a trusted billing/suspension job.
     // Created by the test superuser, callable only by service_role.
@@ -65,8 +66,12 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       await db.query("UPDATE public.organizations SET title='Bad' WHERE id='edited-foreign'");
       assert.equal((await db.query("SELECT count(*)::int AS n FROM public.organizations WHERE id='edited-foreign'")).rows[0].n, 0);
       await assert.rejects(db.query("UPDATE public.organizations SET city='Ачинск' WHERE id='edited-local'"), /permission denied/);
-      await db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/photo.webp')");
-      await assert.rejects(db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Ачинск/photo.webp')"), /row-level security/);
+      // Supabase Storage INSERT ... RETURNING requires SELECT for the new object.
+      const uploaded = await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/photo.webp') RETURNING name");
+      assert.equal(uploaded.rows[0].name, 'Енисейск/photo.webp');
+      assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-places'")).rows.length, 1);
+      await assert.rejects(db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Ачинск/photo.webp') RETURNING name"), /row-level security/);
+      assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-city-covers'")).rows.length,0);
       await assert.rejects(db.exec("UPDATE public.organizations SET status='published' WHERE id='edited-local'"), /check constraint/);
       await db.exec("UPDATE public.organizations SET verified_at='2026-10-14',status='published' WHERE id='edited-local'");
     });
@@ -88,6 +93,8 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
         db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/suspended.webp')"),
         /row-level security/
       );
+      assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-places'")).rows.length,0);
+      assert.equal((await db.query("DELETE FROM storage.objects WHERE bucket_id='ryadom-places' RETURNING name")).rows.length,0);
 
       await setRole('anon');
       // Published cards are still readable for all visitors and were not archived.
@@ -95,6 +102,10 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       assert.equal((await db.query("SELECT status FROM public.organizations WHERE id = 'edited-local'")).rows[0].status, 'published');
 
       await setRole('authenticated', owner);
+      const ownerPhoto = await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Ачинск/11111111-1111-4111-8111-111111111111.jpg') RETURNING name");
+      assert.ok(ownerPhoto.rows[0].name.endsWith('.jpg'));
+      const removed = await db.query("DELETE FROM storage.objects WHERE bucket_id='ryadom-places' RETURNING name");
+      assert.equal(removed.rows.length,2);
       await db.exec("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('owner-during-suspension','Енисейск','Still manageable','Кафе','Platform owner can edit','user_provided','draft')");
       assert.equal((await db.query("SELECT status FROM public.organizations WHERE id = 'owner-during-suspension'")).rows[0].status, 'draft');
     });
