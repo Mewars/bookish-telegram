@@ -111,7 +111,7 @@ try {
       if (scenario.name === 'desktop-1440') {
         await page.goto(`${base}/#/contacts`, { waitUntil: 'domcontentloaded' });
         await page.getByRole('heading', { name: 'Контакты владельца' }).waitFor();
-        const vk = page.locator('a[href="https://vk.ru/mewarspro"]');
+        const vk = page.locator('.legal-document a[href="https://vk.ru/mewarspro"]');
         assert(await vk.isVisible(), 'Owner VK contact link missing');
         result.checks.push('Owner contacts page and VK link');
         await page.screenshot({ path: `${folder}/${scenario.name}-contacts.png`, fullPage: true, animations: 'disabled' });
