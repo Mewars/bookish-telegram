@@ -5,7 +5,7 @@ import './music.css';
 
 export function MusicButton() {
   const music = useMusic();
-  return <button className="music-launch" onClick={music.openPlayer} aria-label="Открыть Музыку рядом" aria-controls="music-player" aria-expanded={music.isOpen}><Icon name="music" size={18}/><span>Музыка рядом</span>{music.isPlaying && <span className="music-live" aria-hidden="true"/>}</button>;
+  return <button className="music-launch" onClick={music.openPlayer} aria-label="Открыть Музыку рядом" aria-controls="music-player" aria-expanded={music.isOpen}><Icon name="music" size={18}/><span>Музыка рядом</span>{music.isPlaying && <span className="music-live" aria-hidden="true"/>}<span className="music-state-label" aria-hidden="true">{music.isPlaying ? 'Играет' : 'Выключена'}</span></button>;
 }
 export function MusicPlayer() {
   const music = useMusic();
