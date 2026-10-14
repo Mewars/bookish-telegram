@@ -58,3 +58,23 @@
  .classifieds-deals{width:100%}.classifieds-deals button{font-size:12px;padding:8px 10px}
  .classifieds-chat-compose{flex-direction:column;align-items:stretch}
 }
+
+/* Classified photo galleries are served by short-lived signed private-bucket URLs. */
+.classified-gallery{display:grid;gap:10px;min-width:0}
+.classified-gallery-main{position:relative;background:#081e2a;border:1px solid #ffffff24;border-radius:13px;overflow:hidden}
+.classified-gallery-main>img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain}
+.classified-gallery-navigation{display:flex;align-items:center;justify-content:space-between;gap:8px;position:absolute;bottom:8px;left:8px;right:8px;color:#fff;font-size:13px}
+.classified-gallery-navigation button{height:38px;width:38px;border-radius:50%;border:1px solid #ffffff8f;background:#102734dd;color:#fff;font-size:26px;line-height:1}
+.classified-gallery-navigation span{padding:5px 9px;border-radius:20px;background:#0d2535e0}
+.classified-gallery-thumbs{display:flex;gap:7px;overflow-x:auto;padding:2px;scrollbar-width:thin}
+.classified-gallery-thumbs button{width:55px;height:55px;flex:0 0 55px;border-radius:8px;overflow:hidden;border:2px solid transparent;padding:0}
+.classified-gallery-thumbs button[aria-pressed=true]{border-color:#efbd61}
+.classified-gallery-thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.classified-gallery-edit{display:grid;gap:11px;border-top:1px solid var(--line);padding-top:11px;min-width:0}
+.classified-gallery-edit>label{display:grid;gap:8px;font-weight:650;font-size:13px}
+.classified-gallery-edit input[type=file]{max-width:100%;font-size:12px;min-width:0}
+.classified-gallery-edit input[type=file]::file-selector-button{background:#e9b85b;color:#142733;border:0;border-radius:9px;padding:8px}
+.classified-gallery-rights{display:flex!important;align-items:flex-start;flex-direction:row!important;gap:8px!important;line-height:1.5;font-weight:500!important}
+.classified-gallery-rights input{width:auto!important;margin-top:2px;accent-color:#efbd61}
+.classified-gallery-remove{text-align:left;text-decoration:underline;font-size:13px;color:var(--text)}
+.classified-gallery-edit small{font-size:12px;color:var(--muted)}
