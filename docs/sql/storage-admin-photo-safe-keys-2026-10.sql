@@ -10,7 +10,7 @@ DROP POLICY IF EXISTS ryadom_places_admin_upload ON storage.objects;
 CREATE POLICY ryadom_places_admin_upload
 ON storage.objects FOR INSERT TO authenticated WITH CHECK (
   bucket_id = 'ryadom-places'
-  AND name ~ '^city-[0-9a-f]{2,600}/[0-9a-f-]{36}\\.(webp|jpg)$'
+  AND name ~ '^city-[0-9a-f]+/[0-9a-f-]{36}[.](webp|jpg)$'
   AND EXISTS (
     SELECT 1 FROM public.city_admin_access AS access
     WHERE access.user_id = (SELECT auth.uid())
@@ -30,7 +30,7 @@ DROP POLICY IF EXISTS ryadom_places_admin_read_uploaded ON storage.objects;
 CREATE POLICY ryadom_places_admin_read_uploaded
 ON storage.objects FOR SELECT TO authenticated USING (
   bucket_id = 'ryadom-places'
-  AND name ~ '^city-[0-9a-f]{2,600}/[0-9a-f-]{36}\\.(webp|jpg)$'
+  AND name ~ '^city-[0-9a-f]+/[0-9a-f-]{36}[.](webp|jpg)$'
   AND EXISTS (
     SELECT 1 FROM public.city_admin_access AS access
     WHERE access.user_id = (SELECT auth.uid())
@@ -50,7 +50,7 @@ DROP POLICY IF EXISTS ryadom_places_admin_delete_uploaded ON storage.objects;
 CREATE POLICY ryadom_places_admin_delete_uploaded
 ON storage.objects FOR DELETE TO authenticated USING (
   bucket_id = 'ryadom-places'
-  AND name ~ '^city-[0-9a-f]{2,600}/[0-9a-f-]{36}\\.(webp|jpg)$'
+  AND name ~ '^city-[0-9a-f]+/[0-9a-f-]{36}[.](webp|jpg)$'
   AND EXISTS (
     SELECT 1 FROM public.city_admin_access AS access
     WHERE access.user_id = (SELECT auth.uid())
