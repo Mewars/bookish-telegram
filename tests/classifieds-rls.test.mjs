@@ -97,9 +97,14 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     });
 
     await t.test('report visibility, city moderation, and archived content',async()=>{
+      await switchTo('authenticated',seller);
+      const reportListing=(await makeDraft('Енисейск')).rows[0].id;
+      await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[reportListing]);
+      await switchTo('authenticated',editor);
+      await db.query("SELECT public.review_classified($1,true)",[reportListing]);
       await switchTo('authenticated',buyer);
-      const complaint=(await db.query("INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'В объявлении недостоверные сведения') RETURNING id",[id])).rows[0].id;
-      await assert.rejects(db.query("INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'Повторная жалоба на то же объявление')",[id]),/duplicate key/);
+      const complaint=(await db.query("INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'В объявлении недостоверные сведения') RETURNING id",[reportListing])).rows[0].id;
+      await assert.rejects(db.query("INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'Повторная жалоба на то же объявление')",[reportListing]),/duplicate key/);
       assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'open');
 
       await switchTo('authenticated',seller);
@@ -117,7 +122,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await assert.rejects(db.query("SELECT public.review_classified_report($1,false)",[complaint]),/unavailable/);
 
       await switchTo('anon');
-      assert.equal((await db.query("SELECT id FROM public.classifieds WHERE id=$1",[id])).rows.length,0);
+      assert.equal((await db.query("SELECT id FROM public.classifieds WHERE id=$1",[reportListing])).rows.length,0);
       await assert.rejects(db.query("SELECT id FROM public.classified_reports"),/permission denied/);
       await switchTo('authenticated',buyer);
       assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'action_taken');
