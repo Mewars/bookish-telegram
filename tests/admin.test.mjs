@@ -116,6 +116,15 @@ test('unified dashboard preserves categories for existing listings and supports 
   assert.ok(directoryCategories.every(category => category.value.length > 0));
 });
 
+test('owner dashboard has actionable city overview with separate published counts', async () => {
+  const source = await readFile('src/admin/AdminPage.tsx', 'utf8');
+  assert.match(source, /screen === 'overview' && owner && <section className="admin-panel admin-cms-network"/);
+  assert.match(source, /cities\.map\(cityName =>/);
+  assert.match(source, /cityOrganizations\.filter\(row => row\.status === 'published'\)/);
+  assert.match(source, /setCityFilter\(cityName\); navigateAdmin\('catalog'\)/);
+  assert.match(source, /cityDirectoryEnabled && <button className="admin-cms-link"/);
+});
+
 test('organization owners never receive admin roles or management links', async () => {
   const roles = await readFile('src/admin/model.ts','utf8');
   const sql = await readFile('docs/sql/city-admin-mvp.sql','utf8');
