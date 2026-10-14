@@ -799,3 +799,5 @@
 }
 html:root[data-a11y-contrast=high] .city-home .city-selections-backdrop {display:none;}
 html:root[data-a11y-motion=reduce] .city-home .home-carousel-arrow {transition:none;}
+
+.city-home .today-schedule-note {max-width:670px;margin-top:7px;color:#ddcfba;font-size:12px;line-height:1.5;}
