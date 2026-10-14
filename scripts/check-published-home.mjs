@@ -59,8 +59,8 @@ try {
       } else {
         const bounds = await track.boundingBox();
         assert(bounds, 'Carousel has no dimensions');
-        const x = bounds.x + bounds.width - 25;
-        const y = bounds.y + Math.min(70, bounds.height / 3);
+        const x = bounds.x + Math.min(bounds.width - 85, 250);
+        const y = bounds.y + Math.min(170, bounds.height * 0.72);
         const cdp = await context.newCDPSession(page);
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
         for (let i = 1; i <= 6; i++) {
