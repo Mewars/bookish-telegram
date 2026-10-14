@@ -59,3 +59,19 @@ test('contrast, hearing and reduced-motion settings are rendered from controlled
   assert.match(css,/data-a11y-hearing=on/);
   assert.match(web,/\.web-nav button \{ position:/);
 });
+
+test('owner contact page and fixed launcher keep requested legal and mobile behavior', async () => {
+  const [contacts, links, stylesheet, home] = await Promise.all([
+    readFile('src/pages/OperatorContactsPage.tsx', 'utf8'),
+    readFile('src/components/legal/LegalLinks.tsx', 'utf8'),
+    readFile('src/accessibility/accessibility.css', 'utf8'),
+    readFile('src/components/CityHome.tsx', 'utf8'),
+  ]);
+  assert.match(contacts, /Контакты владельца/);
+  assert.match(contacts, /Владелец сервиса/);
+  assert.match(contacts, /https:\/\/vk\.ru\/mewarspro/);
+  assert.match(links, /Контакты владельца/);
+  assert.match(stylesheet, /position: fixed; right: 16px; bottom:/);
+  assert.match(stylesheet, /bottom: calc\(94px \+ env\(safe-area-inset-bottom/);
+  assert.match(home, /VITE_HOME_BACKDROP_ENABLED === 'true'/);
+});
