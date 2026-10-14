@@ -68,7 +68,7 @@ export function DetailPage({
         <span className="eyebrow">{item.city} · {item.category}</span>
         <h1>{item.title}</h1>
       </div>
-      {item.image.split(/[?#]/)[0].endsWith('.svg') && <p className="illustration-caption">Иллюстрация, не фотография организации</p>}
+      {(item.photoIllustrative || item.image.split(/[?#]/)[0].endsWith('.svg') || item.photoCredit) && <p className="illustration-caption">{item.photoIllustrative ? 'Тематическая фотография, не снимок этой организации.' : item.image.split(/[?#]/)[0].endsWith('.svg') ? 'Иллюстрация, не фотография организации.' : 'Фото реального объекта.'} {item.photoCredit && (item.photoSourceUrl ? <a href={item.photoSourceUrl} target="_blank" rel="noopener noreferrer">{item.photoCredit}</a> : item.photoCredit)} {item.photoLicenseUrl && <a href={item.photoLicenseUrl} target="_blank" rel="noopener noreferrer">Лицензия</a>}</p>}
     </div>
 
     <div className="detail-content-grid">
