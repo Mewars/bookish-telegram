@@ -45,7 +45,7 @@ test('homepage uses distinct editorial, event, food, culture, retail and service
   assert.match(homeCarousel, /aria-controls=/);
   assert.match(homeStyles, /home-carousel-arrow--next/);
   assert.match(homeStyles, /scroll-snap-type:x mandatory/);
-  assert.match(cityHome, /VITE_HOME_BACKDROP_ENABLED !== 'false'/);
+  assert.match(cityHome, /VITE_HOME_BACKDROP_ENABLED === 'true'/);
   assert.match(cityHome, /className="city-selections-backdrop"/);
   assert.match(cityHome, /Реклама не подменяет редакционные рекомендации/);
 });

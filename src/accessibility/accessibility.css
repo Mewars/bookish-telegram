@@ -7,10 +7,18 @@
   letter-spacing: -.035em; flex-shrink: 0;
 }
 .accessibility-button:hover { border-color: var(--primary); }
-.accessibility-button--mobile {
-  position: fixed; right: 12px; bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+.accessibility-button--fixed {
+  position: fixed; right: 16px; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   z-index: 27; min-width: 48px; min-height: 48px;
-  color: var(--text); box-shadow: 0 3px 18px #0003;
+  background: #102330; color: #fff8e9;
+  border: 1px solid #f3bd5d;
+  box-shadow: 0 3px 18px #0006;
+}
+@media (max-width: 899px) {
+  .accessibility-button--fixed {
+    right: 12px;
+    bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+  }
 }
 .accessibility-dialog {
   inset: 0; margin: auto; width: min(calc(100% - 24px), 540px);

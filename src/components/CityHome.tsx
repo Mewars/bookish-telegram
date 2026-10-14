@@ -11,9 +11,9 @@ import { getCityCover } from '../data/cityCover';
 import type { DirectoryCity } from '../data/cities';
 import { matches } from '../utils/search';
 
-// Homepage background fade can be reverted independently of the content redesign
-// by setting VITE_HOME_BACKDROP_ENABLED=false on the next deployment.
-const homeBackdropEnabled = import.meta.env.VITE_HOME_BACKDROP_ENABLED !== 'false';
+// The second hero-image layer is opt-in only. The cover itself always remains.
+// Keep the lower sections on their solid dark background by default.
+const homeBackdropEnabled = import.meta.env.VITE_HOME_BACKDROP_ENABLED === 'true';
 
 function homeShortcuts(today: number): { label: string; icon: IconName; matches: (item: Item) => boolean }[] {
   return [
