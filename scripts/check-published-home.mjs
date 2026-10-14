@@ -69,7 +69,7 @@ try {
         result.checks.push(`Touch hit target: ${JSON.stringify(hit)}`);
         const cdp = await context.newCDPSession(page);
         await cdp.send('Input.synthesizeScrollGesture', {
-          x, y, xDistance: -230, yDistance: 0, gestureSourceType: 'touch', speed: 500, preventFling: true,
+          x, y, xDistance: 230, yDistance: 0, gestureSourceType: 'touch', speed: 500, preventFling: true,
         });
         await page.waitForTimeout(750);
       }
