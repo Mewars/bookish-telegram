@@ -23,7 +23,7 @@ export function useAvailableCities(enabled: boolean) {
     if (!enabled || !supabase) { setReady(true); return; }
     let active = true;
     Promise.resolve().then(() => withDeadline(signal => supabase.from('city_directory')
-      .select('name,region,cover_url').eq('active', true).order('name').abortSignal(signal)))
+      .select('name,region,cover_url,tagline,summary').eq('active', true).order('name').abortSignal(signal)))
       .then(({ data, error }) => {
         if (error || !Array.isArray(data)) throw new Error('City registry unavailable');
         if (active) { setCities(normalize(data as DirectoryCity[])); setReady(true); }
