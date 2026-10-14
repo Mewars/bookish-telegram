@@ -3,7 +3,7 @@ import { isSafeWebUrl } from '../organizations/model';
 import type { OrganizationRow } from '../organizations/model';
 import { ORGANIZATION_COLUMNS, withDeadline } from '../organizations/repository';
 import { canManageCity, type AdminDraft, type CityAdminAccess } from './model';
-import { prepareDirectoryPhoto } from '../photos/directoryPhotos';
+import { prepareAdminImage, adminImageExtension } from '../photos/adminImage';
 
 const BUCKET = 'ryadom-places';
 const ADMIN_COLUMNS = ORGANIZATION_COLUMNS;
@@ -65,16 +65,28 @@ export async function saveAdminOrganization(client: SupabaseClient, userId: stri
   return data as OrganizationRow;
 }
 
-export async function uploadAdminPhoto(client: SupabaseClient, userId: string, access: CityAdminAccess[], city: string, file: File): Promise<string> {
+export async function uploadAdminPhoto(client: SupabaseClient, userId: string, access: CityAdminAccess[], city: string, file: File): Promise<{ url: string; path: string }> {
   await requireCurrentUser(client, userId);
   if (!canManageCity(access, city)) throw new Error('Нет доступа к загрузке фотографий этого города.');
-  // Reuse the safe client-side encoder: it strips EXIF/location metadata and produces WebP.
-  const optimized = await prepareDirectoryPhoto(file);
+  // Automatically crop the cover to 16:9 and optimize it before sending any bytes.
+  const optimized = await prepareAdminImage(file, 'cover');
   if (!optimized.size || optimized.size > MAX_IMAGE_BYTES) throw new Error('Фотография после обработки превышает 2 МБ. Выбери изображение меньшего размера.');
-  const key = `${city}/${crypto.randomUUID()}.webp`;
-  const { error } = await client.storage.from(BUCKET).upload(key, optimized, { contentType: 'image/webp', upsert: false, cacheControl: '31536000' });
-  if (error) throw new Error('Не удалось загрузить фото. Проверь разрешения и доступность Storage.');
+  const key = `${city}/${crypto.randomUUID()}.${adminImageExtension(optimized)}`;
+  const { error } = await client.storage.from(BUCKET).upload(key, optimized, { contentType: optimized.type, upsert: false, cacheControl: '31536000' });
+  if (error) {
+    const status = String(error.statusCode ?? '');
+    if (status === '403' || status === '401') throw new Error('Хранилище не разрешило загрузку. Проверь, что ты вошёл через VK ID с правами администратора.');
+    if (status === '413') throw new Error('Размер фото превышает ограничение хранилища.');
+    if (status === '415') throw new Error('Хранилище не принимает этот формат фотографии.');
+    throw new Error(`Ошибка загрузки фотографии (${status || 'сеть'}). Попробуй ещё раз.`);
+  }
   const { data } = client.storage.from(BUCKET).getPublicUrl(key);
   if (!isSafeWebUrl(data.publicUrl)) throw new Error('Хранилище вернуло некорректный адрес фотографии.');
-  return data.publicUrl;
+  return {url: data.publicUrl, path: key};
+}
+
+/** Remove an orphaned uploaded file when saving the card itself fails. */
+export async function removeOrphanedAdminPhoto(client: SupabaseClient, path: string): Promise<void> {
+  const { error } = await client.storage.from(BUCKET).remove([path]);
+  if (error) throw new Error('Не удалось очистить временно загруженную фотографию.');
 }
