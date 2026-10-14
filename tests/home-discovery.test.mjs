@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  isFoodVenue, isCulturalPlace, isShop, isService,
+  isFoodVenue, isFoodDestination, isGroceryStore, isCulturalPlace, isShop, isService,
   hasDeclaredScheduleToday, isTodayRecommendation,
   weekdayInCity, editorialPicks,
 } from '../src/components/homeDiscovery.ts';
@@ -14,6 +14,15 @@ test('food, culture, shopping and services do not mix their primary categories',
   assert.equal(isFoodVenue(item('places','Пекарни / Хлеб')), true);
   assert.equal(isFoodVenue(item('services','Доставка еды')), true);
   assert.equal(isFoodVenue(item('places','Продуктовые магазины')), false);
+  // Grocery stores are part of the broad quick link «Поесть» but not restaurant-only rails.
+  assert.equal(isFoodDestination(item('places','Кафе')), true);
+  assert.equal(isFoodDestination(item('places','Продуктовые магазины')), true);
+  assert.equal(isFoodDestination(item('places','Супермаркет')), true);
+  assert.equal(isFoodDestination(item('places','Магазины / Продукты')), true);
+  assert.equal(isGroceryStore(item('places','Овощная лавка')), true);
+  assert.equal(isShop(item('places','Овощная лавка')), true);
+  assert.equal(isFoodDestination(item('places','Магазин электроники')), false);
+  assert.equal(isFoodDestination(item('services','Ремонт стиральных машин')), false);
   assert.equal(isCulturalPlace(item('places','Музеи / История')), true);
   assert.equal(isCulturalPlace(item('places','Парки / Прогулки')), true);
   assert.equal(isCulturalPlace(item('places','Достопримечательности')), true);

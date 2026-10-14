@@ -17,9 +17,23 @@ export function isCulturalPlace(item: Item): boolean {
   return matchesAny(category, ['музе', 'культур', 'истори', 'достопримечательност', 'памятник', 'театр', 'кино', 'библиотек', 'церк', 'храм', 'собор', 'монастыр', 'архитектур', 'галере', 'парк', 'набережн', 'прогулк']);
 }
 
+/** Grocery shopping is also part of the broad 'Поесть' shortcut, but
+ * stays separate from the narrower 'Где поесть' café/restaurant carousel. */
+export function isGroceryStore(item: Item): boolean {
+  const category = item.category.toLocaleLowerCase('ru');
+  return matchesAny(category, [
+    'продукт', 'супермаркет', 'гипермаркет', 'гастроном',
+    'бакале', 'продовольств', 'овощ', 'фрукт', 'мясная лавка', 'рыбная лавка',
+  ]);
+}
+
+export function isFoodDestination(item: Item): boolean {
+  return isFoodVenue(item) || isGroceryStore(item);
+}
+
 export function isShop(item: Item): boolean {
   const category = leadingCategory(item);
-  return matchesAny(category, ['магазин', 'продукт', 'супермаркет', 'гипермаркет', 'универмаг', 'торгов', 'маркет', 'цвет', 'одежд', 'обув', 'электроник', 'бытовая техник', 'товары для дома', 'аптек', 'книжн', 'оптик', 'зоотовар']);
+  return isGroceryStore(item) || matchesAny(category, ['магазин', 'продукт', 'супермаркет', 'гипермаркет', 'универмаг', 'торгов', 'маркет', 'цвет', 'одежд', 'обув', 'электроник', 'бытовая техник', 'товары для дома', 'аптек', 'книжн', 'оптик', 'зоотовар']);
 }
 
 /** Repair, public services, finance, beauty etc., not retail and not prepared food. */
