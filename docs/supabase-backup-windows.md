@@ -33,3 +33,32 @@ If the owner does not know the database password, stop: never reset production c
 3. Assign an owner role only after the real account has been identified by the site owner, never infer identity from stored profile records.
 4. Verify policies as anon, normal authenticated user, editor, and owner; repeat security advisor checks.
 5. Only then set the production build flag VITE_ADMIN_PANEL_ENABLED=true and deploy through the reviewed workflow. The separate SSH deployment is still disabled pending Sprinthost server fingerprint confirmation.
+
+## Quick offline integrity check of an existing archive
+
+`scripts/check-ryadom-backup.ps1` checks the newest completed
+`Documents/Ryadom-Private-Backups/ryadom-supabase-*.backup` archive.
+It verifies the original `.sha256.txt` checksum, confirms the archive
+contains table-data entries for `auth.users` and `public.profiles`, and
+forces `pg_restore` to read and decompress the *entire* archive to the
+Windows `NUL` device (no user-data output, temporary SQL dump, password
+or network transfer). Uses already-installed PostgreSQL command-line tools.
+
+Run locally from the folder containing the downloaded file:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\check-ryadom-backup.ps1"
+```
+
+Expected final lines:
+
+```text
+BACKUP FILE INTEGRITY: PASSED
+ACTUAL DATABASE RESTORE: NOT TESTED
+```
+
+This detects truncated/corrupted compressed data more thoroughly than
+`pg_restore --list`, but **does not prove the backup can be restored into
+a working PostgreSQL/Supabase environment**. A separate isolated restore
+remains a mandatory production roll-out gate. The archive must never be
+uploaded to chat, GitHub, or the public web server.
