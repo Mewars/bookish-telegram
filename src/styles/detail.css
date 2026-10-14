@@ -65,3 +65,8 @@
   .detail-contact-tile { min-height:0; padding:17px 18px; gap:6px; }
   .detail-contact-icon { margin-bottom:2px; }
 }
+
+/* Image license attribution is visible even on mobile. */
+.detail-cover .illustration-caption a { color:#ffd47d; text-underline-offset:3px; }
+.detail-cover .illustration-caption a + a { margin-left:6px; }
+@media (max-width:767px) { .detail-cover .illustration-caption { font-size:11px; line-height:1.6; } }

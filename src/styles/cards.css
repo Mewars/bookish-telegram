@@ -8,3 +8,6 @@
 @media (hover:hover) and (pointer:fine) { .card:hover { transform: translateY(-3px); }.card:hover .card-image > img { transform: scale(1.04); }.favorite-button:hover { background: white; } }
 @media (max-width:899px) { .card-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; } }
 @media (max-width:599px) { .card-grid { grid-template-columns: minmax(0,1fr); }.discovery-grid { grid-auto-flow: column; grid-auto-columns: min(78vw,310px); grid-template-columns: none; overflow-x: auto; gap: 14px; padding: 4px 0 12px; scroll-snap-type: x proximity; }.discovery-grid .card { scroll-snap-align: start; }.card-image { aspect-ratio: 4/4.2; } }
+
+/* Clearly distinguish free-use illustrative photos from actual local venues. */
+.card-photo-disclaimer { position:absolute; bottom:12px; left:12px; z-index:2; max-width:calc(100% - 90px); padding:6px 10px; font-size:10px; line-height:1.4; color:#fff8e9; background:rgba(7,22,34,.88); border:1px solid rgba(255,255,255,.32); border-radius:999px; backdrop-filter:blur(8px); pointer-events:none; }

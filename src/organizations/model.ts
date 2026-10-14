@@ -78,10 +78,17 @@ export function mergePublished(local: Item[], rows: OrganizationRow[], fallbackI
     if (index < 0 && result.some(item => item.id === row.id)) continue;
     const existing = index >= 0 ? result[index] : authoritative ? local.find(item => item.kind === kind && (item.id === row.id || naturalKey(item) === key)) : undefined;
     const coordinates = typeof row.latitude === 'number' && typeof row.longitude === 'number' && Number.isFinite(row.latitude) && Number.isFinite(row.longitude) && Math.abs(row.latitude) <= 90 && Math.abs(row.longitude) <= 180 ? { lat: row.latitude, lon: row.longitude } : undefined;
+    const ownerPhoto = row.image_url && isSafeWebUrl(row.image_url) ? row.image_url : undefined;
     const item: Item = {
       ...existing, id: existing?.id ?? row.id, city: row.city, kind, real: true,
       title: row.title, category: row.category, description: row.description,
-      image: row.image_url && isSafeWebUrl(row.image_url) ? row.image_url : existing?.image ?? fallbackImage, address: row.address ?? undefined,
+      // A real owner-uploaded image replaces stock art, including its disclaimer.
+      image: ownerPhoto ?? existing?.image ?? fallbackImage,
+      photoIllustrative: ownerPhoto ? false : existing?.photoIllustrative,
+      photoCredit: ownerPhoto ? undefined : existing?.photoCredit,
+      photoSourceUrl: ownerPhoto ? undefined : existing?.photoSourceUrl,
+      photoLicenseUrl: ownerPhoto ? undefined : existing?.photoLicenseUrl,
+      address: row.address ?? undefined,
       phone: row.phone ?? undefined, hours: row.hours ?? undefined, coordinates,
       provider: kind === 'services' ? row.title : undefined,
       website: row.website && isSafeWebUrl(row.website) ? row.website : undefined,
