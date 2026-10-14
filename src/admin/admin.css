@@ -187,3 +187,16 @@
 .admin-cms-city-cover-label input {max-width:100%;font-size:12px;}
 .admin-cms-city-cover-label small {color:var(--muted);font-size:11px;line-height:1.5;}
 @media(max-width:599px) {.admin-cms-city-list {grid-template-columns:minmax(0,1fr);} .admin-cms-cities .admin-cms-panel-heading .secondary-button {min-width:125px;}}
+
+/* Public browser-local admin rehearsal — deliberately separate from the real CMS. */
+.admin-preview-actions { display:flex;flex-wrap:wrap;gap:10px; }
+.admin-preview-organization { display:flex;align-items:center;gap:11px;min-width:0; }
+.admin-preview-organization img { width:56px;height:56px;object-fit:cover;border-radius:9px;background:var(--soft);flex:none; }
+.admin-preview-organization > div { min-width:0; }
+.admin-preview-organization strong { overflow-wrap:anywhere; }
+.admin-preview-actions .secondary-button {font-size:12px;}
+.admin-photo input[type=file] { width:100%;min-height:44px; }
+@media(max-width:700px) {
+ .admin-preview-actions {width:100%;}
+ .admin-preview-actions button {flex:1;min-width:175px;}
+}

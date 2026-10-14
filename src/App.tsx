@@ -48,9 +48,9 @@ const adminEnabled = featureEnabled(import.meta.env.VITE_ADMIN_PANEL_ENABLED, wi
 // Enable only AFTER the isolated Supabase migration and the owner's role are verified.
 const cityDirectoryEnabled = featureEnabled(import.meta.env.VITE_CITY_DIRECTORY_ENABLED, window.location.protocol, window.location.hostname, import.meta.env.DEV);
 const photoEnabled = featureEnabled(import.meta.env.VITE_CARD_PHOTOS_ENABLED, window.location.protocol, window.location.hostname, import.meta.env.DEV);
-// A separate self-contained demo is available only on Netlify preview or local development.
-// It does not import Supabase, does not share authentication, and cannot save to production.
-const adminPreviewEnabled = import.meta.env.DEV || window.location.hostname.endsWith('.netlify.app');
+// Browser-local sandbox: public, never sends trial changes to Supabase or modifies
+// production. The real role-protected admin remains separately feature gated.
+const adminPreviewEnabled = true;
 const legalSections: Section[] = ['privacy', 'cookies', 'terms', 'contacts', 'organization-consent'];
 export default function App() {
  const isWideScreen = useMediaQuery('(min-width: 900px)');
