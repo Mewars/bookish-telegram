@@ -70,3 +70,40 @@
 .detail-cover .illustration-caption a { color:#ffd47d; text-underline-offset:3px; }
 .detail-cover .illustration-caption a + a { margin-left:6px; }
 @media (max-width:767px) { .detail-cover .illustration-caption { font-size:11px; line-height:1.6; } }
+
+/* Local organization detail inspired by the map/info split in place directories.
+   All business facts are still rendered once, never scraped from external maps. */
+.detail-place-layout {display:grid;grid-template-columns:minmax(0,1fr);gap:18px;min-width:0;}
+.detail-place-main {min-width:0;}
+.guide-detail--mapped .detail-place-layout {grid-template-columns:minmax(0,1fr) minmax(350px,.96fr);align-items:start;gap:20px;}
+.guide-detail--mapped .detail-content-grid {grid-template-columns:minmax(0,1fr);}
+.guide-detail--mapped .detail-cover .place-media-frame {height:clamp(250px,25vw,370px);}
+.guide-detail--mapped .detail-cover .detail-heading h1 {font-size:clamp(29px,3vw,48px);}
+.guide-detail--mapped .detail-contact-tiles {grid-template-columns:repeat(2,minmax(0,1fr));}
+.detail-map-rail {min-width:0;}
+.guide-detail--mapped .detail-map-rail {position:sticky;top:94px;align-self:start;}
+.detail-map-rail .detail-map-tile {margin:0;padding:18px;background:var(--surface);}
+.detail-map-rail .place-map-section {margin:0;}
+.detail-map-rail .place-map-links {display:flex;gap:12px;flex-wrap:wrap;}
+.guide-detail--mapped .detail-map-rail .place-map-desktop .place-map-frame {height:min(65vh,610px);min-height:350px;}
+.detail-quick-tabs {display:flex;align-items:center;gap:8px;overflow-x:auto;margin:16px 0 0;padding:0 0 8px;scrollbar-width:thin;border-bottom:1px solid var(--line);}
+.detail-quick-tabs button {flex:none;min-height:44px;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);background:var(--surface);border:1px solid var(--line);}
+.detail-quick-tabs button:hover {background:var(--primary-soft);border-color:var(--primary);}
+.detail-quick-tabs button:focus-visible {outline:3px solid var(--primary);outline-offset:2px;}
+#detail-photos,#detail-about,#detail-contacts,#detail-map {scroll-margin-top:110px;}
+@media(max-width:1100px) {
+ .guide-detail--mapped .detail-place-layout {grid-template-columns:1fr;}
+ .guide-detail--mapped .detail-map-rail {position:static;}
+ .guide-detail--mapped .detail-cover .place-media-frame {height:auto;aspect-ratio:16/10;}
+ .guide-detail--mapped .detail-map-rail .place-map-desktop .place-map-frame {height:350px;min-height:0;}
+}
+@media(max-width:767px) {
+ .detail-quick-tabs {margin-top:12px;}
+ .detail-quick-tabs button {font-size:12px;min-height:44px;}
+ .detail-map-rail .detail-map-tile {padding:13px;}
+ .guide-detail--mapped .detail-content-grid {grid-template-columns:1fr;}
+}
+
+.detail-quick-tabs a {display:inline-flex;align-items:center;gap:6px;flex:none;min-height:44px;padding:8px 15px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:750;background:var(--primary);color:var(--primary-text);}
+.detail-quick-tabs a:hover {background:var(--primary-hover);}
+.detail-quick-tabs a:focus-visible {outline:3px solid var(--primary);outline-offset:2px;}

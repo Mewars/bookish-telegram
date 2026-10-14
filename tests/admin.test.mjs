@@ -185,3 +185,30 @@ test('quick archive control is independent of card edit and asks confirmation', 
   assert.doesNotMatch(repo, /\.delete\(\)\.eq\('id', row\.id\)/);
   assert.match(css, /\.admin-cms-card-action \{[^}]*min-width:44px/);
 });
+
+test('location pin coordinates are optional, paired, validated and preserved in admin drafts', async () => {
+  assert.deepEqual(validateAdminDraft(draft, false), {});
+  assert.ok(validateAdminDraft({ ...draft, latitude: '58.4', longitude: '' }, false).latitude);
+  assert.ok(validateAdminDraft({ ...draft, latitude: '', longitude: '92.2' }, false).latitude);
+  assert.ok(validateAdminDraft({ ...draft, latitude: '99', longitude: '92' }, false).latitude);
+  assert.ok(validateAdminDraft({ ...draft, latitude: '58', longitude: '-200' }, false).longitude);
+  assert.ok(validateAdminDraft({ ...draft, latitude: 'NaN', longitude: '92' }, false).latitude);
+  assert.ok(validateAdminDraft({ ...draft, latitude: '58\\\\d', longitude: '92' }, false).latitude);
+  assert.deepEqual(validateAdminDraft({ ...draft, latitude: '58,44', longitude: '92.15' }, false), {});
+  assert.deepEqual(validateAdminDraft({ ...draft, latitude: '0', longitude: '0' }, false), {});
+  const row = { id:'place-a', city:'Енисейск', kind:'places', title:'Кафе', category:'Кафе',
+    description:'Пример', latitude:58.45, longitude:92.2, address:'', phone:'', hours:'', website:null,
+    vk_url:null,source_url:null,image_url:null,status:'published',verified_at:'2026-10-14',
+    source_type:'manual_verified',created_at:'',updated_at:'' };
+  const converted = rowToAdminDraft(row);
+  assert.equal(converted.latitude, '58.45');
+  assert.equal(converted.longitude, '92.2');
+  const page = await readFile('src/admin/AdminPage.tsx', 'utf8');
+  const repo = await readFile('src/admin/repository.ts', 'utf8');
+  const grant = await readFile('docs/sql/admin-map-coordinates-2026-10.sql', 'utf8');
+  assert.ok(page.includes("onChange={event => change('latitude',event.target.value)}"));
+  assert.ok(page.includes("onChange={event => change('longitude',event.target.value)}"));
+  assert.ok(repo.includes("latitude: draft.latitude.trim() ? Number("));
+  assert.ok(repo.includes("longitude: draft.longitude.trim() ? Number("));
+  assert.ok(grant.includes("GRANT UPDATE (latitude, longitude) ON public.organizations TO authenticated"));
+});

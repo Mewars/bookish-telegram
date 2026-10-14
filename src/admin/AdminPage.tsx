@@ -287,6 +287,20 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
               <label className="admin-wide">Адрес
                 <input disabled={busy} maxLength={300} value={draft.address} onChange={event => change('address',event.target.value)}/>
               </label>
+              <fieldset className="admin-wide admin-location-fields">
+                <legend>Точное место на карте (необязательно)</legend>
+                <p>Чтобы показать отметку точно на здании, укажи координаты из OpenStreetMap или собственных проверенных данных. Без них будет доступна ссылка на поиск адреса — без выдуманной отметки.</p>
+                <div className="admin-location-grid">
+                  <label>Широта
+                    <input disabled={busy} type="text" inputMode="decimal" maxLength={30} value={draft.latitude}
+                      placeholder="Например, 58.45" onChange={event => change('latitude',event.target.value)}/>
+                  </label>
+                  <label>Долгота
+                    <input disabled={busy} type="text" inputMode="decimal" maxLength={30} value={draft.longitude}
+                      placeholder="Например, 92.17" onChange={event => change('longitude',event.target.value)}/>
+                  </label>
+                </div>
+              </fieldset>
               <label>Телефон
                 <input disabled={busy} type="tel" maxLength={40} value={draft.phone} onChange={event => change('phone',event.target.value)}/>
               </label>

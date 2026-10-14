@@ -25,6 +25,8 @@ export interface AdminDraft {
   category: string;
   description: string;
   address: string;
+  latitude: string;
+  longitude: string;
   phone: string;
   hours: string;
   website: string;
@@ -40,6 +42,8 @@ export const adminFields = [
   { key: 'category', label: 'Категория', limit: 100, required: true },
   { key: 'description', label: 'Описание', limit: 2000, required: true },
   { key: 'address', label: 'Адрес', limit: 300 },
+  { key: 'latitude', label: 'Широта (карта)', limit: 30 },
+  { key: 'longitude', label: 'Долгота (карта)', limit: 30 },
   { key: 'phone', label: 'Телефон', limit: 40 },
   { key: 'hours', label: 'Часы работы', limit: 300 },
   { key: 'website', label: 'Сайт', limit: 500 },
@@ -71,14 +75,16 @@ export function manageableAdminCities(
 }
 
 export function newAdminDraft(city: string): AdminDraft {
-  return { id: '', city, kind: 'places', title: '', category: '', description: '', address: '', phone: '',
+  return { id: '', city, kind: 'places', title: '', category: '', description: '', address: '', latitude: '', longitude: '', phone: '',
     hours: '', website: '', vk_url: '', source_url: '', image_url: '', status: 'draft', verified_at: '' };
 }
 
 export function rowToAdminDraft(row: OrganizationRow): AdminDraft {
   return {
     id: row.id, city: row.city, kind: row.kind === 'services' ? 'services' : 'places', title: row.title, category: row.category,
-    description: row.description, address: row.address ?? '', phone: row.phone ?? '',
+    description: row.description, address: row.address ?? '',
+    latitude: row.latitude == null ? '' : String(row.latitude),
+    longitude: row.longitude == null ? '' : String(row.longitude), phone: row.phone ?? '',
     hours: row.hours ?? '', website: row.website ?? '', vk_url: row.vk_url ?? '',
     source_url: row.source_url ?? '', image_url: row.image_url ?? '',
     status: row.status, verified_at: row.verified_at ?? '',
@@ -95,6 +101,19 @@ export function validateAdminDraft(draft: AdminDraft, confirmed: boolean): Recor
     if ('required' in field && field.required && !value) errors[key] = `Заполни поле «${label}».`;
     else if (value.length > limit) errors[key] = `Не более ${limit} символов.`;
     else if (/\p{Cc}/u.test(value.replace(/[\r\n\t]/g,''))) errors[key] = 'Недопустимые символы.';
+  }
+  // Coordinates are optional but must be a complete and valid WGS84 pair.
+  const hasLatitude = draft.latitude.trim() !== '';
+  const hasLongitude = draft.longitude.trim() !== '';
+  if (hasLatitude !== hasLongitude) errors.latitude = 'Для отметки на карте укажи широту и долготу вместе.';
+  if (hasLatitude && hasLongitude) {
+    const decimal = /^-?\d+(?:[.,]\d+)?$/;
+    const lat = Number(draft.latitude.trim().replace(',', '.'));
+    const lon = Number(draft.longitude.trim().replace(',', '.'));
+    if (!decimal.test(draft.latitude.trim()) || !Number.isFinite(lat) || Math.abs(lat) > 90)
+      errors.latitude = 'Широта должна быть от -90 до 90.';
+    if (!decimal.test(draft.longitude.trim()) || !Number.isFinite(lon) || Math.abs(lon) > 180)
+      errors.longitude = 'Долгота должна быть от -180 до 180.';
   }
   if (draft.phone.trim() && !/^[+\d\s().-]{5,40}$/.test(draft.phone.trim())) errors.phone = 'Проверь номер телефона.';
   for (const key of ['website', 'vk_url', 'source_url', 'image_url'] as const) {

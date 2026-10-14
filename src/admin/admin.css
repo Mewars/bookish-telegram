@@ -211,3 +211,11 @@
  .admin-preview-actions {width:100%;}
  .admin-preview-actions button {flex:1;min-width:175px;}
 }
+
+/* Verified WGS84 pin entry — paired latitude/longitude, never guessed from an address. */
+.admin-cms-form .admin-location-fields {border:1px solid var(--line);border-radius:12px;padding:15px 17px 17px;min-width:0;}
+.admin-cms-form .admin-location-fields legend {padding:0 7px;font-size:14px;font-weight:750;color:var(--text);}
+.admin-cms-form .admin-location-fields p {margin:0 0 13px;font-size:12px;line-height:1.6;color:var(--muted);}
+.admin-location-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.admin-location-grid label {display:grid;gap:7px;min-width:0;}
+@media(max-width:520px) {.admin-location-grid {grid-template-columns:1fr;}}
