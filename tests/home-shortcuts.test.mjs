@@ -13,6 +13,8 @@ test('all five home shortcuts remain visible even when a category has no cards',
   }
   assert.match(cityHome, /\{discoveries\.map\(option =>/);
   assert.doesNotMatch(cityHome, /label: 'Погулять'/);
+  assert.match(cityHome, /label: 'Поесть', icon: 'places', matches: isFoodVenue/);
+  assert.match(cityHome, /label: 'Магазины', icon: 'shop', matches: isShop/);
   assert.doesNotMatch(cityHome, /availableDiscoveries/);
 });
 
