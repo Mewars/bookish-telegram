@@ -3,46 +3,50 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { URL } from 'node:url';
 import { runInNewContext } from 'node:vm';
-import { readTheme } from '../src/utils/theme.ts';
+import { readTheme, resolveTheme } from '../src/utils/theme.ts';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+const samples = [null, '', 'light', 'dark', 'system', '"light"', '"dark"', '"system"', '"invalid"', '{', '{}', 'null', 'false'];
 
-for (const raw of [null, '', 'light', 'dark', 'system', '"light"', '"dark"', '"system"', '"invalid"', '{', '{}', 'null', 'false']) {
+for (const raw of samples) {
   for (const systemDark of [false, true]) {
-    test(`pre-paint and React agree for ${JSON.stringify(raw)}, system dark=${systemDark}`, () => {
-      const storage = { getItem: key => { assert.equal(key, 'ryadom.theme'); return raw; } };
-      const document = { documentElement: { dataset: {} } };
-      runInNewContext(script, { localStorage: storage, document, window: { matchMedia: query => {
-        assert.equal(query, '(prefers-color-scheme: dark)');
-        return { matches: systemDark };
-      } } });
-      globalThis.localStorage = storage;
-      try {
-        const preference = readTheme();
-        const expectedPreference = ['light', 'dark'].find(value => raw === value || raw === JSON.stringify(value)) ?? 'dark';
-        assert.equal(preference, expectedPreference);
-        assert.equal(document.documentElement.dataset.theme, preference === 'system' ? 'dark' : preference);
-      } finally { delete globalThis.localStorage; }
-    });
+    for (const compact of [false, true]) {
+      test('pre-paint matches React for ' + JSON.stringify(raw) + ', systemDark=' + systemDark + ', compact=' + compact, () => {
+        const storage = { getItem: key => { assert.equal(key, 'ryadom.theme'); return raw; } };
+        const document = { documentElement: { dataset: {} } };
+        runInNewContext(script, { localStorage: storage, document, window: { matchMedia: query => {
+          if (query === '(prefers-color-scheme: dark)') return { matches: systemDark };
+          assert.equal(query, '(max-width: 899px)');
+          return { matches: compact };
+        } } });
+        globalThis.localStorage = storage;
+        try {
+          const preference = readTheme();
+          const expectedPreference = ['light', 'dark', 'system'].find(value => raw === value || raw === JSON.stringify(value)) ?? 'system';
+          assert.equal(preference, expectedPreference);
+          assert.equal(document.documentElement.dataset.theme, resolveTheme(preference, systemDark ? 'dark' : 'light', compact));
+        } finally { delete globalThis.localStorage; }
+      });
+    }
   }
 }
 
-test('blocked storage defaults to the brand dark theme without breaking startup', () => {
+test('blocked storage falls back to system mode on desktop and dark on mobile', () => {
   const storage = { getItem: () => { throw new Error('SecurityError'); } };
-  const document = { documentElement: { dataset: {} } };
-  runInNewContext(script, { localStorage: storage, document, window: { matchMedia: () => ({ matches: true }) } });
-  assert.equal(document.documentElement.dataset.theme, 'dark');
   globalThis.localStorage = storage;
-  try { assert.equal(readTheme(), 'dark'); } finally { delete globalThis.localStorage; }
+  try { assert.equal(readTheme(), 'system'); } finally { delete globalThis.localStorage; }
+  for (const compact of [false, true]) {
+    const document = { documentElement: { dataset: {} } };
+    runInNewContext(script, { localStorage: storage, document, window: { matchMedia: query => ({ matches: query === '(max-width: 899px)' ? compact : false }) } });
+    assert.equal(document.documentElement.dataset.theme, compact ? 'dark' : 'light');
+  }
 });
 
-test('missing matchMedia falls back safely and explicit dark still works', () => {
-  for (const raw of [null, '"dark"']) {
-    const document = { documentElement: { dataset: {} } };
-    runInNewContext(script, { localStorage: { getItem: () => raw }, document, window: {} });
-    assert.equal(document.documentElement.dataset.theme, 'dark');
-  }
+test('missing matchMedia does not break startup', () => {
+  const document = { documentElement: { dataset: {} } };
+  runInNewContext(script, { localStorage: { getItem: () => '"dark"' }, document, window: {} });
+  assert.equal(document.documentElement.dataset.theme, 'dark');
 });
 
 test('critical styles precede the app and match the design tokens', () => {
