@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import type { Item, Kind, Section } from '../types';
+import type { Item, Section } from '../types';
 import { Card, type CardActions } from './Card';
+import { HomeCarousel } from './HomeCarousel';
+import { editorialPicks, isCulturalPlace, isFoodVenue, isService, isShop, isTodayRecommendation, weekdayInCity } from './homeDiscovery';
 import { Search } from './Search';
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icon';
@@ -9,18 +11,24 @@ import { getCityCover } from '../data/cityCover';
 import type { DirectoryCity } from '../data/cities';
 import { matches } from '../utils/search';
 
-const discoveries: { label: string; icon: IconName; matches: (item: Item) => boolean }[] = [
-  { label: 'Сегодня', icon: 'events', matches: item => item.kind === 'events' && item.dateOffset === 0 },
-  { label: 'Поесть', icon: 'places', matches: item => item.kind === 'places' && item.category.split(' / ')[0] === 'Кафе' },
-  { label: 'Погулять', icon: 'pin', matches: item => item.kind === 'places' && ['Парки', 'Достопримечательности'].includes(item.category.split(' / ')[0]) },
-  { label: 'Культура', icon: 'star', matches: item => item.kind === 'places' && ['Музеи', 'Культура', 'Библиотеки'].includes(item.category.split(' / ')[0]) },
-  { label: 'Услуги', icon: 'services', matches: item => item.kind === 'services' },
-];
+// Homepage background fade can be reverted independently of the content redesign
+// by setting VITE_HOME_BACKDROP_ENABLED=false on the next deployment.
+const homeBackdropEnabled = import.meta.env.VITE_HOME_BACKDROP_ENABLED !== 'false';
+
+function homeShortcuts(today: number): { label: string; icon: IconName; matches: (item: Item) => boolean }[] {
+  return [
+    { label: 'Сегодня', icon: 'events', matches: item => isTodayRecommendation(item, today) },
+    { label: 'Поесть', icon: 'places', matches: isFoodVenue },
+    { label: 'Культура', icon: 'star', matches: isCulturalPlace },
+    { label: 'Магазины', icon: 'shop', matches: isShop },
+    { label: 'Услуги', icon: 'services', matches: isService },
+  ];
+}
 
 export function CityHome({ city, cityProfile, items, navigate, ...actions }: CardActions & { city: string; cityProfile?: DirectoryCity; items: Item[]; navigate: (section: Section) => void }) {
   const [query, setQuery] = useState('');
   const cover = getCityCover(city, cityProfile?.cover_url);
-  const isEniseysk = city === 'Енисейск';
+  const discoveries = homeShortcuts(weekdayInCity(new Date()));
   const [discovery, setDiscovery] = useState<string | null>(null);
 
   const selected = discoveries.find(option => option.label === discovery);
@@ -42,36 +50,12 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
     showResults();
   };
 
-  const selection = (title: string, subtitle: string, kind: Kind, entries: Item[], index: string, limit = 4) =>
-    <section className="city-section" data-selection={index}>
-      <div className="section-heading">
-        <div>
-          <span className="section-index">{index} / РЯДОМ</span>
-          <h2>{title}</h2>
-          <p>{subtitle}</p>
-        </div>
-        <button className="text-action" onClick={() => navigate(kind)} aria-label={index === '01' ? 'Посмотреть все места' : `Смотреть все: ${title}`}>
-          {index === '01' ? 'Посмотреть все места' : 'Смотреть все'} <Icon name="arrow" size={18}/>
-        </button>
-      </div>
-      {entries.length > 0
-        ? <div className="card-grid discovery-grid">
-            {entries.slice(0, limit).map(item => <Card key={item.id} item={item} featured={index === '01'} {...actions}/>)}
-          </div>
-        : <p className="city-section-coming-soon">Пока нет подтверждённых {kind === 'events' ? 'событий' : kind === 'services' ? 'услуг' : 'мест'}. Раздел будем наполнять реальными карточками.</p>}
-    </section>;
-
-  const pick = (ids: string[]) => ids.flatMap(id => {
-    const item = items.find(entry => entry.id === id);
-    return item ? [item] : [];
-  });
-
-  const popular = isEniseysk ? pick([
-    'place-spassky-monastery',
-    'place-kytmanov-museum',
-    'place-borodkin-house',
-  ]) : items.filter(item => item.kind === 'places').slice(0,3);
-  const highlights = isEniseysk ? pick(['place-kytmanov-museum', 'place-borodkin-house', 'place-photoizba', 'place-spassky-monastery']) : items.filter(item => item.kind === 'places' && ['Музеи','Достопримечательности','Культура','Парки'].includes(item.category.split(' / ')[0])).slice(0,4);
+  const popular = editorialPicks(items, city);
+  const culture = items.filter(isCulturalPlace);
+  const food = items.filter(isFoodVenue);
+  const shops = items.filter(isShop);
+  const services = items.filter(isService);
+  const events = items.filter(item => item.kind === 'events');
 
   return <div className="city-home">
     <section className={`city-cover${cover ? "" : " city-cover--no-image"}${city.length > 9 ? " city-cover--long-name" : ""}`} aria-labelledby="city-cover-title">
@@ -112,6 +96,7 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
 
 
     <div id="city-selections">
+      {homeBackdropEnabled && cover && <div className="city-selections-backdrop" aria-hidden="true"><MediaImage src={cover.src} alt=""/></div>}
       {searching ? <section className="city-section">
         <div className="section-heading">
           <div>
@@ -120,6 +105,7 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
             <p role="status">
               Найдено: {results.length}
             </p>
+            {selected?.label === 'Сегодня' && <p className="today-schedule-note">Места показаны по заявленному расписанию, а не по данным о работе в реальном времени. Перед посещением уточняйте часы.</p>}
           </div>
           <button className="text-action" onClick={reset}>Сбросить <Icon name="close" size={17}/></button>
         </div>
@@ -132,11 +118,32 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
               onAction={reset}
             />}
       </section> : <>
-        {selection('Популярные места', 'То, с чего удобно начать знакомство с городом.', 'places', popular, '01', 3)}
-        {selection('Куда сходить', 'Поводы выйти из дома.', 'events', items.filter(item => item.kind === 'events'), '02')}
-        {selection('Где поесть', 'Кофе, обед и разговоры без спешки.', 'places', items.filter(item => discoveries[1].matches(item)), '03')}
-        {selection('Места, которые стоит увидеть', 'История города в деталях.', 'places', highlights, '04')}
-        {selection('Услуги рядом', 'Нужные люди и полезные дела.', 'services', items.filter(item => item.kind === 'services'), '05')}
+        <HomeCarousel title="Выбор «Рядом»" subtitle="Интересные места, которые мы отобрали для знакомства с городом."
+          kind="places" index="01" items={popular} navigate={navigate} featured {...actions}/>
+        <HomeCarousel title="Афиша города" subtitle="Кино, выставки и события: только реальные даты и проверенная информация."
+          kind="events" index="02" items={events} navigate={navigate} {...actions}/>
+        <HomeCarousel title="Где поесть" subtitle="Кафе, рестораны, пиццерии и другая готовая еда."
+          kind="places" index="03" items={food} navigate={navigate} {...actions}/>
+        <HomeCarousel title="Что посмотреть" subtitle="Музеи, храмы, исторические здания и памятники."
+          kind="places" index="04" items={culture} navigate={navigate} {...actions}/>
+        <HomeCarousel title="За покупками" subtitle="Продуктовые магазины, супермаркеты и местные товары."
+          kind="places" index="05" items={shops} navigate={navigate} {...actions}/>
+        <HomeCarousel title="Услуги" subtitle="Ремонт, государственные сервисы, банки и полезные организации."
+          kind="services" index="06" items={services} navigate={navigate} {...actions}/>
+        <section className="city-section city-partners" aria-labelledby="city-partners-title">
+          <div className="section-heading">
+            <div><span className="section-index">07 / РЯДОМ</span>
+              <h2 id="city-partners-title">Партнёры «Рядом»</h2>
+              <p>Местные компании и их предложения с пометкой «Реклама».</p>
+            </div>
+          </div>
+          <div className="city-partners-empty">
+            <div><strong>Здесь появятся предложения партнёров</strong>
+              <p>Размещения будем добавлять после согласования с организациями. Реклама не подменяет редакционные рекомендации.</p>
+            </div>
+            <button className="city-partners-contact" type="button" onClick={() => navigate('contacts')}>Для сотрудничества <Icon name="arrow" size={17}/></button>
+          </div>
+        </section>
       </>}
     </div>
   </div>;
