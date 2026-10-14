@@ -3,6 +3,7 @@ import type { Section } from '../../types';
 import { Icon } from '../Icon';
 import { BrandWordmark } from '../BrandWordmark';
 import { AccessibilityButton } from '../../accessibility/AccessibilityPanel';
+import { HeaderUserAvatar } from '../HeaderUserAvatar';
 
 interface WebHeaderProps {
   city: string;
@@ -26,7 +27,7 @@ export function WebHeader({ city, section, navigate, favoritesCount, cityPickerO
     <div className="web-header-actions"><MusicButton/>
       <AccessibilityButton onClick={openAccessibility}/>
       <button className="web-favorites" onClick={() => navigate('favorites')} aria-current={section === 'favorites' ? 'page' : undefined}><Icon name="heart" size={19}/>Избранное{favoritesCount > 0 && <span>{favoritesCount}</span>}</button>
-      <button className="web-profile-button" aria-label="Открыть профиль" aria-current={section === 'profile' ? 'page' : undefined} onClick={() => navigate('profile')}><Icon name="profile" size={20}/></button>
+      <button className="web-profile-button" aria-label="Открыть профиль" aria-current={section === 'profile' ? 'page' : undefined} onClick={() => navigate('profile')}><HeaderUserAvatar/></button>
     </div>
   </div></header>;
 }
