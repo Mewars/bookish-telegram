@@ -1,7 +1,6 @@
 import type { Item, Kind } from '../types';
 import { places } from './places';
 import { verifiedEniseyskPlaces, verifiedEniseyskServices } from './verifiedEniseysk';
-import { withDirectoryPhoto } from './organizationPhotos';
 
 export const categories: Record<Kind, string[]> = {
  events: ['Все', 'Вечеринки', 'Концерты', 'Кино', 'Спорт', 'Мероприятия', 'Другое'],
@@ -11,6 +10,6 @@ export const categories: Record<Kind, string[]> = {
 
 // Published baseline: user-supplied places and researched directory entries with source links.
 // The events section stays empty until actual dates and sources are available.
-export const catalog: Item[] = [...places, ...verifiedEniseyskPlaces, ...verifiedEniseyskServices].map(withDirectoryPhoto);
+export const catalog: Item[] = [...places, ...verifiedEniseyskPlaces, ...verifiedEniseyskServices];
 
 export const sectionTitles: Record<Kind, string> = { events: 'Афиша', places: 'Места', services: 'Услуги' };
