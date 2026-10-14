@@ -38,7 +38,7 @@ test('isolated photo editor SQL: guests only read, admins alone can upload and e
 
     await t.test('anonymous can read public photos, never write or see admin grants', async () => {
       await setRole('anon');
-      assert.deepEqual((await db.query('SELECT * FROM public.directory_card_photos')).rows,[]);
+      assert.deepEqual((await db.query('SELECT card_id,city,storage_path,updated_at FROM public.directory_card_photos')).rows,[]);
       await assert.rejects(db.query('SELECT * FROM public.city_admin_access'), /permission denied/);
       await assert.rejects(db.query("INSERT INTO public.directory_card_photos(card_id,city,storage_path) VALUES ($1,$2,$3)",['place-myasorubka','Енисейск',path('place-myasorubka')]),/permission denied/);
     });
