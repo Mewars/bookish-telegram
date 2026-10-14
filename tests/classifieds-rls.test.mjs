@@ -32,6 +32,9 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await switchTo('authenticated',seller);
       const made=await makeDraft('Енисейск'); id=made.rows[0].id;
       assert.equal(made.rows[0].status,'draft');
+      await switchTo('authenticated',editor);
+      assert.equal((await db.query('SELECT id FROM public.classifieds')).rows.length,0,'Editor cannot read private draft');
+      await switchTo('authenticated',seller);
       await assert.rejects(db.query("INSERT INTO public.classifieds(city,deal_type,category,title,description,author_id) VALUES ('Енисейск','sell','Дом','Отдам диван','Есть готовый диван',$1)",[buyer]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.classifieds SET author_id=$1 WHERE id=$2",[buyer,id]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.classifieds SET status='published' WHERE id=$1 RETURNING id",[id]),/row-level security/);
