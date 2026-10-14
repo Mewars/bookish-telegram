@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { isSafeWebUrl } from '../organizations/model';
 import type { OrganizationRow } from '../organizations/model';
 import { ORGANIZATION_COLUMNS, withDeadline } from '../organizations/repository';
-import { canManageCity, type AdminDraft, type CityAdminAccess } from './model';
+import { canManageCity, nextAvailabilityStatus, type AdminDraft, type CityAdminAccess } from './model';
 import { prepareAdminImage, adminImageExtension } from '../photos/adminImage';
 import { storageAdminPhotoKey } from './storagePaths';
 
@@ -82,7 +82,7 @@ export async function changeAdminOrganizationAvailability(
 ): Promise<OrganizationRow> {
   await requireCurrentUser(client, userId);
   if (!canManageCity(access, row.city)) throw new Error('Нет прав для управления этой организацией.');
-  const target = row.status === 'archived' ? 'draft' : 'archived';
+  const target = nextAvailabilityStatus(row.status);
   const { data, error } = await withDeadline(signal => client.from('organizations')
     .update({ status: target })
     .eq('id', row.id).eq('city', row.city).eq('status', row.status)
