@@ -3,6 +3,7 @@ import { isSafeWebUrl } from '../organizations/model';
 import type { OrganizationRow } from '../organizations/model';
 import { ORGANIZATION_COLUMNS, withDeadline } from '../organizations/repository';
 import { canManageCity, type AdminDraft, type CityAdminAccess } from './model';
+import { prepareDirectoryPhoto } from '../photos/directoryPhotos';
 
 const BUCKET = 'ryadom-places';
 const ADMIN_COLUMNS = ORGANIZATION_COLUMNS;
@@ -67,11 +68,11 @@ export async function saveAdminOrganization(client: SupabaseClient, userId: stri
 export async function uploadAdminPhoto(client: SupabaseClient, userId: string, access: CityAdminAccess[], city: string, file: File): Promise<string> {
   await requireCurrentUser(client, userId);
   if (!canManageCity(access, city)) throw new Error('Нет доступа к загрузке фотографий этого города.');
-  const extension: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
-  const ext = extension[file.type];
-  if (!ext || !file.size || file.size > MAX_IMAGE_BYTES) throw new Error('Выбери JPG, PNG или WebP до 2 МБ.');
-  const key = `${city}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await client.storage.from(BUCKET).upload(key, file, { contentType: file.type, upsert: false, cacheControl: '31536000' });
+  // Reuse the safe client-side encoder: it strips EXIF/location metadata and produces WebP.
+  const optimized = await prepareDirectoryPhoto(file);
+  if (!optimized.size || optimized.size > MAX_IMAGE_BYTES) throw new Error('Фотография после обработки превышает 2 МБ. Выбери изображение меньшего размера.');
+  const key = `${city}/${crypto.randomUUID()}.webp`;
+  const { error } = await client.storage.from(BUCKET).upload(key, optimized, { contentType: 'image/webp', upsert: false, cacheControl: '31536000' });
   if (error) throw new Error('Не удалось загрузить фото. Проверь разрешения и доступность Storage.');
   const { data } = client.storage.from(BUCKET).getPublicUrl(key);
   if (!isSafeWebUrl(data.publicUrl)) throw new Error('Хранилище вернуло некорректный адрес фотографии.');
