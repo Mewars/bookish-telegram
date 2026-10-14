@@ -47,6 +47,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_ADMIN_PANEL_ENABLED: ${{ vars.VITE_ADMIN_PANEL_ENABLED || 'false' }}
+          VITE_CARD_PHOTOS_ENABLED: ${{ vars.VITE_CARD_PHOTOS_ENABLED || 'false' }}
       - name: Package dist contents without a wrapper folder
         working-directory: dist
         run: zip -r ../sprinthost-site.zip .
