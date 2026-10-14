@@ -26,7 +26,7 @@ test('stock photos are honestly labelled; verified real library photo includes l
   const code = await file('src/data/organizationPhotos.ts');
   const card = await file('src/components/Card.tsx');
   const detail = await file('src/pages/DetailPage.tsx');
-  const entries = [...code.matchAll(/^\s+'(place-[^']+|service-[^']+)': \{([\s\S]*?)^  \},/gm)];
+  const entries = [...code.matchAll(/^\s+'(place-[^']+|service-[^']+)': \{([\s\S]*?)^\s{2}\},/gm)];
   assert.equal(entries.length, 24);
   for (const [, id, metadata] of entries) {
     assert.match(metadata, /image: 'https:\/\//, 'Remote photo should use HTTPS: ' + id);
