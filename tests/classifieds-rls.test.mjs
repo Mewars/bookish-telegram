@@ -118,8 +118,11 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await switchTo('authenticated',editor);
       assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'open');
       await db.query("SELECT public.review_classified_report($1,true)",[complaint]);
-      assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'action_taken');
       await assert.rejects(db.query("SELECT public.review_classified_report($1,false)",[complaint]),/unavailable/);
+      // The archived listing is no longer part of the editor's public listing view;
+      // the original reporter retains their own resolution status.
+      await switchTo('authenticated',buyer);
+      assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'action_taken');
 
       await switchTo('anon');
       assert.equal((await db.query("SELECT id FROM public.classifieds WHERE id=$1",[reportListing])).rows.length,0);
