@@ -66,6 +66,31 @@ export async function saveAdminOrganization(client: SupabaseClient, userId: stri
   return data as OrganizationRow;
 }
 
+/**
+ * Immediately removes a closed business from the public directory without
+ * deleting its history or images. Restore always returns it to an unpublished
+ * draft, requiring a separate review before it can be republished.
+ *
+ * Checks actual session and server-side RLS; a suspended editor cannot archive
+ * another city's listing, even by calling the API directly.
+ */
+export async function changeAdminOrganizationAvailability(
+  client: SupabaseClient,
+  userId: string,
+  access: CityAdminAccess[],
+  row: OrganizationRow,
+): Promise<OrganizationRow> {
+  await requireCurrentUser(client, userId);
+  if (!canManageCity(access, row.city)) throw new Error('Нет прав для управления этой организацией.');
+  const target = row.status === 'archived' ? 'draft' : 'archived';
+  const { data, error } = await withDeadline(signal => client.from('organizations')
+    .update({ status: target })
+    .eq('id', row.id).eq('city', row.city).eq('status', row.status)
+    .select(ADMIN_COLUMNS).abortSignal(signal).single());
+  if (error || !data) throw new Error('Статус не изменился. Возможно, карточку уже обновили или права доступа изменились. Обнови админку.');
+  return data as OrganizationRow;
+}
+
 export async function uploadAdminPhoto(client: SupabaseClient, userId: string, access: CityAdminAccess[], city: string, file: File): Promise<{ url: string; path: string }> {
   await requireCurrentUser(client, userId);
   if (!canManageCity(access, city)) throw new Error('Нет доступа к загрузке фотографий этого города.');
