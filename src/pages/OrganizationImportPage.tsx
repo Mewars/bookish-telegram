@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandWordmark } from '../components/BrandWordmark';
 import { useTheme } from '../hooks/useTheme';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { pageMetadata } from '../seo/metadata';
 import { usePageMetadata } from '../seo/usePageMetadata';
 import { checkFileSize, csvTemplate, parseOrganizationCsv } from '../import/csv';
@@ -14,7 +15,8 @@ const requiredFields = new Set(['title', 'city', 'category', 'sourceUrl', 'sourc
 
 export function OrganizationImportPage() {
   usePageMetadata(pageMetadata('import'));
-  const { theme, setTheme } = useTheme();
+  const isWideScreen = useMediaQuery('(min-width: 900px)');
+  const { theme, setTheme } = useTheme(!isWideScreen);
   const [rows, setRows] = useState<ImportRow[]>([]);
   const [fileName, setFileName] = useState('');
   const [delimiter, setDelimiter] = useState('');
@@ -94,7 +96,7 @@ export function OrganizationImportPage() {
   const selected = editing ? checked.find(row => row.number === editing.number) : undefined;
   return <div className="import-shell ym-disable-keys ym-disable-clicks ym-disable-webvisor">
     <header className="import-header"><a href="#/home" className="brand brand-logo-pin" aria-label="Рядом — на главную"><BrandWordmark decorative/></a>
-      <label>Тема<select value={theme} onChange={event => setTheme(event.target.value as typeof theme)}><option value="system">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label>
+      {isWideScreen && <label>Тема<select value={theme} onChange={event => setTheme(event.target.value as typeof theme)}><option value="system">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label>}
     </header>
     <main className="import-page">
       <div className="import-heading"><span className="eyebrow">ВНУТРЕННИЙ ИНСТРУМЕНТ</span><h1>Импорт организаций</h1>

@@ -6,14 +6,16 @@
     <script>
       // Resolve the theme before stylesheets and React can paint the page.
       (function () {
-        var theme = 'dark';
+        var theme = 'system';
         try {
           var raw = localStorage.getItem('ryadom.theme');
           var value = raw;
           try { value = JSON.parse(raw); } catch { /* Legacy unquoted value. */ }
-          if (value === 'light' || value === 'dark') theme = value;
-        } catch { /* Unavailable storage follows the device preference. */ }
-        var dark = theme !== 'light';
+          if (value === 'light' || value === 'dark' || value === 'system') theme = value;
+        } catch { /* Unavailable storage uses system preference. */ }
+        var compact = !!(window.matchMedia && window.matchMedia('(max-width: 899px)').matches);
+        var systemDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var dark = compact || (theme === 'dark') || (theme === 'system' && systemDark);
         document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       }());
     </script>
