@@ -52,8 +52,11 @@ export function DetailPage({
       && entry.kind === item.kind && entry.category.split(' / ')[0] === item.category.split(' / ')[0]).slice(0, 3)
     : [];
   const title = item.kind === 'events' ? 'О событии' : item.kind === 'services' ? 'Об услуге' : 'О месте';
+  const hasMap = Boolean(item.coordinates);
+  const mappedDesktop = desktop && hasMap && item.kind !== 'events';
+  const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  return <article className="guide-detail">
+  return <article className={mappedDesktop ? "guide-detail guide-detail--mapped" : "guide-detail"}>
     <div className="detail-breadcrumb">
       <button className="back-link" onClick={goBack}>
         <Icon name="back" size={18}/>
@@ -62,7 +65,8 @@ export function DetailPage({
       <span>{item.city} / {item.category}</span>
     </div>
 
-    <div className="detail-cover">
+    <div className="detail-place-layout"><div className="detail-place-main">
+    <div className="detail-cover" id="detail-photos">
       <PlaceMedia images={[{ src: item.image, alt: `Изображение: ${item.title}` }]}/>
       <div className="detail-heading">
         <span className="eyebrow">{item.city} · {item.category}</span>
@@ -71,6 +75,12 @@ export function DetailPage({
       {(item.photoIllustrative || item.image.split(/[?#]/)[0].endsWith('.svg') || item.photoCredit) && <p className="illustration-caption">{item.photoIllustrative ? 'Тематическая фотография, не снимок этой организации.' : item.image.split(/[?#]/)[0].endsWith('.svg') ? 'Иллюстрация, не фотография организации.' : 'Фото реального объекта.'} {item.photoCredit && (item.photoSourceUrl ? <a href={item.photoSourceUrl} target="_blank" rel="noopener noreferrer">{item.photoCredit}</a> : item.photoCredit)} {item.photoLicenseUrl && <a href={item.photoLicenseUrl} target="_blank" rel="noopener noreferrer">Лицензия</a>}</p>}
     </div>
 
+    <nav className="detail-quick-tabs" aria-label="Разделы карточки">
+      <button type="button" onClick={() => scrollToSection('detail-about')}>Обзор</button>
+      <button type="button" onClick={() => scrollToSection('detail-photos')}>Фото</button>
+      <button type="button" onClick={() => scrollToSection('detail-contacts')}>Контакты</button>
+      {hasMap && <button type="button" onClick={() => scrollToSection('detail-map')}>Карта</button>}
+    </nav>
     <div className="detail-content-grid">
       <section className="detail-info-tile" id="detail-about" aria-labelledby="detail-about-heading">
         <span className="detail-tile-kicker"><Icon name="places" size={16}/> ИНФОРМАЦИЯ</span>
@@ -85,7 +95,7 @@ export function DetailPage({
         {!item.real && <p className="detail-demo-notice">Бронирование и оплата через сервис пока не доступны.</p>}
       </section>
 
-      <section className="detail-contact-tiles" aria-label="Адрес, контакты и полезная информация">
+      <section className="detail-contact-tiles" id="detail-contacts" aria-label="Адрес, контакты и полезная информация">
         {item.kind === 'events' && <div className="detail-contact-tile">
           <span className="detail-contact-icon"><Icon name="events" size={20}/></span>
           <span className="detail-contact-label">Когда</span>
@@ -139,7 +149,11 @@ export function DetailPage({
       </section>
     </div>
 
-    {item.coordinates && <div className="detail-map-tile"><PlaceMap key={item.id} item={item} desktop={desktop}/></div>}
+    </div>
+    {hasMap && <aside className="detail-map-rail" id="detail-map" aria-label="Местоположение организации">
+      <div className="detail-map-tile"><PlaceMap key={item.id} item={item} desktop={desktop}/></div>
+    </aside>}
+    </div>
     {!!related.length && openRelated && <section className="city-section related-section">
       <div className="section-heading"><div><span className="section-index">ПРОДОЛЖАЙ ОТКРЫВАТЬ</span><h2>Ещё рядом</h2><p>{item.city} · {item.category.split(' / ')[0]}</p></div></div>
       <div className="card-grid discovery-grid">{related.map(entry => <Card key={entry.id} item={entry} favorites={favorites} toggle={toggle} favoritesBusy={favoritesBusy} open={openRelated}/>)}</div>
