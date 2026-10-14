@@ -38,8 +38,8 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
     // NOT part of any production SQL migration.
     await db.exec(`CREATE FUNCTION public.test_suspend_city_editor() RETURNS void
       LANGUAGE sql SECURITY DEFINER SET search_path = ''
-      AS $ UPDATE public.city_admin_access SET active = false
-        WHERE user_id = '22222222-2222-4222-8222-222222222222'::uuid AND city = 'Енисейск' AND role = 'editor'; $;
+      AS $test_suspend$ UPDATE public.city_admin_access SET active = false
+        WHERE user_id = '22222222-2222-4222-8222-222222222222'::uuid AND city = 'Енисейск' AND role = 'editor'; $test_suspend$;
       REVOKE ALL ON FUNCTION public.test_suspend_city_editor() FROM PUBLIC;
       GRANT EXECUTE ON FUNCTION public.test_suspend_city_editor() TO service_role;`);
     await t.test('anonymous sees published rows, never drafts or access grants', async () => {
