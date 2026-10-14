@@ -49,3 +49,8 @@ test('homepage uses distinct editorial, event, food, culture, retail and service
   assert.match(cityHome, /className="city-selections-backdrop"/);
   assert.match(cityHome, /Реклама не подменяет редакционные рекомендации/);
 });
+
+test('compact homepage shows every quick category without cropping labels sideways', () => {
+  assert.match(homeStyles, /\\.quick-discovery \\{\\s*flex-wrap: wrap;\\s*overflow-x: visible;/);
+  assert.doesNotMatch(homeStyles, /\\.quick-discovery \\{\\s*flex-wrap: nowrap;\\s*overflow-x: auto;/);
+});
