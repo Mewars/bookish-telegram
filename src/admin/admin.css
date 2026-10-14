@@ -169,6 +169,9 @@
 
 /* Only global owners can use the cities manager; editor visibility is server guarded. */
 .admin-cms-cities .admin-cms-panel-heading p {margin-top:8px;color:var(--muted);font-size:13px;line-height:1.5;}
+.admin-cms-network .admin-cms-panel-heading p {margin-top:8px;color:var(--muted);font-size:13px;line-height:1.5;}
+.admin-cms-network .admin-cms-city-list {margin-bottom:0;}
+.admin-cms-network .admin-cms-city-list button {cursor:pointer;}
 .admin-cms-city-list {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 28px;}
 .admin-cms-city-list button {display:grid;text-align:left;gap:5px;min-width:0;padding:15px;border-radius:12px;background:var(--surface-secondary);border:1px solid var(--line);}
 .admin-cms-city-list button.is-selected,.admin-cms-city-list button:hover {border-color:var(--primary);}

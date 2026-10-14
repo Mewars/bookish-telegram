@@ -298,6 +298,28 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
               onCitySaved={cityName => { setCityFilter(cityName); setCategoryFilter('all'); setFilter(''); }}/>
           : <section className="admin-panel"><h2>Подключение городов</h2><p>Настройка новых городов пока выключена до резервной копии и безопасного подключения Supabase.</p></section>
         ) : <>
+          {screen === 'overview' && owner && <section className="admin-panel admin-cms-network" aria-label="Города сети">
+            <div className="admin-cms-panel-heading">
+              <div>
+                <h2>Города сети</h2>
+                <p>Выбери город, чтобы управлять его организациями. Новые города доступны даже до появления первой карточки.</p>
+              </div>
+              {cityDirectoryEnabled && <button className="admin-cms-link" type="button" onClick={() => navigateAdmin('cities')}>Настройки городов →</button>}
+            </div>
+            <div className="admin-cms-city-list">
+              {cities.map(cityName => {
+                const cityDefinition = directoryCities.find(entry => entry.name === cityName);
+                const cityOrganizations = rows.filter(row => row.city === cityName);
+                const cityPublished = cityOrganizations.filter(row => row.status === 'published').length;
+                return <button type="button" key={cityName} onClick={() => { setCityFilter(cityName); navigateAdmin('catalog'); }}>
+                  <strong>{cityName}</strong>
+                  <small>{cityDefinition?.region ?? 'Регион не указан'}</small>
+                  <span>{cityOrganizations.length} карточек · {cityPublished} опубликовано</span>
+                  <span>Перейти к каталогу →</span>
+                </button>;
+              })}
+            </div>
+          </section>}
           {screen === 'overview' && <section className="admin-cms-stats" aria-label="Статистика каталога">
             <div><small>Всего организаций</small><strong>{cityRows.length}</strong></div>
             <div><small>Опубликовано</small><strong>{published}</strong></div>
