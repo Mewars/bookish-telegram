@@ -35,3 +35,134 @@
 /* Explicitly non-production admin preview; no network writes. */
 .admin-demo-warning { border:1px dashed var(--line); border-radius:12px; padding:16px 18px; margin:0 0 24px; font-size:13px; color:var(--muted); line-height:1.7; background:var(--surface-secondary); }
 .admin-demo-warning strong { color:var(--text); }
+
+
+/* Unified city catalogue, following the approved franchise-ready admin preview. */
+.app-shell main:has(> .admin-cms-layout) { max-width:none; padding:0; }
+.admin-cms-layout {
+  --bg:#F7F8FA; --surface:#FFFFFF; --surface-secondary:#F4F6FA; --soft:#F3F5F8;
+  --text:#202A36; --muted:#718092; --line:#E8EAF0; --primary:#F3BD5D;
+  --primary-text:#272217; --primary-ink:#90691A; --primary-soft:#FFF4DF;
+  display:grid; grid-template-columns:238px minmax(0,1fr);
+  min-height:calc(100dvh - 80px); color:var(--text); background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+}
+.admin-cms-sidebar {display:flex;flex-direction:column;gap:0;background:#172735;color:#fff;padding:28px 17px;min-width:0;}
+.admin-cms-wordmark {font-size:29px;font-weight:900;letter-spacing:-1.8px;padding-inline:12px;}
+.admin-cms-wordmark span {color:#E5A84A;}
+.admin-cms-sidebar-caption {font-size:10px;color:#B4C5D0;letter-spacing:1.2px;text-transform:uppercase;margin:3px 12px 34px;}
+.admin-cms-nav-label {font-size:10px;color:#8C9DAB;letter-spacing:1.3px;margin:0 12px 12px;}
+.admin-cms-nav {display:grid;gap:5px;}
+.admin-cms-nav button {text-align:left;display:flex;align-items:center;gap:12px;width:100%;min-height:45px;border-radius:11px;padding:11px 13px;color:#BFCCD5;font-size:14px;font-weight:550;}
+.admin-cms-nav button.active,.admin-cms-nav button:hover {background:#334555;color:#fff;}
+.admin-cms-sidebar-note {display:grid;gap:7px;margin-top:auto;padding:15px;border:1px solid #435462;border-radius:13px;font-size:12px;line-height:1.6;color:#B4C5D0;}
+.admin-cms-sidebar-note strong {color:#fff;}
+.admin-cms-main {min-width:0;}
+.admin-cms-topbar {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 32px;background:#fff;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);}
+.admin-cms-top-actions {display:flex;align-items:center;gap:9px;}
+.admin-cms-top-actions select {border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;max-width:240px;color:var(--text);min-height:42px;}
+.admin-cms-top-actions .secondary-button {min-height:42px;padding:9px 13px;}
+.admin-shell.admin-cms-content {max-width:1250px;margin:0 auto;padding:32px 33px 68px;}
+.admin-cms-header {display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:24px;}
+.admin-cms-header .eyebrow {color:#A87D36;margin-bottom:8px;}
+.admin-cms-header h1 {font-size:clamp(28px,4vw,43px);letter-spacing:-.04em;line-height:1.15;}
+.admin-cms-header p {color:var(--muted);font-size:13px;line-height:1.5;margin-top:10px;}
+.admin-cms-header .primary-button {background:#E5A84A;border-color:transparent;font-size:13px;}
+.admin-cms-layout .admin-panel {border-radius:19px;padding:23px;background:#fff;border:1px solid var(--line);margin-bottom:20px;}
+.admin-cms-panel-heading {display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.admin-cms-panel-heading h2 {font-size:21px;letter-spacing:-.02em;}
+.admin-cms-link {color:#326F9F;font-size:12px;font-weight:700;min-height:40px;}
+.admin-cms-categories > p {font-size:13px;color:var(--muted);line-height:1.5;}
+.admin-cms-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:26px;}
+.admin-cms-stats > div {background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;min-width:0;}
+.admin-cms-stats small {display:block;color:var(--muted);font-size:12px;}
+.admin-cms-stats strong {display:block;font-size:27px;letter-spacing:-.04em;margin-top:7px;}
+.admin-cms-tiles {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px 8px;margin-top:22px;}
+.admin-cms-tile {display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;padding:7px 3px 10px;border:1px solid transparent;border-radius:12px;text-align:center;color:var(--text);background:transparent;}
+.admin-cms-tile:hover,.admin-cms-tile.is-selected {background:#F7F9FB;border-color:var(--line);}
+.admin-cms-bubble {display:grid;place-items:center;width:64px;height:64px;flex:none;border-radius:50%;color:#fff;}
+.admin-cms-bubble svg {width:28px;height:28px;}
+.admin-cms-tile strong {font-size:12px;font-weight:650;line-height:1.25;min-height:28px;overflow-wrap:anywhere;}
+.admin-cms-tile small {font-size:11px;color:var(--muted);}
+.admin-cms-layout .admin-filters {display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;}
+.admin-cms-layout .admin-filters input {min-width:170px;flex:1;}
+.admin-cms-layout .admin-filters input,.admin-cms-layout .admin-filters select {border-radius:10px;background:#fff;font-size:13px;padding:10px 12px;min-height:44px;border-color:var(--line);color:var(--text);}
+.admin-cms-layout .admin-filters select {width:auto;max-width:220px;}
+.admin-cms-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.admin-cms-card {display:flex;align-items:center;gap:13px;min-width:0;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;color:var(--text);}
+.admin-cms-card:hover {border-color:#91BDE1;}
+.admin-cms-card-icon {width:60px;height:60px;flex:none;display:grid;place-items:center;border-radius:11px;background:#EEF1F5;color:#66819A;overflow:hidden;}
+.admin-cms-card-icon svg {width:27px;height:27px;}
+.admin-cms-card-icon img {width:100%;height:100%;object-fit:cover;}
+.admin-cms-card-main {min-width:0;display:grid;gap:5px;flex:1;}
+.admin-cms-card-main strong {font-size:13px;line-height:1.3;}
+.admin-cms-card-main small {font-size:11px;line-height:1.4;color:var(--muted);}
+.admin-cms-status {font-size:10px;font-style:normal;color:#25875C;}
+.admin-cms-status--draft {color:#A57927;}
+.admin-cms-status--archived {color:#9E6161;}
+.admin-cms-card-arrow {color:#8C9CA7;font-size:21px;}
+.admin-cms-overview-items .admin-cms-card:nth-child(n+5) {display:none;}
+.admin-cms-back {font-size:13px;color:#326F9F;font-weight:700;min-height:40px;margin-bottom:11px;}
+.admin-cms-form {max-width:850px;}
+.admin-cms-form-section > h2 {font-size:21px;letter-spacing:-.02em;}
+.admin-cms-form-section > p {color:var(--muted);font-size:13px;line-height:1.6;margin:9px 0 21px;}
+.admin-cms-form .admin-form-grid {gap:17px;}
+.admin-cms-form .admin-form-grid > label {color:var(--text);font-size:13px;}
+.admin-cms-form .admin-form-grid input:not([type=checkbox]),.admin-cms-form .admin-form-grid textarea,.admin-cms-form .admin-form-grid select {
+ background:#FBFCFD;border:1px solid #E2E5EB;color:var(--text);font-size:14px;min-height:45px;border-radius:10px;width:100%;padding:11px 13px;
+}
+.admin-cms-form .admin-form-grid textarea {resize:vertical;}
+.admin-cms-form .admin-form-grid .admin-confirm {display:flex;}
+.admin-cms-photo-picker {display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px;align-items:center;padding:16px;background:#F5F6FA;border:1px dashed #C4CDD7;border-radius:13px;}
+.admin-cms-photo-preview {height:132px;display:grid;place-items:center;background:#E2E9F0;border-radius:11px;overflow:hidden;text-align:center;padding:10px;color:#7B90A1;font-size:12px;}
+.admin-cms-photo-preview img {width:100%;height:100%;object-fit:contain;}
+.admin-cms-photo-controls {display:grid;gap:11px;min-width:0;font-size:13px;}
+.admin-cms-photo-controls input {max-width:100%;font-size:12px;}
+.admin-cms-photo-controls small {font-size:11px;line-height:1.5;color:var(--muted);}
+.admin-cms-photo-controls button {width:fit-content;}
+.admin-cms-form-actions {display:flex;justify-content:flex-end;flex-wrap:wrap;gap:12px;margin-top:22px;}
+.admin-cms-layout .admin-message {color:#202A36;background:#FFF4DF;}
+@media(max-width:1100px) {
+ .admin-cms-tiles {grid-template-columns:repeat(5,minmax(0,1fr));}
+ .admin-cms-sidebar {padding-inline:11px;}
+ .admin-cms-layout {grid-template-columns:205px minmax(0,1fr);}
+}
+@media(max-width:800px) {
+ .admin-cms-layout {grid-template-columns:minmax(0,1fr);}
+ .admin-cms-sidebar {padding:13px 15px;display:block;}
+ .admin-cms-wordmark {display:inline-block;font-size:23px;padding-inline:4px;}
+ .admin-cms-sidebar-caption {display:inline-block;margin:0 0 0 15px;}
+ .admin-cms-nav-label,.admin-cms-sidebar-note {display:none;}
+ .admin-cms-nav {margin-top:12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;}
+ .admin-cms-nav button {white-space:nowrap;min-width:max-content;padding:9px 12px;font-size:12px;min-height:41px;}
+ .admin-cms-topbar {padding:14px 21px;}
+ .admin-shell.admin-cms-content {padding:26px 21px 58px;}
+ .admin-cms-tiles {grid-template-columns:repeat(5,minmax(0,1fr));}
+}
+@media(max-width:599px) {
+ .admin-cms-topbar {padding:11px 14px;flex-wrap:wrap;font-size:11px;}
+ .admin-cms-top-actions {margin-left:auto;}
+ .admin-cms-top-actions select {max-width:175px;}
+ .admin-shell.admin-cms-content {padding:22px 13px 110px;}
+ .admin-cms-header h1 {font-size:30px;}
+ .admin-cms-header .primary-button {width:100%;}
+ .admin-cms-layout .admin-panel {padding:15px;border-radius:15px;}
+ .admin-cms-stats {gap:8px;margin-bottom:19px;}
+ .admin-cms-stats > div {padding:13px 11px;}
+ .admin-cms-stats small {font-size:10px;line-height:1.3;}
+ .admin-cms-stats strong {font-size:23px;}
+ .admin-cms-tiles {grid-template-columns:repeat(3,minmax(0,1fr));gap:11px 5px;}
+ .admin-cms-bubble {width:59px;height:59px;}
+ .admin-cms-bubble svg {width:26px;height:26px;}
+ .admin-cms-tile strong {font-size:11px;}
+ .admin-cms-tile small {font-size:10px;}
+ .admin-cms-cards {grid-template-columns:minmax(0,1fr);}
+ .admin-cms-card {padding:10px;gap:10px;}
+ .admin-cms-card-icon {width:54px;height:54px;}
+ .admin-cms-layout .admin-filters {flex-direction:column;}
+ .admin-cms-layout .admin-filters input,.admin-cms-layout .admin-filters select {width:100%;max-width:none;}
+ .admin-cms-photo-picker {grid-template-columns:minmax(0,1fr);}
+ .admin-cms-photo-preview {height:185px;}
+ .admin-cms-photo-controls button {width:100%;}
+ .admin-cms-form-actions > button {width:100%;}
+}
