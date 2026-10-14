@@ -17,18 +17,13 @@ export function isCulturalPlace(item: Item): boolean {
   return matchesAny(category, ['музе', 'культур', 'истори', 'достопримечательност', 'памятник', 'театр', 'кино', 'библиотек', 'церк', 'храм', 'собор', 'монастыр', 'архитектур', 'галере', 'парк', 'набережн', 'прогулк']);
 }
 
-/** Grocery shopping is also part of the broad 'Поесть' shortcut, but
- * stays separate from the narrower 'Где поесть' café/restaurant carousel. */
+/** Grocery shopping belongs to 'Магазины', not the 'Поесть' shortcut. */
 export function isGroceryStore(item: Item): boolean {
   const category = item.category.toLocaleLowerCase('ru');
   return matchesAny(category, [
     'продукт', 'супермаркет', 'гипермаркет', 'гастроном',
     'бакале', 'продовольств', 'овощ', 'фрукт', 'мясная лавка', 'рыбная лавка',
   ]);
-}
-
-export function isFoodDestination(item: Item): boolean {
-  return isFoodVenue(item) || isGroceryStore(item);
 }
 
 export function isShop(item: Item): boolean {
