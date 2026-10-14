@@ -105,6 +105,7 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
             <p role="status">
               Найдено: {results.length}
             </p>
+            {selected?.label === 'Сегодня' && <p className="today-schedule-note">Места показаны по заявленному расписанию, а не по данным о работе в реальном времени. Перед посещением уточняйте часы.</p>}
           </div>
           <button className="text-action" onClick={reset}>Сбросить <Icon name="close" size={17}/></button>
         </div>
