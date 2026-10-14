@@ -37,21 +37,21 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
   const [draft,setDraft]=useState<Draft>(()=>newDraft(city));
   const [reload,setReload]=useState(0);
   const [busy,setBusy]=useState(false);
-  const [loading,setLoading]=useState(true);
+  const [loadedView,setLoadedView]=useState('');
+  const [messagesFor,setMessagesFor]=useState<string|null>(null);
   const [notice,setNotice]=useState('');
   const [canReview,setCanReview]=useState(false);
-  useEffect(()=>{setDraft(newDraft(city));setTab('browse');setThreadId(null);},[city]);
   useEffect(()=>{
     let active=true;
-    if(!userId){setCanReview(false);return;}
-    mayReview(supabase,city).then(value=>{if(active)setCanReview(value);})
+    const permission=userId?mayReview(supabase,city):Promise.resolve(false);
+    permission.then(value=>{if(active)setCanReview(value);})
       .catch(()=>{if(active)setCanReview(false);});
     return ()=>{active=false;};
   },[city,userId]);
+  const viewKey=[tab,city,userId??'',canReview,reload].join('|');
+  const loading=loadedView!==viewKey;
   useEffect(()=>{
     let active=true;
-    setLoading(true);
-    setNotice('');
     const load=async()=>{
       if(tab==='browse') {
         const result=await getPublished(supabase,city);
@@ -71,13 +71,13 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
       }
     };
     void load().catch(reason=>{if(active)setNotice(errorText(reason));})
-      .finally(()=>{if(active)setLoading(false);});
+      .finally(()=>{if(active)setLoadedView(viewKey);});
     return ()=>{active=false;};
-  },[city,userId,tab,canReview,reload]);
+  },[city,userId,tab,canReview,reload,viewKey]);
   useEffect(()=>{
     let active=true;
-    if(!threadId){setMessages([]);return;}
-    getMessages(supabase,threadId).then(rows=>{if(active)setMessages(rows);})
+    if(!threadId)return;
+    getMessages(supabase,threadId).then(rows=>{if(active){setMessages(rows);setMessagesFor(threadId);}})
       .catch(reason=>{if(active)setNotice(errorText(reason));});
     return ()=>{active=false;};
   },[threadId,reload]);
@@ -100,6 +100,7 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
     (!search.trim()||(entry.title+' '+entry.description+' '+entry.category).toLocaleLowerCase('ru')
       .includes(search.trim().toLocaleLowerCase('ru'))));
   const activeThread=threads.find(x=>x.id===threadId);
+  const currentMessages=messagesFor===threadId?messages:[];
   return <section className="classifieds-page">
     <header className="classifieds-hero">
       <span className="classifieds-eyebrow">РЯДОМ · ТЕСТОВАЯ ВЕРСИЯ</span>
@@ -206,7 +207,7 @@ export function ClassifiedsPage({city,openLogin}:{city:string;openLogin:()=>void
         {activeThread?<><h2>Личная переписка</h2>
           <p className="classifieds-note">Сообщения видны только двум участникам.</p>
           <div className="classifieds-chat-stream">
-            {messages.length===0?<p>Напишите первое сообщение.</p>:messages.map(m=>
+            {currentMessages.length===0?<p>Напишите первое сообщение.</p>:currentMessages.map(m=>
               <div className={m.sender_id===userId?'classifieds-message self':'classifieds-message'} key={m.id}>
                 <span>{m.body}</span><small>{new Date(m.created_at).toLocaleString('ru-RU')}</small>
               </div>)}
