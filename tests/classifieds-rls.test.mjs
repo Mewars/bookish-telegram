@@ -26,6 +26,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'*','owner'),($2,'Енисейск','editor')",[owner,editor]);
     await db.exec(await readFile('docs/sql/classifieds-private-messaging-v1.sql','utf8'));
     await db.exec(await readFile('docs/sql/classifieds-editor-privacy-v2.sql','utf8'));
+    await db.exec(await readFile('docs/sql/classified-reports-review-v1.sql','utf8'));
 
     let id,thread;
     await t.test('draft and moderation: no author self-publishing',async()=>{
@@ -93,6 +94,33 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await switchTo('authenticated',seller);
       await db.query("SELECT public.complete_classified($1)",[id]);
       assert.equal((await db.query("SELECT status FROM public.classifieds WHERE id=$1",[id])).rows[0].status,'completed');
+    });
+
+    await t.test('report visibility, city moderation, and archived content',async()=>{
+      await switchTo('authenticated',buyer);
+      const complaint=(await db.query("INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'В объявлении недостоверные сведения') RETURNING id",[id])).rows[0].id;
+      await assert.rejects(db.query("INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'Повторная жалоба на то же объявление')",[id]),/duplicate key/);
+      assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'open');
+
+      await switchTo('authenticated',seller);
+      assert.equal((await db.query('SELECT id FROM public.classified_reports')).rows.length,0);
+      await assert.rejects(db.query("SELECT public.review_classified_report($1,true)",[complaint]),/Not authorized/);
+
+      await switchTo('authenticated',stranger);
+      assert.equal((await db.query('SELECT id FROM public.classified_reports')).rows.length,0);
+      await assert.rejects(db.query("SELECT public.review_classified_report($1,true)",[complaint]),/Not authorized/);
+
+      await switchTo('authenticated',editor);
+      assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'open');
+      await db.query("SELECT public.review_classified_report($1,true)",[complaint]);
+      assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'action_taken');
+      await assert.rejects(db.query("SELECT public.review_classified_report($1,false)",[complaint]),/unavailable/);
+
+      await switchTo('anon');
+      assert.equal((await db.query("SELECT id FROM public.classifieds WHERE id=$1",[id])).rows.length,0);
+      await assert.rejects(db.query("SELECT id FROM public.classified_reports"),/permission denied/);
+      await switchTo('authenticated',buyer);
+      assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'action_taken');
     });
   } finally {await db.close();}
 });
