@@ -51,6 +51,7 @@ test('homepage uses distinct editorial, event, food, culture, retail and service
 });
 
 test('compact homepage shows every quick category without cropping labels sideways', () => {
-  assert.ok(homeStyles.includes('flex-wrap: wrap;\\n    overflow-x: visible;'));
-  assert.ok(!homeStyles.includes('flex-wrap: nowrap;\\n    overflow-x: auto;'));
+  assert.ok(homeStyles.includes('flex-wrap: wrap;'));
+  assert.ok(homeStyles.includes('overflow-x: visible;'));
+  assert.ok(!homeStyles.includes('flex-wrap: nowrap;'));
 });
