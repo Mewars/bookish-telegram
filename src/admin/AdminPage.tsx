@@ -10,7 +10,7 @@ import {
   canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft,
   validateAdminDraft, type AdminDraft, type CityAdminAccess, type AdminStatus,
 } from './model';
-import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto } from './repository';
+import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto, removeOrphanedAdminPhoto } from './repository';
 import { directoryCategories, categoryForOrganization, type DirectoryCategoryId } from './directoryCategories';
 import './admin.css';
 
@@ -89,11 +89,13 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     const errors = validateAdminDraft(draft, confirmed);
     if (Object.keys(errors).length) { setMessage(Object.values(errors)[0]); return; }
     setBusy(true); setMessage('');
+    let uploadedPath: string | null = null;
     try {
       let values = draft;
       if (selectedFile) {
-        const imageUrl = await uploadAdminPhoto(supabase, userId, access, draft.city, selectedFile);
-        values = { ...draft, image_url: imageUrl };
+        const photo = await uploadAdminPhoto(supabase, userId, access, draft.city, selectedFile);
+        uploadedPath = photo.path;
+        values = { ...draft, image_url: photo.url };
       }
       const saved = await saveAdminOrganization(supabase, userId, access, values, confirmed);
       setRows(current => [...current.filter(row => row.id !== saved.id), saved].sort((a,b) => a.title.localeCompare(b.title, 'ru')));
@@ -101,6 +103,9 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
       setMessage(saved.status === 'published' ? 'Карточка опубликована. Посетители увидят её при следующей загрузке каталога.' : 'Изменения сохранены.');
       window.dispatchEvent(new Event('ryadom:organizations-changed'));
     } catch (error) {
+      if (uploadedPath && supabase) {
+        try { await removeOrphanedAdminPhoto(supabase, uploadedPath); } catch { /* Best-effort cleanup, preserve original error. */ }
+      }
       setMessage(error instanceof Error ? error.message : 'Не удалось сохранить карточку.');
     } finally { setBusy(false); }
   };
@@ -269,7 +274,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
                 <strong>Главная фотография</strong>
                 <input ref={fileInputRef} aria-label="Выбрать фотографию" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" disabled={busy} onChange={event => chooseFile(event.target.files?.[0] ?? null)}/>
                 {selectedFile && <small>Выбран файл: {selectedFile.name}</small>}
-                <small>JPG, PNG, WebP и совместимые фото iPhone. Файл будет обработан перед загрузкой.</small>
+                <small>Автоматически: обрезка по центру до 16:9, уменьшение до 1440×810, сжатие до 2 МБ, удаление геометок. WebP или JPG, если WebP не поддерживается.</small>
                 {(draft.image_url || selectedFile) && <button className="secondary-button" disabled={busy} type="button" onClick={() => { chooseFile(null); change('image_url',''); }}>Убрать фотографию</button>}
               </div>
             </div>
