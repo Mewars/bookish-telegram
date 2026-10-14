@@ -33,6 +33,15 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
     await db.exec(await readFile('docs/sql/organizations-seed.sql','utf8'));
     await db.exec(await readFile('docs/sql/city-admin-mvp.sql','utf8'));
     await db.query('INSERT INTO public.city_admin_access (user_id,city,role) VALUES ($1,$2,$3),($4,$5,$6)', [owner,'*','owner',editor,'Енисейск','editor']);
+    // Test-only privileged action that mirrors a trusted billing/suspension job.
+    // Created by the test superuser, callable only by service_role.
+    // NOT part of any production SQL migration.
+    await db.exec(`CREATE FUNCTION public.test_suspend_city_editor() RETURNS void
+      LANGUAGE sql SECURITY DEFINER SET search_path = ''
+      AS $test_suspend$ UPDATE public.city_admin_access SET active = false
+        WHERE user_id = '22222222-2222-4222-8222-222222222222'::uuid AND city = 'Енисейск' AND role = 'editor'; $test_suspend$;
+      REVOKE ALL ON FUNCTION public.test_suspend_city_editor() FROM PUBLIC;
+      GRANT EXECUTE ON FUNCTION public.test_suspend_city_editor() TO service_role;`);
     await t.test('anonymous sees published rows, never drafts or access grants', async () => {
       await setRole('anon');
       assert.equal((await db.query('SELECT count(*)::int AS n FROM public.organizations')).rows[0].n,8);
@@ -61,6 +70,35 @@ test('city admin RLS and photo uploads are server-enforced', async t => {
       await assert.rejects(db.exec("UPDATE public.organizations SET status='published' WHERE id='edited-local'"), /check constraint/);
       await db.exec("UPDATE public.organizations SET verified_at='2026-10-14',status='published' WHERE id='edited-local'");
     });
+    await t.test('suspended city editor loses write access while city stays visible and owner retains access', async () => {
+      // This simulates the future billing suspension action on the existing
+      // server-side access flag; no content/status rows are modified.
+      await setRole('service_role');
+      await db.exec('SELECT public.test_suspend_city_editor()');
+
+      await setRole('authenticated', editor);
+      assert.equal((await db.query("SELECT active FROM public.city_admin_access WHERE city = 'Енисейск'")).rows[0].active, false);
+      await assert.rejects(
+        db.exec("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('blocked-editor','Енисейск','Blocked','Кафе','Cannot publish','user_provided','draft')"),
+        /row-level security/
+      );
+      const result = await db.exec("UPDATE public.organizations SET title = 'Should remain unchanged' WHERE id = 'edited-local'");
+      assert.equal(result[0]?.rowCount ?? 0, 0);
+      await assert.rejects(
+        db.exec("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-places','Енисейск/suspended.webp')"),
+        /row-level security/
+      );
+
+      await setRole('anon');
+      // Published cards are still readable for all visitors and were not archived.
+      assert.equal((await db.query("SELECT count(*)::int AS n FROM public.organizations")).rows[0].n, 9);
+      assert.equal((await db.query("SELECT status FROM public.organizations WHERE id = 'edited-local'")).rows[0].status, 'published');
+
+      await setRole('authenticated', owner);
+      await db.exec("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('owner-during-suspension','Енисейск','Still manageable','Кафе','Platform owner can edit','user_provided','draft')");
+      assert.equal((await db.query("SELECT status FROM public.organizations WHERE id = 'owner-during-suspension'")).rows[0].status, 'draft');
+    });
+
     await t.test('owner can create a second city, ordinary users still see only published', async () => {
       await setRole('authenticated',owner);
       await db.exec("INSERT INTO public.organizations(id,city,title,category,description,source_type,status) VALUES ('new-foreign','Ачинск','Real future','Места','Draft','user_provided','draft')");
