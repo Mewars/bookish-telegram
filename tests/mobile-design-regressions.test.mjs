@@ -25,15 +25,22 @@ test('facts are actionable tiles, not a duplicate toolbar and repeated detail si
   assert.match(css, /object-fit:contain/);
 });
 
-test('mobile home background image is uncropped and the brand defaults to dark', async () => {
+test('mobile home image is uncropped, phone theme is dark and desktop theme is selectable', async () => {
   const css = await file('src/styles/home.css');
   const html = await file('index.html');
   const theme = await file('src/utils/theme.ts');
+  const hook = await file('src/hooks/useTheme.ts');
+  const app = await file('src/App.tsx');
+  const profile = await file('src/pages/ProfilePage.tsx');
   assert.match(css, /aspect-ratio:\s*1400\s*\/\s*788/);
   assert.match(css, /object-fit:\s*contain/);
   assert.match(css, /height:\s*auto/);
-  assert.match(html, /var theme = 'dark'/);
-  assert.match(theme, /\? value : 'dark'/);
+  assert.match(html, /max-width: 899px/);
+  assert.match(html, /var dark = compact \|\|/);
+  assert.match(theme, /return compact \? 'dark'/);
+  assert.match(hook, /resolveTheme\(theme, systemScheme, compact\)/);
+  assert.match(app, /useTheme\(!isWideScreen\)/);
+  assert.match(profile, /allowThemeSelection && <section className="settings-card"/);
 });
 
 test('all 25 source-backed places get improved non-generic descriptions and SQL mirrors UI', async () => {
