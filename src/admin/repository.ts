@@ -4,6 +4,7 @@ import type { OrganizationRow } from '../organizations/model';
 import { ORGANIZATION_COLUMNS, withDeadline } from '../organizations/repository';
 import { canManageCity, type AdminDraft, type CityAdminAccess } from './model';
 import { prepareAdminImage, adminImageExtension } from '../photos/adminImage';
+import { storageAdminPhotoKey } from './storagePaths';
 
 const BUCKET = 'ryadom-places';
 const ADMIN_COLUMNS = ORGANIZATION_COLUMNS;
@@ -71,11 +72,13 @@ export async function uploadAdminPhoto(client: SupabaseClient, userId: string, a
   // Automatically crop the cover to 16:9 and optimize it before sending any bytes.
   const optimized = await prepareAdminImage(file, 'cover');
   if (!optimized.size || optimized.size > MAX_IMAGE_BYTES) throw new Error('Фотография после обработки превышает 2 МБ. Выбери изображение меньшего размера.');
-  const key = `${city}/${crypto.randomUUID()}.${adminImageExtension(optimized)}`;
+  const key = storageAdminPhotoKey(city, crypto.randomUUID(), adminImageExtension(optimized));
   const { error } = await client.storage.from(BUCKET).upload(key, optimized, { contentType: optimized.type, upsert: false, cacheControl: '31536000' });
   if (error) {
     const status = String(error.statusCode ?? '');
     if (status === '403' || status === '401') throw new Error('Хранилище не разрешило загрузку. Проверь, что ты вошёл через VK ID с правами администратора.');
+    if (error.message && /InvalidKey|Invalid key/i.test(error.message))
+      throw new Error('Недопустимый адрес фотографии в хранилище. Обнови страницу и попробуй ещё раз.');
     if (status === '413') throw new Error('Размер фото превышает ограничение хранилища.');
     if (status === '415') throw new Error('Хранилище не принимает этот формат фотографии.');
     throw new Error(`Ошибка загрузки фотографии (${status || 'сеть'}). Попробуй ещё раз.`);
