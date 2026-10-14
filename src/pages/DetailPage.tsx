@@ -80,6 +80,7 @@ export function DetailPage({
       <button type="button" onClick={() => scrollToSection('detail-photos')}>Фото</button>
       <button type="button" onClick={() => scrollToSection('detail-contacts')}>Контакты</button>
       {hasMap && <button type="button" onClick={() => scrollToSection('detail-map')}>Карта</button>}
+      {maps.routeUrl && <a href={maps.routeUrl} target="_blank" rel="noopener noreferrer"><Icon name="pin" size={15}/> Маршрут в Яндекс Картах</a>}
     </nav>
     <div className="detail-content-grid">
       <section className="detail-info-tile" id="detail-about" aria-labelledby="detail-about-heading">
@@ -106,7 +107,7 @@ export function DetailPage({
               <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
               <span className="detail-contact-label">Адрес · открыть на карте</span>
               <strong>{item.city}, {item.address}</strong>
-              <span className="detail-contact-action">Построить маршрут <Icon name="arrow" size={15}/></span>
+              <span className="detail-contact-action">Открыть на карте <Icon name="arrow" size={15}/></span>
             </a>
           : <div className="detail-contact-tile">
               <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
