@@ -7,7 +7,8 @@ test('beta private state is owned by the keyed session component', async () => {
   const wrapper = page.indexOf('export function ClassifiedsPage(');
   const child = page.indexOf('function ClassifiedsSession(');
   assert.ok(wrapper >= 0 && child > wrapper);
-  assert.match(page.slice(wrapper, child), /key=\{JSON\.stringify\(\[city,userId\]\)\}/);
+  assert.match(page.slice(wrapper, child), /key=\{classifiedsSessionKey\(city,userId\)\}/);
+  assert.match(page, /import \{ classifiedsSessionKey \} from '\.\/sessionKey';/);
   for (const state of ['threads', 'messages', 'reports', 'blockedUsers', 'threadId', 'messageDraft', 'draft', 'canReview']) {
     assert.match(page.slice(child), new RegExp('const \\[\\s*' + state + '\\s*,'));
   }
