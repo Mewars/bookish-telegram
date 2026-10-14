@@ -1,0 +1,60 @@
+.classifieds-page{max-width:1280px;margin:0 auto;padding:36px 26px 90px;color:var(--text)}
+.classifieds-hero{padding:46px 42px;border-radius:26px;background:linear-gradient(130deg,#0b263b,#163a4c 70%,#16303b);color:#fff8e9}
+.classifieds-eyebrow{letter-spacing:.17em;text-transform:uppercase;font-size:11px;font-weight:800;color:#eec06e}
+.classifieds-hero h1{font:700 clamp(34px,4.4vw,56px)/1.14 Georgia,serif;margin:13px 0}
+.classifieds-hero p{font-size:15px;color:#e1eaf2;line-height:1.7;max-width:780px}
+.classifieds-tabs,.classifieds-deals{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+.classifieds-tabs button,.classifieds-deals button{border:1px solid #7893a280;color:#f0f5f7;border-radius:12px;min-height:43px;padding:9px 17px;font-size:14px;font-weight:650}
+.classifieds-tabs button[aria-pressed=true]{background:#e9b85b;color:#112436;border-color:#e9b85b}
+.classifieds-filter{margin:26px 0;display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.classifieds-filter label,.classifieds-form label{font-size:13px;font-weight:700;display:flex;flex-direction:column;gap:8px;min-width:240px}
+.classifieds-filter input,.classifieds-form input,.classifieds-form select,.classifieds-form textarea,.classifieds-chat textarea{
+ width:100%;padding:13px 15px;border-radius:12px;border:1px solid var(--line,#ffffff30);
+ background:var(--surface,#102b3b);color:var(--text,#fff);outline-offset:2px;font:inherit;font-size:15px}
+.classifieds-filter input{min-width:min(350px,80vw)}
+.classifieds-deals{margin:0}.classifieds-deals button{color:var(--text);border-color:var(--line)}
+.classifieds-deals button[aria-pressed=true]{color:#152534;background:#e9b85b;border-color:#e9b85b}
+.classifieds-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.classifieds-card,.classifieds-form,.classifieds-empty,.classifieds-thread-list,.classifieds-chat{
+ border:1px solid var(--line,#ffffff25);background:var(--surface,#122b3d);border-radius:20px;padding:23px;min-width:0}
+.classifieds-card{display:flex;flex-direction:column;gap:15px}
+.classifieds-card-meta{display:flex;gap:7px;flex-wrap:wrap}
+.classifieds-card-meta span{background:#284456;border:1px solid #ffffff28;color:#f8ebd1;border-radius:100px;padding:5px 10px;font-size:12px}
+.classifieds-card h2{font-size:21px;line-height:1.3;margin:0}
+.classifieds-card>p{font-size:14px;line-height:1.6;color:var(--muted);word-break:break-word;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden}
+.classifieds-card-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.classifieds-card-foot strong{font-size:20px;color:var(--text)}.classifieds-card-foot small{color:var(--muted)}
+.classifieds-card-button,.classifieds-card-actions button,.classifieds-main-action{
+ background:#efbd61;color:#0c2333;border:0;border-radius:12px;font-size:14px;font-weight:750;min-height:45px;padding:12px 17px}
+.classifieds-card-actions{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.classifieds-card-actions button{padding:10px 13px}.classifieds-card-actions small{color:var(--muted)}
+.classifieds-main-action:disabled,.classifieds-card-actions button:disabled,.classifieds-card-button:disabled{opacity:.55;cursor:wait}
+.classifieds-empty{text-align:center;padding:40px 22px;color:var(--muted)}
+.classifieds-empty h2{font-size:24px;margin-bottom:12px;color:var(--text)}
+.classifieds-feedback{padding:15px;margin:18px 0;border:1px solid #efbd61;border-radius:12px;color:var(--text);background:var(--surface)}
+.classifieds-my-actions{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:24px 0;flex-wrap:wrap}
+.classifieds-my-actions h2{font-size:26px}.classifieds-my-actions p,.classifieds-note{font-size:13px;color:var(--muted);line-height:1.6}
+.classifieds-form{margin:15px 0 26px}.classifieds-form h3{font-size:24px;margin-bottom:20px}
+.classifieds-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px;margin-bottom:18px}
+.classifieds-full{grid-column:1/-1}.classifieds-form label{min-width:0}
+.classifieds-note{margin:10px 0 16px}
+.classifieds-messages{display:grid;grid-template-columns:minmax(230px,300px) 1fr;gap:18px;margin-top:24px}
+.classifieds-thread-list h2,.classifieds-chat h2{font-size:22px;margin-bottom:15px}
+.classifieds-thread-list>button{width:100%;display:flex;flex-direction:column;gap:5px;text-align:left;padding:14px 10px;border-bottom:1px solid var(--line)}
+.classifieds-thread-list>button[aria-pressed=true]{background:#efbd6120;border-radius:10px}
+.classifieds-thread-list small{color:var(--muted);font-size:12px}
+.classifieds-chat-stream{display:flex;flex-direction:column;gap:10px;max-height:440px;min-height:150px;overflow:auto;margin:14px 0}
+.classifieds-message{border:1px solid var(--line);background:var(--bg);padding:11px 15px;border-radius:15px;max-width:82%;align-self:flex-start;overflow-wrap:anywhere}
+.classifieds-message.self{align-self:flex-end;background:#2b4a57}.classifieds-message small{display:block;font-size:10px;color:var(--muted);margin-top:7px}
+.classifieds-chat-compose{display:flex;gap:10px;align-items:end}.classifieds-chat-compose textarea{flex:1;resize:vertical}
+.classifieds-refresh{font-size:13px;text-decoration:underline;color:var(--muted);margin-top:16px}
+@media(max-width:950px){.classifieds-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){
+ .classifieds-page{padding:18px 13px 95px}
+ .classifieds-hero{padding:26px 19px;border-radius:18px}
+ .classifieds-tabs{gap:7px}.classifieds-tabs button{padding:8px 10px;font-size:12px;min-height:41px}
+ .classifieds-grid,.classifieds-form-grid,.classifieds-messages{grid-template-columns:1fr}
+ .classifieds-filter{align-items:stretch}.classifieds-filter input{min-width:0}
+ .classifieds-deals{width:100%}.classifieds-deals button{font-size:12px;padding:8px 10px}
+ .classifieds-chat-compose{flex-direction:column;align-items:stretch}
+}

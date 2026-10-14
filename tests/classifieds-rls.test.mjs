@@ -25,12 +25,16 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     await db.exec("CREATE TABLE public.city_admin_access(user_id uuid REFERENCES auth.users(id),city text,role text,active boolean NOT NULL DEFAULT true,PRIMARY KEY(user_id,city)); GRANT SELECT ON public.city_admin_access TO authenticated;");
     await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'*','owner'),($2,'Енисейск','editor')",[owner,editor]);
     await db.exec(await readFile('docs/sql/classifieds-private-messaging-v1.sql','utf8'));
+    await db.exec(await readFile('docs/sql/classifieds-editor-privacy-v2.sql','utf8'));
 
     let id,thread;
     await t.test('draft and moderation: no author self-publishing',async()=>{
       await switchTo('authenticated',seller);
       const made=await makeDraft('Енисейск'); id=made.rows[0].id;
       assert.equal(made.rows[0].status,'draft');
+      await switchTo('authenticated',editor);
+      assert.equal((await db.query('SELECT id FROM public.classifieds')).rows.length,0,'Editor cannot read private draft');
+      await switchTo('authenticated',seller);
       await assert.rejects(db.query("INSERT INTO public.classifieds(city,deal_type,category,title,description,author_id) VALUES ('Енисейск','sell','Дом','Отдам диван','Есть готовый диван',$1)",[buyer]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.classifieds SET author_id=$1 WHERE id=$2",[buyer,id]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.classifieds SET status='published' WHERE id=$1 RETURNING id",[id]),/row-level security/);
@@ -46,6 +50,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,0);
       await assert.rejects(db.query("SELECT public.open_classified_conversation($1)",[id]),/unavailable/);
       await switchTo('authenticated',editor);
+      // Editors must not see a resident's unsubmitted draft.
       assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,1);
       await db.query("SELECT public.review_classified($1,true)",[id]);
       await switchTo('anon');
