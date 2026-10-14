@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { availableCities } from '../data/cities';
+import { availableCities, type DirectoryCity } from '../data/cities';
+import { CityManagement } from './CityManagement';
 import type { OrganizationRow } from '../organizations/model';
 import { EmptyState } from '../components/EmptyState';
 import { Icon } from '../components/Icon';
@@ -13,7 +14,7 @@ import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAd
 import { directoryCategories, categoryForOrganization, type DirectoryCategoryId } from './directoryCategories';
 import './admin.css';
 
-export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; goHome: () => void; openLogin: () => void }) {
+export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCities, refreshCities, goHome, openLogin }: { enabled: boolean; cityDirectoryEnabled: boolean; cities: readonly DirectoryCity[]; refreshCities: () => void; goHome: () => void; openLogin: () => void }) {
   const { state } = useAuth();
   const userId = state.user?.id;
   const [access, setAccess] = useState<CityAdminAccess[] | null>(null);
@@ -31,7 +32,7 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
   const [kindFilter, setKindFilter] = useState('Все разделы');
   const [statusFilter, setStatusFilter] = useState('Все статусы');
   const [categoryFilter, setCategoryFilter] = useState<DirectoryCategoryId | 'all'>('all');
-  const [screen, setScreen] = useState<'overview' | 'catalog' | 'photos'>('overview');
+  const [screen, setScreen] = useState<'overview' | 'catalog' | 'photos' | 'cities'>('overview');
   const [previewUrl, setPreviewUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
@@ -74,7 +75,7 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
     setStatusFilter('Все статусы');
     setFilter('');
   };
-  const navigateAdmin = (next: 'overview' | 'catalog' | 'photos') => {
+  const navigateAdmin = (next: 'overview' | 'catalog' | 'photos' | 'cities') => {
     setDraft(null); setMessage(''); setScreen(next);
     setCategoryFilter('all'); setFilter(''); setStatusFilter('Все статусы');
   };
@@ -172,6 +173,7 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
         <button type="button" className={screen === 'overview' && !draft ? 'active' : ''} onClick={() => navigateAdmin('overview')}>▦ <span>Обзор города</span></button>
         <button type="button" className={screen === 'catalog' && !draft ? 'active' : ''} onClick={() => navigateAdmin('catalog')}>▤ <span>Организации</span></button>
         <button type="button" className={screen === 'photos' && !draft ? 'active' : ''} onClick={() => navigateAdmin('photos')}>▧ <span>Фотографии</span></button>
+        {owner && <button type="button" className={screen === 'cities' && !draft ? 'active' : ''} onClick={() => navigateAdmin('cities')}>⌖ <span>Города</span></button>}
         <button type="button" className={draft ? 'active' : ''} onClick={() => create()}>＋ <span>Добавить организацию</span></button>
       </nav>
       <div className="admin-cms-sidebar-note">
@@ -181,7 +183,7 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
     </aside>
     <div className="admin-cms-main">
       <div className="admin-cms-topbar">
-        <span>Рядом / {draft ? 'Редактор организации' : screen === 'overview' ? 'Обзор города' : screen === 'photos' ? 'Фотографии' : 'Организации'}</span>
+        <span>Рядом / {draft ? 'Редактор организации' : screen === 'overview' ? 'Обзор города' : screen === 'photos' ? 'Фотографии' : screen === 'cities' ? 'Города' : 'Организации'}</span>
         <div className="admin-cms-top-actions">
           {cities.length > 1 && <select aria-label="Город управления" value={cityFilter} onChange={event => { setCityFilter(event.target.value); setCategoryFilter('all'); }}>
             <option>Все города</option>{cities.map(city => <option key={city}>{city}</option>)}
@@ -192,7 +194,7 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
       <div className="admin-shell admin-cms-content">
         <header className="admin-cms-header">
           <div><span className="eyebrow">РЯДОМ · УПРАВЛЕНИЕ ГОРОДОМ</span>
-            <h1>{draft ? draft.id ? 'Редактирование организации' : 'Новая организация' : screen === 'overview' ? 'Управление каталогом' : screen === 'photos' ? 'Фотографии организаций' : selectedLabel}</h1>
+            <h1>{draft ? draft.id ? 'Редактирование организации' : 'Новая организация' : screen === 'overview' ? 'Управление каталогом' : screen === 'photos' ? 'Фотографии организаций' : screen === 'cities' ? 'Управление городами' : selectedLabel}</h1>
             <p>{owner ? 'Главный администратор' : 'Редактор города'} · {cityFilter === 'Все города' ? 'Все доступные города' : cityFilter} · {cityRows.length} карточек</p>
           </div>
           {!draft && <button className="primary-button" onClick={() => create()}>＋ Добавить организацию</button>}
@@ -288,7 +290,10 @@ export function AdminPage({ enabled, goHome, openLogin }: { enabled: boolean; go
               <button type="submit" className="primary-button" disabled={busy}>{busy ? 'Сохраняем…' : draft.status === 'published' ? 'Проверить и опубликовать' : 'Сохранить карточку'}</button>
             </div>
           </section>
-        </form> : <>
+        </form> : screen === 'cities' && owner ? (cityDirectoryEnabled
+          ? <CityManagement cities={directoryCities} refreshCities={refreshCities}/>
+          : <section className="admin-panel"><h2>Подключение городов</h2><p>Настройка новых городов пока выключена до резервной копии и безопасного подключения Supabase.</p></section>
+        ) : <>
           {screen === 'overview' && <section className="admin-cms-stats" aria-label="Статистика каталога">
             <div><small>Всего организаций</small><strong>{cityRows.length}</strong></div>
             <div><small>Опубликовано</small><strong>{published}</strong></div>

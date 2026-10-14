@@ -1,16 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { availableCities } from '../data/cities';
+import type { DirectoryCity } from '../data/cities';
 import { Icon } from './Icon';
 
 interface CityPickerProps {
   city: string;
+  cities: readonly DirectoryCity[];
   selectCity: (city: string) => void;
   onDismiss: () => void;
   storageError: boolean;
 }
 
-export function CityPicker({ city, selectCity, onDismiss, storageError }: CityPickerProps) {
+export function CityPicker({ city, cities, selectCity, onDismiss, storageError }: CityPickerProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export function CityPicker({ city, selectCity, onDismiss, storageError }: CityPi
       </div>
       <p id="city-sheet-description">Места, события и люди поблизости.</p>
       <div className="city-options" role="group" aria-label="Доступные города">
-        {availableCities.map(option => (
+        {cities.map(option => (
           <button key={option.name} className="city-option" aria-pressed={city === option.name} onClick={() => selectCity(option.name)}>
             <span className="city-option-icon"><Icon name="pin" size={24}/></span>
             <span className="city-option-text"><strong>{option.name}</strong><small>{option.region}</small></span>
@@ -64,7 +65,7 @@ export function CityPicker({ city, selectCity, onDismiss, storageError }: CityPi
           </button>
         ))}
       </div>
-      <p className="city-coming-soon">Другие города скоро появятся</p>
+      <p className="city-coming-soon">Города добавляются по мере подключения к «Рядом»</p>
       {storageError && <p className="city-storage-error" role="status">Браузер запретил сохранение города. Выбор доступен до закрытия приложения.</p>}
       <button className="primary-button city-confirm" onClick={onDismiss}>Готово <Icon name="arrow" size={18}/></button>
     </dialog>,

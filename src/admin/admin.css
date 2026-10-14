@@ -166,3 +166,21 @@
  .admin-cms-photo-controls button {width:100%;}
  .admin-cms-form-actions > button {width:100%;}
 }
+
+/* Only global owners can use the cities manager; editor visibility is server guarded. */
+.admin-cms-cities .admin-cms-panel-heading p {margin-top:8px;color:var(--muted);font-size:13px;line-height:1.5;}
+.admin-cms-city-list {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 28px;}
+.admin-cms-city-list button {display:grid;text-align:left;gap:5px;min-width:0;padding:15px;border-radius:12px;background:var(--surface-secondary);border:1px solid var(--line);}
+.admin-cms-city-list button.is-selected,.admin-cms-city-list button:hover {border-color:var(--primary);}
+.admin-cms-city-list strong {font-size:14px;}
+.admin-cms-city-list small {color:var(--muted);font-size:11px;}
+.admin-cms-city-list span {font-size:11px;color:#3A7095;}
+.admin-cms-city-form {border-top:1px solid var(--line);padding-top:25px;display:grid;gap:18px;}
+.admin-cms-city-form h3 {font-size:21px;}
+.admin-cms-city-form > p {font-size:13px;color:var(--muted);line-height:1.6;}
+.admin-cms-city-form .admin-form-grid {gap:16px;}
+.admin-cms-city-form .admin-form-grid > label,.admin-cms-city-cover-label {display:grid;gap:8px;min-width:0;font-size:13px;font-weight:600;}
+.admin-cms-city-form .admin-form-grid input,.admin-cms-city-form .admin-form-grid textarea {width:100%;min-height:46px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);color:var(--text);font-size:14px;}
+.admin-cms-city-cover-label input {max-width:100%;font-size:12px;}
+.admin-cms-city-cover-label small {color:var(--muted);font-size:11px;line-height:1.5;}
+@media(max-width:599px) {.admin-cms-city-list {grid-template-columns:minmax(0,1fr);} .admin-cms-cities .admin-cms-panel-heading .secondary-button {min-width:125px;}}

@@ -5,7 +5,8 @@ import { Search } from './Search';
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icon';
 import { MediaImage } from './MediaImage';
-import { cityCover } from '../data/cityCover';
+import { getCityCover } from '../data/cityCover';
+import type { DirectoryCity } from '../data/cities';
 import { matches } from '../utils/search';
 
 const discoveries: { label: string; icon: IconName; matches: (item: Item) => boolean }[] = [
@@ -16,8 +17,10 @@ const discoveries: { label: string; icon: IconName; matches: (item: Item) => boo
   { label: 'Услуги', icon: 'services', matches: item => item.kind === 'services' },
 ];
 
-export function CityHome({ city, items, navigate, ...actions }: CardActions & { city: string; items: Item[]; navigate: (section: Section) => void }) {
+export function CityHome({ city, cityProfile, items, navigate, ...actions }: CardActions & { city: string; cityProfile?: DirectoryCity; items: Item[]; navigate: (section: Section) => void }) {
   const [query, setQuery] = useState('');
+  const cover = getCityCover(city, cityProfile?.cover_url);
+  const isEniseysk = city === 'Енисейск';
   const [discovery, setDiscovery] = useState<string | null>(null);
 
   const selected = discoveries.find(option => option.label === discovery);
@@ -63,23 +66,22 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
     return item ? [item] : [];
   });
 
-  const popular = pick([
+  const popular = isEniseysk ? pick([
     'place-spassky-monastery',
     'place-kytmanov-museum',
     'place-borodkin-house',
-  ]);
+  ]) : items.filter(item => item.kind === 'places').slice(0,3);
+  const highlights = isEniseysk ? pick(['place-kytmanov-museum', 'place-borodkin-house', 'place-photoizba', 'place-spassky-monastery']) : items.filter(item => item.kind === 'places' && ['Музеи','Достопримечательности','Культура','Парки'].includes(item.category.split(' / ')[0])).slice(0,4);
 
   return <div className="city-home">
-    <section className="city-cover" aria-labelledby="city-cover-title">
-      <div className="cover-image">
-        <MediaImage src={cityCover.src} alt={cityCover.alt} eager/>
-      </div>
+    <section className={`city-cover${cover ? "" : " city-cover--no-image"}${city.length > 9 ? " city-cover--long-name" : ""}`} aria-labelledby="city-cover-title">
+      {cover ? <div className="cover-image"><MediaImage src={cover.src} alt={cover.alt} eager/></div> : <div className="cover-image cover-image--neutral" aria-hidden="true"/>}
       <div className="cover-atmosphere" aria-hidden="true"/>
 
       <div className="city-cover-content">
         <h1 id="city-cover-title">{city}</h1>
-        <p className="cover-tagline">Открывай город по-новому</p>
-        <p className="cover-summary">Места, события и полезные услуги города в одном месте.</p>
+        <p className="cover-tagline">{cityProfile?.tagline || "Открывай город по-новому"}</p>
+        <p className="cover-summary">{cityProfile?.summary || "Места, события и полезные услуги города в одном месте."}</p>
 
         <div className="cover-search">
           <Search value={query} onChange={setQuery} placeholder="Поиск мест, событий, услуг…"/>
@@ -130,10 +132,10 @@ export function CityHome({ city, items, navigate, ...actions }: CardActions & { 
               onAction={reset}
             />}
       </section> : <>
-        {selection('Популярные места', 'То, с чего удобно начать знакомство с Енисейском.', 'places', popular, '01', 3)}
+        {selection('Популярные места', 'То, с чего удобно начать знакомство с городом.', 'places', popular, '01', 3)}
         {selection('Куда сходить', 'Поводы выйти из дома.', 'events', items.filter(item => item.kind === 'events'), '02')}
         {selection('Где поесть', 'Кофе, обед и разговоры без спешки.', 'places', items.filter(item => discoveries[1].matches(item)), '03')}
-        {selection('Места, которые стоит увидеть', 'История города в деталях.', 'places', pick(['place-kytmanov-museum', 'place-borodkin-house', 'place-photoizba', 'place-spassky-monastery']), '04')}
+        {selection('Места, которые стоит увидеть', 'История города в деталях.', 'places', highlights, '04')}
         {selection('Услуги рядом', 'Нужные люди и полезные дела.', 'services', items.filter(item => item.kind === 'services'), '05')}
       </>}
     </div>

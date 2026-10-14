@@ -2,8 +2,8 @@ import { LegalLinks } from './legal/LegalLinks';
 import { BrandWordmark } from './BrandWordmark';
 import { brandAssets } from '../utils/brand';
 
-export function FooterBrand({ city, goHome }: { city: string; goHome: () => void }) {
-  return <div className="footer-brand"><button className="brand brand-logo-pin" onClick={goHome} aria-label="Рядом — на главную"><BrandWordmark decorative/></button><p className="footer-slogan">Открывай город по-новому.</p><p className="footer-city">{city}, Красноярский край</p></div>;
+export function FooterBrand({ city, region, goHome }: { city: string; region: string; goHome: () => void }) {
+  return <div className="footer-brand"><button className="brand brand-logo-pin" onClick={goHome} aria-label="Рядом — на главную"><BrandWordmark decorative/></button><p className="footer-slogan">Открывай город по-новому.</p><p className="footer-city">{city}, {region}</p></div>;
 }
 
 export function FooterCooperation({ showLegal = true }: { showLegal?: boolean }) {
