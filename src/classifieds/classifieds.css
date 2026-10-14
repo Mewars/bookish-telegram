@@ -78,3 +78,22 @@
 .classified-gallery-rights input{width:auto!important;margin-top:2px;accent-color:#efbd61}
 .classified-gallery-remove{text-align:left;text-decoration:underline;font-size:13px;color:var(--text)}
 .classified-gallery-edit small{font-size:12px;color:var(--muted)}
+
+
+/* Closed-beta complaint handling and safer private conversations */
+.classified-report-control{border-top:1px solid var(--line,#ffffff25);padding-top:10px;display:grid;gap:10px}
+.classified-report-trigger,.classified-chat-block button{font-size:13px;text-decoration:underline;text-align:left;color:var(--text,#fff);width:max-content}
+.classified-report-control form{display:grid;gap:10px}
+.classified-report-control label{display:grid;gap:8px;font-size:13px;font-weight:650;line-height:1.5}
+.classified-report-control textarea{width:100%;resize:vertical;background:var(--surface,#122b3d);color:var(--text,#fff);padding:10px;border-radius:10px;border:1px solid var(--line,#ffffff35);font:inherit}
+.classified-report-control form>button{justify-self:start;min-height:40px;padding:8px 13px;border-radius:10px;background:#efbd61;color:#132835;font-size:13px;font-weight:700}
+.classified-report-control form>button:disabled{opacity:.6}
+.classified-report-result{color:var(--muted);line-height:1.5;font-size:12px;overflow-wrap:anywhere}
+.classifieds-reports{display:grid;gap:14px;margin-top:26px}
+.classifieds-reports>h2{font-size:24px}
+.classifieds-report-card{border:1px solid var(--line,#ffffff25);padding:18px;border-radius:16px;background:var(--surface,#122b3d)}
+.classifieds-report-card h3{font-size:18px;margin:0 0 7px}
+.classifieds-report-card p{line-height:1.6;overflow-wrap:anywhere;white-space:pre-wrap}
+.classifieds-report-card small{color:var(--muted);font-size:12px}
+.classifieds-chat-block{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+.classifieds-chat-block p{font-size:13px;line-height:1.5;margin:0}
