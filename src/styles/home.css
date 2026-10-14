@@ -645,3 +645,9 @@
   .city-home [data-selection="01"] .card-body > p { display:none; }
   .city-home [data-selection="04"] .card { min-height:0; }
 }
+
+/* A city without an approved cover must not inherit Eniseysk's illustration. */
+.city-cover--no-image {background:linear-gradient(135deg,#0a2438 3%,#163c55 48%,#26495d 100%);}
+.city-cover--no-image .cover-image--neutral {background:radial-gradient(ellipse at 79% 43%,rgba(121,168,199,.22),transparent 58%),linear-gradient(145deg,#09253a,#28475c);}
+.city-cover--long-name .city-cover-content h1 {font-size:clamp(52px,7.3vw,118px);letter-spacing:-.055em;white-space:normal;overflow-wrap:anywhere;}
+@media(max-width:599px){.city-cover--long-name .city-cover-content h1 {font-size:clamp(27px,8.3vw,43px);letter-spacing:-.05em;}}
