@@ -32,3 +32,22 @@ test('beta is never displayed to production Supabase or public navigation',async
   assert.match(sql,/CREATE POLICY classified_messages_participants/);
   assert.match(sql,/CREATE POLICY classifieds_author_create/);
 });
+
+test('reports and block controls stay in gated beta and use protected repository methods',async()=>{
+  const [page,control,repo,sql]=await Promise.all([
+    readFile('src/classifieds/ClassifiedsPage.tsx','utf8'),
+    readFile('src/classifieds/ClassifiedReportControl.tsx','utf8'),
+    readFile('src/classifieds/repository.ts','utf8'),
+    readFile('docs/sql/classified-reports-review-v1.sql','utf8'),
+  ]);
+  assert.match(page,/ClassifiedReportControl/);
+  assert.match(page,/setClassifiedUserBlock/);
+  assert.match(page,/isBlocked\|\|!messageDraft\.trim\(\)/);
+  assert.match(page,/reviewClassifiedReport/);
+  assert.match(control,/submitClassifiedReport/);
+  assert.match(repo,/\.rpc\('review_classified_report'/);
+  assert.match(repo,/\.from\('classified_user_blocks'\)/);
+  assert.match(sql,/SECURITY DEFINER SET search_path=''/);
+  assert.match(sql,/v_reporter=v_actor/);
+  assert.match(sql,/state='action_taken'/);
+});
