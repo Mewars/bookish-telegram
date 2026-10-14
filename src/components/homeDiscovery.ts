@@ -61,7 +61,7 @@ export function hasDeclaredScheduleToday(hours: string | undefined, day: number)
   // separately (for example "понедельник — выходной") is an opening day.
   if (hasRanges) return false;
   // Explicit single weekdays are valid too.
-  const dayWords = value.match(new RegExp(`\\b(?:пн|вт|ср|чт|пт|сб|вс)\\b`, 'g')) ?? [];
+  const dayWords: string[] = value.match(new RegExp(`\\b(?:пн|вт|ср|чт|пт|сб|вс)\\b`, 'g')) ?? [];
   if (dayWords.includes(SHORT_DAYS[day])) return true;
   return WEEKDAYS.some((name,index) => index === day && value.includes(name));
 }
