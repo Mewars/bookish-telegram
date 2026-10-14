@@ -1,3 +1,4 @@
+/* global process, fetch, AbortSignal, console, document, window */
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
