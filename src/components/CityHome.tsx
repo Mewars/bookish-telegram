@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Item, Section } from '../types';
 import { Card, type CardActions } from './Card';
 import { HomeCarousel } from './HomeCarousel';
-import { editorialPicks, isCulturalPlace, isFoodVenue, isService, isShop, isTodayRecommendation, weekdayInCity } from './homeDiscovery';
+import { editorialPicks, isCulturalPlace, isFoodDestination, isFoodVenue, isService, isShop, isTodayRecommendation, weekdayInCity } from './homeDiscovery';
 import { Search } from './Search';
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icon';
@@ -18,7 +18,7 @@ const homeBackdropEnabled = import.meta.env.VITE_HOME_BACKDROP_ENABLED !== 'fals
 function homeShortcuts(today: number): { label: string; icon: IconName; matches: (item: Item) => boolean }[] {
   return [
     { label: 'Сегодня', icon: 'events', matches: item => isTodayRecommendation(item, today) },
-    { label: 'Поесть', icon: 'places', matches: isFoodVenue },
+    { label: 'Поесть', icon: 'places', matches: isFoodDestination },
     { label: 'Культура', icon: 'star', matches: isCulturalPlace },
     { label: 'Магазины', icon: 'shop', matches: isShop },
     { label: 'Услуги', icon: 'services', matches: isService },
