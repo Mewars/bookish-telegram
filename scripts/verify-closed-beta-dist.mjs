@@ -1,8 +1,9 @@
 /* global process, console */
 import assert from 'node:assert/strict';
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { validateClosedBetaEnvironment } from './closed-beta-env.mjs';
+import { auditClosedBetaAssetTree } from './audit-closed-beta-assets.mjs';
 
 validateClosedBetaEnvironment(process.env);
 const root = 'dist';
@@ -15,11 +16,7 @@ assert.doesNotMatch(html, /metrika-noscript-start/);
 assert.doesNotMatch(html, /VITE_SUPABASE_PUBLISHABLE_KEY/);
 assert.doesNotMatch(html, /cptbmepnbzogqkfhflsg/);
 
-const files = (await readdir(join(root, 'assets'))).filter(file => file.endsWith('.js'));
-assert(files.length, 'No compiled JavaScript assets');
-const compiled = (await Promise.all(files.map(file => readFile(join(root, 'assets', file), 'utf8')))).join('\n');
-assert(compiled.includes('djqhixvlfsbvannoqdjw.supabase.co'), 'Test Supabase URL missing from bundle');
-assert(!compiled.includes('cptbmepnbzogqkfhflsg.supabase.co'), 'Production Supabase URL embedded in beta bundle');
+const result = await auditClosedBetaAssetTree(root);
 await writeFile(join(root, 'robots.txt'), 'User-agent: *\nDisallow: /\n', 'utf8');
 assert.equal(await readFile(join(root, 'robots.txt'), 'utf8'), 'User-agent: *\nDisallow: /\n');
-console.log('Verified beta artifact: test backend, noindex, no canonical, robots disallow, no production Supabase URL.');
+console.log('Verified beta artifact: test backend, noindex, robots disallow, ' + result.scannedFiles + ' text assets scanned.');
