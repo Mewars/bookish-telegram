@@ -59,6 +59,16 @@ export async function createCommunityPost(client:SupabaseClient|null,city:string
   });
   ensure(error);
 }
+export async function updateCommunityDraft(client:SupabaseClient|null,id:string,authorId:string,title:string,body:string):Promise<void>{
+  const invalid=validatePost(title,body);
+  if(invalid)throw Error(invalid);
+  const {data,error}=await clientOrThrow(client).from('community_posts')
+    .update({title:title.trim(),body:body.trim()})
+    .eq('id',id).eq('author_id',authorId)
+    .in('status',['draft','rejected']).select('id').maybeSingle();
+  ensure(error);
+  if(!data)throw Error('Черновик нельзя изменить после отправки на проверку.');
+}
 export async function submitCommunityPost(client:SupabaseClient|null,id:string,authorId:string):Promise<void>{
   const {data,error}=await clientOrThrow(client).from('community_posts').update({status:'pending'})
     .eq('id',id).eq('author_id',authorId).in('status',['draft','rejected']).select('id').maybeSingle();
