@@ -49,7 +49,7 @@ ALTER TABLE public.community_comments FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON public.community_posts,public.community_comments FROM PUBLIC,anon,authenticated;
 GRANT SELECT (id,city,author_id,post_type,title,body,status,created_at,updated_at)
   ON public.community_posts TO anon,authenticated;
-GRANT INSERT (city,post_type,title,body) ON public.community_posts TO authenticated;
+-- Browser inserts are deliberately disabled. New drafts use the rate-limited RPC.
 GRANT UPDATE (title,body,status) ON public.community_posts TO authenticated;
 GRANT SELECT (id,post_id,author_id,body,status,created_at)
   ON public.community_comments TO anon,authenticated;
@@ -96,6 +96,32 @@ FOR SELECT TO authenticated USING (
       WHERE p.id=post_id AND p.status='published'
   )
 );
+
+-- Create resident drafts only through a server-side, rate-limited action.
+-- Derive the actor from the authenticated JWT, not a caller-supplied UUID.
+CREATE FUNCTION public.create_community_post(
+  p_city text,p_type text,p_title text,p_body text
+) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $
+DECLARE v_user uuid:=auth.uid(); v_id uuid;
+BEGIN
+  IF v_user IS NULL OR p_type NOT IN ('post','question')
+    OR p_city IS NULL OR p_title IS NULL OR p_body IS NULL
+    OR length(btrim(p_title)) NOT BETWEEN 5 AND 160
+    OR length(btrim(p_body)) NOT BETWEEN 10 AND 5000
+    OR NOT EXISTS(SELECT 1 FROM public.city_directory c WHERE c.name=p_city AND c.active)
+  THEN RAISE EXCEPTION 'Invalid community post' USING ERRCODE='42501'; END IF;
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_user::text,84));
+  IF (SELECT count(*) FROM public.community_posts
+     WHERE author_id=v_user AND created_at>now()-interval '1 day')>=10
+  THEN RAISE EXCEPTION 'Daily post limit reached' USING ERRCODE='42501'; END IF;
+  INSERT INTO public.community_posts(city,author_id,post_type,title,body,status)
+    VALUES(p_city,v_user,p_type,btrim(p_title),btrim(p_body),'draft')
+    RETURNING id INTO v_id;
+  RETURN v_id;
+END;
+$;
+REVOKE ALL ON FUNCTION public.create_community_post(text,text,text,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.create_community_post(text,text,text,text) TO authenticated;
 
 -- A separate staff account must review user posts; authors cannot approve themselves.
 CREATE FUNCTION public.review_community_post(p_id uuid,p_approve boolean)
