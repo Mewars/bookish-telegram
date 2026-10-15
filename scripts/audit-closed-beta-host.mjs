@@ -1,4 +1,4 @@
-/* global process, console, fetch, AbortSignal */
+/* global process, console, fetch, AbortSignal, URL */
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 
