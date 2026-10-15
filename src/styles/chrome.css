@@ -43,7 +43,7 @@
 .vk-link { display: flex; align-items: center; gap: 10px; font-size: 12px; line-height: 1.6; text-decoration: none; }
 .vk-link img { border-radius: 6px; }
 .web-footer-note { grid-column: 1/-1; display: flex; justify-content: space-between; gap: 20px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 10px; color: var(--muted); line-height: 1.8; }
-.footer-admin-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 7px 11px; margin: -7px -11px; border: 1px solid transparent; border-radius: 9px; color: var(--muted); font-size: 11px; line-height: 1.5; white-space: nowrap; transition: color .15s ease, border-color .15s ease, background-color .15s ease; }
+.footer-admin-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 7px 11px; margin: 0; border: 1px solid transparent; border-radius: 9px; color: var(--muted); font-size: 11px; line-height: 1.5; white-space: nowrap; transition: color .15s ease, border-color .15s ease, background-color .15s ease; }
 .footer-admin-link:hover { color: var(--text); border-color: var(--line); background: var(--surface); }
 .footer-admin-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .compact-app .web-footer { padding-bottom: calc(82px + var(--music-safe-bottom, env(safe-area-inset-bottom))); }
