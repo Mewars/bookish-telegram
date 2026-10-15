@@ -36,6 +36,11 @@ test('community city feed enforces author, moderation, news provenance and comme
       await assert.rejects(db.query("UPDATE public.community_posts SET author_id=$1 WHERE id=$2",[editor,postId]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.community_posts SET post_type='news' WHERE id=$1",[postId]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.community_posts SET status='published' WHERE id=$1",[postId]),/row-level security/);
+      const edited=await db.query("UPDATE public.community_posts SET title='Где отремонтировать велосипед?' WHERE id=$1 RETURNING title",[postId]);
+      assert.equal(edited.rows[0].title,'Где отремонтировать велосипед?');
+      await switchTo('authenticated',commenter);
+      assert.equal((await db.query("UPDATE public.community_posts SET title='Чужая правка' WHERE id=$1 RETURNING id",[postId])).rows.length,0);
+      await switchTo('authenticated',resident);
       await db.query("UPDATE public.community_posts SET status='pending' WHERE id=$1",[postId]);
       assert.equal((await db.query("UPDATE public.community_posts SET title='Тихая замена' WHERE id=$1 RETURNING id",[postId])).rows.length,0);
       await assert.rejects(db.query("SELECT public.review_community_post($1,true)",[postId]),/Not authorized/);
