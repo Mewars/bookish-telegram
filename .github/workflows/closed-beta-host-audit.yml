@@ -1,0 +1,60 @@
+name: Closed Beta Host Security Audit (manual, never deploy)
+
+on:
+  pull_request:
+    branches: [mewars]
+    paths:
+      - '.github/workflows/closed-beta-host-audit.yml'
+      - 'scripts/audit-closed-beta-host.mjs'
+      - 'tests/closed-beta-host-audit.test.mjs'
+      - 'docs/operations/closed-beta-host-audit.md'
+  workflow_dispatch:
+    inputs:
+      beta_origin:
+        description: 'Dedicated HTTPS beta subdomain origin, e.g. https://beta.ryadomcity.ru'
+        required: true
+        type: string
+      expected_sha:
+        description: 'Full 40-character commit SHA of the deployed closed beta package'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: node --test tests/closed-beta-host-audit.test.mjs
+
+  audit:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/mewars'
+    runs-on: ubuntu-latest
+    env:
+      RYADOM_BETA_ORIGIN: ${{ inputs.beta_origin }}
+      RYADOM_BETA_EXPECTED_SHA: ${{ inputs.expected_sha }}
+      RYADOM_BETA_BASIC_USER: ${{ secrets.RYADOM_BETA_BASIC_USER }}
+      RYADOM_BETA_BASIC_PASSWORD: ${{ secrets.RYADOM_BETA_BASIC_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/closed-beta-host-audit.test.mjs
+      - name: Assert isolated HTTPS beta host is protected before enabling real users
+        run: node scripts/audit-closed-beta-host.mjs
+      - name: Record scope of successful probe
+        if: success()
+        run: |
+          echo '### HTTPS beta host gate passed' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Verified unauthenticated refusals, basic-auth access, static assets, noindex/robots, cache-control and expected build SHA.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'This is NOT a Supabase RLS E2E, legal approval, email verification or release acceptance.' >> "$GITHUB_STEP_SUMMARY"
