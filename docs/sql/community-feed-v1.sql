@@ -101,7 +101,7 @@ FOR SELECT TO authenticated USING (
 -- Derive the actor from the authenticated JWT, not a caller-supplied UUID.
 CREATE FUNCTION public.create_community_post(
   p_city text,p_type text,p_title text,p_body text
-) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $
+) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE v_user uuid:=auth.uid(); v_id uuid;
 BEGIN
   IF v_user IS NULL OR p_type NOT IN ('post','question')
@@ -119,7 +119,7 @@ BEGIN
     RETURNING id INTO v_id;
   RETURN v_id;
 END;
-$;
+$$;
 REVOKE ALL ON FUNCTION public.create_community_post(text,text,text,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.create_community_post(text,text,text,text) TO authenticated;
 
