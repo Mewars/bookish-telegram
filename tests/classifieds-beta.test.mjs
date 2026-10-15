@@ -22,7 +22,8 @@ test('beta is never displayed to production Supabase or public navigation',async
     readFile('docs/sql/classifieds-private-messaging-v1.sql','utf8'),
   ]);
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
-  assert.match(app,/VITE_SUPABASE_URL\?\.includes\('djqhixvlfsbvannoqdjw'\)/);
+  assert.match(app,/isRyadomTestBackend\\(import\\.meta\\.env\\.VITE_SUPABASE_URL\\)/);
+  assert.doesNotMatch(app,/VITE_SUPABASE_URL\\?\\.includes\\(/);
   assert.match(app,/section === 'classifieds' \? classifiedsBeta/);
   assert.match(route,/'classifieds'/);
   assert.match(types,/'classifieds'/);
