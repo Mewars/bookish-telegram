@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import {
   createDraft,dealLabels,getBlockedClassifiedUsers,getConversations,getMessages,getMine,getOpenClassifiedReports,getPending,
   getPublished,markComplete,mayReview,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
-  submitForReview,updateClassifiedDraft,validateDraft,
+  submitForReview,updateClassifiedDraft,validateDraft,CLASSIFIED_MESSAGE_PAGE_SIZE,
 } from './repository';
 import type { ChatMessage,Classified,ClassifiedReport,Conversation,DealType,Draft } from './repository';
 import { ClassifiedReportControl } from './ClassifiedReportControl';
@@ -50,6 +50,8 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const [loadedView,setLoadedView]=useState('');
   const [loadFailedKey,setLoadFailedKey]=useState('');
   const [messagesFor,setMessagesFor]=useState<string|null>(null);
+  const [messageLoadedKey,setMessageLoadedKey]=useState('');
+  const [messageFailedKey,setMessageFailedKey]=useState('');
   const [notice,setNotice]=useState('');
   const [canReview,setCanReview]=useState(false);
   useEffect(()=>{
@@ -100,9 +102,19 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   },[city,userId,tab,canReview,reload,viewKey]);
   useEffect(()=>{
     let active=true;
-    if(!threadId)return;
-    getMessages(supabase,threadId).then(rows=>{if(active){setMessages(rows);setMessagesFor(threadId);}})
-      .catch(reason=>{if(active)setNotice(errorText(reason));});
+    if(!threadId)return ()=>{active=false;};
+    const requestKey=JSON.stringify([threadId,reload]);
+    void getMessages(supabase,threadId)
+      .then(rows=>{
+        if(active){setMessages(rows);setMessagesFor(threadId);setMessageFailedKey('');}
+      })
+      .catch(reason=>{
+        if(active){
+          setMessages([]);setMessagesFor(null);setMessageFailedKey(requestKey);
+          setNotice(errorText(reason));
+        }
+      })
+      .finally(()=>{if(active)setMessageLoadedKey(requestKey);});
     return ()=>{active=false;};
   },[threadId,reload]);
   const execute=async(action:()=>Promise<void>,after?:()=>void)=>{
@@ -137,7 +149,10 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const activeThread=loading||loadFailedKey===viewKey?undefined:threads.find(x=>x.id===threadId);
   const otherParticipant=activeThread ? activeThread.buyer_id===userId?activeThread.seller_id:activeThread.buyer_id : null;
   const isBlocked=otherParticipant ? blockedUsers.includes(otherParticipant) : false;
-  const currentMessages=messagesFor===threadId?messages:[];
+  const messageRequestKey=JSON.stringify([threadId,reload]);
+  const messageLoading=Boolean(threadId)&&messageLoadedKey!==messageRequestKey;
+  const messageLoadFailed=Boolean(threadId)&&messageFailedKey===messageRequestKey;
+  const currentMessages=messagesFor===threadId&&!messageLoading&&!messageLoadFailed?messages:[];
   return <section className="classifieds-page">
     <header className="classifieds-hero">
       <span className="classifieds-eyebrow">РЯДОМ · ТЕСТОВАЯ ВЕРСИЯ</span>
@@ -281,12 +296,17 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
               ()=>setClassifiedUserBlock(supabase,userId,otherParticipant,!isBlocked)
             )}>{isBlocked?'Разблокировать собеседника':'Заблокировать собеседника'}</button>
           </div>}
-          <div className="classifieds-chat-stream">
-            {currentMessages.length===0?<p>Напишите первое сообщение.</p>:currentMessages.map(m=>
-              <div className={m.sender_id===userId?'classifieds-message self':'classifieds-message'} key={m.id}>
-                <span>{m.body}</span><small>{new Date(m.created_at).toLocaleString('ru-RU')}</small>
-              </div>)}
+          <div className="classifieds-chat-stream" aria-live="polite">
+            {messageLoading?<p role="status">Загружаем сообщения…</p>
+              :messageLoadFailed?<p role="alert">Не удалось загрузить сообщения. Попробуйте обновить переписку.</p>
+              :currentMessages.length===0?<p>Напишите первое сообщение.</p>
+              :currentMessages.map(m=>
+                <div className={m.sender_id===userId?'classifieds-message self':'classifieds-message'} key={m.id}>
+                  <span>{m.body}</span><small>{new Date(m.created_at).toLocaleString('ru-RU')}</small>
+                </div>)}
           </div>
+          {!messageLoading&&!messageLoadFailed&&currentMessages.length===CLASSIFIED_MESSAGE_PAGE_SIZE&&
+            <small className="classifieds-note">Показаны последние 100 сообщений. Более ранние пока не загружаются.</small>}
           <form className="classifieds-chat-compose" onSubmit={e=>{
             e.preventDefault();const text=messageDraft;
             void execute(()=>sendMessage(supabase,activeThread.id,text),()=>setMessageDraft(''));
@@ -294,7 +314,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
             <label htmlFor="classifieds-message-body" className="sr-only">Сообщение</label>
             <textarea id="classifieds-message-body" rows={2} maxLength={2000} value={messageDraft}
               onChange={e=>setMessageDraft(e.target.value)} placeholder="Написать сообщение…"/>
-            <button className="classifieds-main-action" type="submit" disabled={busy||isBlocked||!messageDraft.trim()}>Отправить</button>
+            <button className="classifieds-main-action" type="submit" disabled={busy||isBlocked||messageLoading||messageLoadFailed||!messageDraft.trim()}>Отправить</button>
           </form>
           <button className="classifieds-refresh" onClick={()=>setReload(v=>v+1)}>Обновить сообщения</button>
         </>:<p>Выберите диалог слева или начните новую переписку из объявления.</p>}
