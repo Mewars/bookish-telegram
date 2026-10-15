@@ -109,15 +109,35 @@ export async function openConversation(client:SupabaseClient|null,listingId:stri
   return data;
 }
 export const CLASSIFIED_MESSAGE_PAGE_SIZE=100;
+export type MessageCursor=Pick<ChatMessage,'created_at'|'id'>;
+const messageUuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const messageTimestampPattern=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 export async function getMessages(client:SupabaseClient|null,threadId:string):Promise<ChatMessage[]> {
-  // Fetch the newest messages first; fetching ASC with LIMIT 100 leaves active
-  // conversations stuck displaying only their oldest messages.
+  // Latest window first; reverse only after fetching for chronological display.
   const {data,error}=await db(client).from('classified_messages').select(MESSAGE_FIELDS)
     .eq('conversation_id',threadId)
     .order('created_at',{ascending:false}).order('id',{ascending:false})
     .limit(CLASSIFIED_MESSAGE_PAGE_SIZE);
   check(error);
-  // Display the selected latest window in normal chronological order.
+  return ((data??[]) as ChatMessage[]).slice().reverse();
+}
+export async function getOlderMessages(
+  client:SupabaseClient|null,threadId:string,before:MessageCursor,
+):Promise<ChatMessage[]> {
+  // Prevent a malformed cursor from injecting PostgREST OR filter syntax.
+  if(!messageUuidPattern.test(before.id)||!messageTimestampPattern.test(before.created_at) ||
+      !Number.isFinite(Date.parse(before.created_at)))
+    throw Error('Некорректный указатель истории сообщений.');
+  // Keyset pagination: no duplicates/skipped rows when timestamps are equal,
+  // and newly arrived messages do not shift older pages.
+  const cursorFilter='created_at.lt.'+before.created_at+
+    ',and(created_at.eq.'+before.created_at+',id.lt.'+before.id+')';
+  const {data,error}=await db(client).from('classified_messages').select(MESSAGE_FIELDS)
+    .eq('conversation_id',threadId)
+    .or(cursorFilter)
+    .order('created_at',{ascending:false}).order('id',{ascending:false})
+    .limit(CLASSIFIED_MESSAGE_PAGE_SIZE);
+  check(error);
   return ((data??[]) as ChatMessage[]).slice().reverse();
 }
 export async function sendMessage(client:SupabaseClient|null,threadId:string,body:string):Promise<void> {
