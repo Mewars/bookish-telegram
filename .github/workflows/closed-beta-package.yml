@@ -11,7 +11,9 @@ on:
       - 'scripts/closed-beta-env.mjs'
       - 'scripts/check-closed-beta-env.mjs'
       - 'scripts/verify-closed-beta-dist.mjs'
+      - 'scripts/audit-closed-beta-assets.mjs'
       - 'tests/closed-beta-config.test.mjs'
+      - 'tests/closed-beta-assets.test.mjs'
   workflow_dispatch:
 
 permissions:
