@@ -115,6 +115,13 @@ try {
         assert(await vk.isVisible(), 'Owner VK contact link missing');
         result.checks.push('Owner contacts page and VK link');
         await page.screenshot({ path: `${folder}/${scenario.name}-contacts.png`, fullPage: true, animations: 'disabled' });
+        // Unreviewed community and classified beta must never open against
+        // production Supabase, even if someone guesses the hash URL.
+        await page.goto(`${base}/#/community`, { waitUntil: 'domcontentloaded' });
+        await page.getByRole('heading', { name: 'Городская лента готовится' }).waitFor();
+        await page.goto(`${base}/#/classifieds`, { waitUntil: 'domcontentloaded' });
+        await page.getByRole('heading', { name: 'Объявления готовятся' }).waitFor();
+        result.checks.push('Classified and community betas remain disabled in production');
       }
     } catch (error) {
       failed = true;
