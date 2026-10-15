@@ -50,5 +50,5 @@ test('moderation UI shows parent context and hides self-review buttons',async()=
   assert.match(page,/Собственный комментарий должен проверить другой редактор/);
   assert.match(sql,/v_author=v_user/);
   assert.match(app,/VITE_COMMUNITY_ENABLED === 'true'/);
-  assert.match(app,/djqhixvlfsbvannoqdjw/);
+  assert.match(app,/isRyadomTestBackend/);
 });
