@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import {
-  createDraft,dealLabels,getBlockedClassifiedUsers,getConversations,getMessages,getMine,getOpenClassifiedReports,getPending,
+  createDraft,dealLabels,getBlockedClassifiedUsers,getConversations,getMessages,getOlderMessages,getMine,getOpenClassifiedReports,getPending,
   getPublished,markComplete,mayReview,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
   submitForReview,updateClassifiedDraft,validateDraft,CLASSIFIED_MESSAGE_PAGE_SIZE,
 } from './repository';
@@ -52,6 +52,10 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const [messagesFor,setMessagesFor]=useState<string|null>(null);
   const [messageLoadedKey,setMessageLoadedKey]=useState('');
   const [messageFailedKey,setMessageFailedKey]=useState('');
+  const [hasOlderMessages,setHasOlderMessages]=useState(false);
+  const [olderMessagesBusy,setOlderMessagesBusy]=useState(false);
+  const [olderMessagesError,setOlderMessagesError]=useState('');
+  const historyGeneration=useRef(0);
   const [notice,setNotice]=useState('');
   const [canReview,setCanReview]=useState(false);
   useEffect(()=>{
@@ -102,21 +106,52 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   },[city,userId,tab,canReview,reload,viewKey]);
   useEffect(()=>{
     let active=true;
+    const generation=++historyGeneration.current;
     if(!threadId)return ()=>{active=false;};
     const requestKey=JSON.stringify([threadId,reload]);
     void getMessages(supabase,threadId)
       .then(rows=>{
-        if(active){setMessages(rows);setMessagesFor(threadId);setMessageFailedKey('');}
+        if(active&&historyGeneration.current===generation){
+          setMessages(rows);setMessagesFor(threadId);setMessageFailedKey('');
+          setHasOlderMessages(rows.length===CLASSIFIED_MESSAGE_PAGE_SIZE);
+          setOlderMessagesBusy(false);setOlderMessagesError('');
+        }
       })
       .catch(reason=>{
-        if(active){
+        if(active&&historyGeneration.current===generation){
           setMessages([]);setMessagesFor(null);setMessageFailedKey(requestKey);
+          setHasOlderMessages(false);setOlderMessagesBusy(false);setOlderMessagesError('');
           setNotice(errorText(reason));
         }
       })
-      .finally(()=>{if(active)setMessageLoadedKey(requestKey);});
+      .finally(()=>{
+        if(active&&historyGeneration.current===generation)setMessageLoadedKey(requestKey);
+      });
     return ()=>{active=false;};
   },[threadId,reload]);
+  const loadOlderMessages=()=>{
+    if(!threadId||olderMessagesBusy||messageLoading||messageLoadFailed||
+        !hasOlderMessages||messagesFor!==threadId||messages.length===0)return;
+    const oldest=messages[0];
+    const generation=historyGeneration.current;
+    setOlderMessagesBusy(true);setOlderMessagesError('');
+    void getOlderMessages(supabase,threadId,oldest)
+      .then(older=>{
+        if(historyGeneration.current!==generation)return;
+        setMessages(current=>{
+          if(current[0]?.id!==oldest.id)return current;
+          const knownIds=new Set(current.map(message=>message.id));
+          return [...older.filter(message=>!knownIds.has(message.id)),...current];
+        });
+        setHasOlderMessages(older.length===CLASSIFIED_MESSAGE_PAGE_SIZE);
+      })
+      .catch(reason=>{
+        if(historyGeneration.current===generation)setOlderMessagesError(errorText(reason));
+      })
+      .finally(()=>{
+        if(historyGeneration.current===generation)setOlderMessagesBusy(false);
+      });
+  };
   const execute=async(action:()=>Promise<void>,after?:()=>void)=>{
     if(busy)return;
     setBusy(true);setNotice('');
@@ -305,8 +340,14 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
                   <span>{m.body}</span><small>{new Date(m.created_at).toLocaleString('ru-RU')}</small>
                 </div>)}
           </div>
-          {!messageLoading&&!messageLoadFailed&&currentMessages.length===CLASSIFIED_MESSAGE_PAGE_SIZE&&
-            <small className="classifieds-note">Показаны последние 100 сообщений. Более ранние пока не загружаются.</small>}
+          {!messageLoading&&!messageLoadFailed&&hasOlderMessages&&currentMessages.length>0&&
+            <div className="classifieds-chat-history">
+              <button type="button" className="classifieds-refresh" disabled={olderMessagesBusy}
+                onClick={loadOlderMessages}>
+                {olderMessagesBusy?'Загружаем предыдущие сообщения…':'Показать предыдущие сообщения'}
+              </button>
+              {olderMessagesError&&<p role="alert">{olderMessagesError}</p>}
+            </div>}
           <form className="classifieds-chat-compose" onSubmit={e=>{
             e.preventDefault();const text=messageDraft;
             void execute(()=>sendMessage(supabase,activeThread.id,text),()=>setMessageDraft(''));
