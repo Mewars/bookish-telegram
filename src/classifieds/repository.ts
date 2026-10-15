@@ -44,8 +44,9 @@ export async function getPublished(client:SupabaseClient|null,city:string):Promi
     .in('status',['published','completed']).order('created_at',{ascending:false}).limit(100);
   check(error); return (data??[]) as Classified[];
 }
-export async function getMine(client:SupabaseClient|null,userId:string):Promise<Classified[]> {
-  const {data,error}=await db(client).from('classifieds').select(FIELDS).eq('author_id',userId)
+export async function getMine(client:SupabaseClient|null,userId:string,city:string):Promise<Classified[]> {
+  const {data,error}=await db(client).from('classifieds').select(FIELDS)
+    .eq('author_id',userId).eq('city',city)
     .order('created_at',{ascending:false}).limit(100);
   check(error); return (data??[]) as Classified[];
 }

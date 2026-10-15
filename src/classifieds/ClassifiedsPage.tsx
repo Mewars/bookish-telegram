@@ -81,7 +81,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
         if(active)setItems(result);
       } else if(tab==='mine') {
         if(!userId){if(active)setItems([]);return;}
-        const result=await getMine(supabase,userId);
+        const result=await getMine(supabase,userId,city);
         if(active)setItems(result);
       } else if(tab==='moderate') {
         if(!canReview){if(active)setItems([]);return;}
