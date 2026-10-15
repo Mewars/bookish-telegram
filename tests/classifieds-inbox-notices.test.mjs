@@ -35,5 +35,5 @@ test('inbox poll is active only in visible authenticated inbox, no browser promp
   assert.doesNotMatch(page,/Notification\.requestPermission|new Notification\(/);
   assert.match(css,/\.classifieds-inbox-notice/);
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
-  assert.match(app,/djqhixvlfsbvannoqdjw/);
+  assert.match(app,/isRyadomTestBackend/);
 });
