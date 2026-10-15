@@ -23,6 +23,7 @@ test('community city feed enforces author, moderation, news provenance and comme
     await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'Енисейск','editor'),($2,'Лесосибирск','editor'),($3,'*','owner')",[editor,otherCityEditor,owner]);
     const ddl=await readFile('docs/sql/community-feed-v1.sql','utf8');
     await db.exec(ddl);
+    await db.exec(await readFile('docs/sql/community-post-archive-v1.sql','utf8'));
     let postId,commentId;
 
     await t.test('resident drafts, publication cannot be self-approved or spoofed as news',async()=>{
@@ -121,6 +122,45 @@ test('community city feed enforces author, moderation, news provenance and comme
       await assert.rejects(db.query("SELECT public.submit_community_comment($1,'Дополнительное сообщение')",[postId]),/Too many comments/);
       await switchTo('authenticated',owner);
       await db.query("SELECT public.submit_community_comment($1,'У другого пользователя собственный лимит')",[postId]);
+    });
+    await t.test('author withdrawal hides approved posts and comments, without deleting records',async()=>{
+      await switchTo('authenticated',commenter);
+      const toArchive=(await db.query(
+        "SELECT public.create_community_post('Енисейск','post','Публикация для отзыва','Автор может отозвать свою запись из городской ленты') AS id"
+      )).rows[0].id;
+      await db.query("UPDATE public.community_posts SET status='pending' WHERE id=$1",[toArchive]);
+      await switchTo('authenticated',editor);
+      await db.query('SELECT public.review_community_post($1,true)',[toArchive]);
+      await switchTo('authenticated',owner);
+      const reply=(await db.query(
+        "SELECT public.submit_community_comment($1,'Комментарий к отзываемой публикации') AS id",[toArchive]
+      )).rows[0].id;
+      await switchTo('authenticated',editor);
+      await db.query('SELECT public.review_community_comment($1,true)',[reply]);
+      await switchTo('anon');
+      assert.equal((await db.query('SELECT id FROM public.community_posts WHERE id=$1',[toArchive])).rows.length,1);
+      assert.equal((await db.query('SELECT id FROM public.community_comments WHERE id=$1',[reply])).rows.length,1);
+      await assert.rejects(db.query('SELECT public.archive_community_post($1)',[toArchive]),/permission denied/);
+      await switchTo('authenticated',resident);
+      await assert.rejects(db.query('SELECT public.archive_community_post($1)',[toArchive]),/unavailable for withdrawal/);
+      await switchTo('authenticated',editor);
+      await assert.rejects(db.query('SELECT public.archive_community_post($1)',[toArchive]),/unavailable for withdrawal/);
+      const newsId=(await db.query("SELECT id FROM public.community_posts WHERE post_type='news' LIMIT 1")).rows[0].id;
+      await assert.rejects(db.query('SELECT public.archive_community_post($1)',[newsId]),/unavailable for withdrawal/);
+      await switchTo('authenticated',commenter);
+      await db.query('SELECT public.archive_community_post($1)',[toArchive]);
+      assert.equal((await db.query('SELECT status FROM public.community_posts WHERE id=$1',[toArchive])).rows[0].status,'archived');
+      await assert.rejects(db.query('SELECT public.archive_community_post($1)',[toArchive]),/unavailable for withdrawal/);
+      await assert.rejects(db.query("SELECT public.submit_community_comment($1,'Новый комментарий')",[toArchive]),/unavailable/);
+      await switchTo('anon');
+      assert.equal((await db.query('SELECT id FROM public.community_posts WHERE id=$1',[toArchive])).rows.length,0);
+      assert.equal((await db.query('SELECT id FROM public.community_comments WHERE id=$1',[reply])).rows.length,0);
+      await switchTo('authenticated',owner);
+      assert.equal((await db.query('SELECT id FROM public.community_comments WHERE id=$1',[reply])).rows.length,1,
+        'author can still access their own comment under existing RLS');
+      assert.equal((await db.query('SELECT id FROM public.community_posts WHERE id=$1',[toArchive])).rows.length,0);
+      await switchTo('authenticated',commenter);
+      assert.equal((await db.query('SELECT status FROM public.community_posts WHERE id=$1',[toArchive])).rows[0].status,'archived');
     });
   }finally{await db.close();}
 });
