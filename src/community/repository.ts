@@ -63,7 +63,7 @@ export async function updateCommunityDraft(client:SupabaseClient|null,id:string,
   const invalid=validatePost(title,body);
   if(invalid)throw Error(invalid);
   const {data,error}=await clientOrThrow(client).from('community_posts')
-    .update({title:title.trim(),body:body.trim()})
+    .update({title:title.trim(),body:body.trim(),status:'draft'})
     .eq('id',id).eq('author_id',authorId)
     .in('status',['draft','rejected']).select('id').maybeSingle();
   ensure(error);
