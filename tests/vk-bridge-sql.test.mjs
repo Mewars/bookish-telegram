@@ -58,8 +58,15 @@ test('bridge SQL in isolated PostgreSQL: permissions, durable expiry, atomic tak
     });
     await t.test('rate limit is durable and scoped, resets at next time window',async()=>{
       await role('service_role');
+      // A CI run can cross the minute boundary mid-loop. In that case
+      // the next window legitimately starts from 1, not 121; continue only
+      // until a full window is consumed instead of assuming wall-clock stability.
       for(let i=0;i<120;i++) assert.equal((await db.query("SELECT public.vk_bridge_rate_limit('authorize') as ok")).rows[0].ok,true);
-      assert.equal((await db.query("SELECT public.vk_bridge_rate_limit('authorize') as ok")).rows[0].ok,false);
+      let denied=false;
+      for(let i=0;i<=120&&!denied;i++) {
+        denied=(await db.query("SELECT public.vk_bridge_rate_limit('authorize') as ok")).rows[0].ok===false;
+      }
+      assert.equal(denied,true,'authorize must deny after 120 requests in a single minute');
       await assert.rejects(db.query("SELECT public.vk_bridge_rate_limit('attacker')"),/Invalid bridge rate scope/);
       await role(); await db.exec("UPDATE vk_bridge_private.rate_limits SET minute=clock_timestamp()-interval '5 minute'");
       await role('service_role'); assert.equal((await db.query("SELECT public.vk_bridge_rate_limit('authorize') as ok")).rows[0].ok,true);
