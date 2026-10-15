@@ -108,10 +108,17 @@ export async function openConversation(client:SupabaseClient|null,listingId:stri
   if(typeof data!=='string') throw Error('Не удалось открыть переписку.');
   return data;
 }
+export const CLASSIFIED_MESSAGE_PAGE_SIZE=100;
 export async function getMessages(client:SupabaseClient|null,threadId:string):Promise<ChatMessage[]> {
+  // Fetch the newest messages first; fetching ASC with LIMIT 100 leaves active
+  // conversations stuck displaying only their oldest messages.
   const {data,error}=await db(client).from('classified_messages').select(MESSAGE_FIELDS)
-    .eq('conversation_id',threadId).order('created_at',{ascending:true}).limit(100);
-  check(error);return (data??[]) as ChatMessage[];
+    .eq('conversation_id',threadId)
+    .order('created_at',{ascending:false}).order('id',{ascending:false})
+    .limit(CLASSIFIED_MESSAGE_PAGE_SIZE);
+  check(error);
+  // Display the selected latest window in normal chronological order.
+  return ((data??[]) as ChatMessage[]).slice().reverse();
 }
 export async function sendMessage(client:SupabaseClient|null,threadId:string,body:string):Promise<void> {
   if(body.trim().length<1 || body.trim().length>2000) throw Error('Сообщение должно быть от 1 до 2000 символов.');
