@@ -141,5 +141,37 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await switchTo('authenticated',buyer);
       assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'action_taken');
     });
+    await t.test('author may correct rejected drafts, but cannot edit pending or published listings',async()=>{
+      await switchTo('authenticated',seller);
+      const draftId=(await makeDraft('Енисейск')).rows[0].id;
+      const first=(await db.query(
+        "UPDATE public.classifieds SET title='Стол после правки',description='Письменный стол, небольшие царапины',price_rub=1900,category='Мебель',district='Центр' WHERE id=$1 RETURNING title,price_rub,status",
+        [draftId],
+      )).rows[0];
+      assert.equal(first.title,'Стол после правки');
+      assert.equal(Number(first.price_rub),1900);
+      assert.equal(first.status,'draft');
+      await assert.rejects(db.query("UPDATE public.classifieds SET city='Лесосибирск' WHERE id=$1",[draftId]),/permission denied/);
+      await switchTo('authenticated',buyer);
+      assert.equal((await db.query("UPDATE public.classifieds SET title='Чужое объявление' WHERE id=$1 RETURNING id",[draftId])).rows.length,0);
+      await switchTo('authenticated',seller);
+      await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[draftId]);
+      assert.equal((await db.query("UPDATE public.classifieds SET title='Правка после отправки' WHERE id=$1 RETURNING id",[draftId])).rows.length,0);
+      await switchTo('authenticated',editor);
+      await db.query("SELECT public.review_classified($1,false)",[draftId]);
+      await switchTo('authenticated',seller);
+      assert.equal((await db.query("SELECT status FROM public.classifieds WHERE id=$1",[draftId])).rows[0].status,'rejected');
+      const corrected=(await db.query(
+        "UPDATE public.classifieds SET title='Стол после замечаний',description='Исправленное описание письменного стола',status='draft' WHERE id=$1 RETURNING title,status",
+        [draftId],
+      )).rows[0];
+      assert.equal(corrected.title,'Стол после замечаний');
+      assert.equal(corrected.status,'draft');
+      await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[draftId]);
+      await switchTo('authenticated',editor);
+      await db.query("SELECT public.review_classified($1,true)",[draftId]);
+      await switchTo('authenticated',seller);
+      assert.equal((await db.query("UPDATE public.classifieds SET title='Обход после публикации' WHERE id=$1 RETURNING id",[draftId])).rows.length,0);
+    });
   } finally {await db.close();}
 });

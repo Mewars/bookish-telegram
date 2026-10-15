@@ -68,6 +68,19 @@ export async function createDraft(client:SupabaseClient|null,d:Draft):Promise<vo
   });
   check(error);
 }
+export async function updateClassifiedDraft(
+  client:SupabaseClient|null,id:string,userId:string,d:Draft,
+):Promise<void> {
+  const invalid=validateDraft(d);
+  if(invalid)throw Error(invalid);
+  const {data,error}=await db(client).from('classifieds').update({
+    title:d.title.trim(),description:d.description.trim(),category:d.category.trim(),
+    district:d.district.trim(),deal_type:d.deal_type,price_rub:d.price_rub,status:'draft',
+  }).eq('id',id).eq('author_id',userId)
+    .in('status',['draft','rejected']).select('id').maybeSingle();
+  check(error);
+  if(!data)throw Error('Черновик нельзя изменить после отправки на проверку.');
+}
 export async function submitForReview(client:SupabaseClient|null,id:string,userId:string):Promise<void> {
   const {data,error}=await db(client).from('classifieds').update({status:'pending'})
     .eq('id',id).eq('author_id',userId).in('status',['draft','rejected'])

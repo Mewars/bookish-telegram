@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import {
   createDraft,dealLabels,getBlockedClassifiedUsers,getConversations,getMessages,getMine,getOpenClassifiedReports,getPending,
   getPublished,markComplete,mayReview,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
-  submitForReview,validateDraft,
+  submitForReview,updateClassifiedDraft,validateDraft,
 } from './repository';
 import type { ChatMessage,Classified,ClassifiedReport,Conversation,DealType,Draft } from './repository';
 import { ClassifiedReportControl } from './ClassifiedReportControl';
@@ -42,6 +42,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const [threadId,setThreadId]=useState<string|null>(null);
   const [messageDraft,setMessageDraft]=useState('');
   const [composer,setComposer]=useState(false);
+  const [editingId,setEditingId]=useState<string|null>(null);
   const [draft,setDraft]=useState<Draft>(()=>newDraft(city));
   const [reload,setReload]=useState(0);
   const [busy,setBusy]=useState(false);
@@ -110,6 +111,19 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
       setTab('messages');
     });
   };
+  const startNewDraft=()=>{
+    setComposer(value=>!value);setEditingId(null);setDraft(newDraft(city));setNotice('');
+  };
+  const editListing=(entry:Classified)=>{
+    if(!userId||entry.author_id!==userId||!['draft','rejected'].includes(entry.status))return;
+    setEditingId(entry.id);
+    setDraft({
+      city:entry.city,title:entry.title,description:entry.description,
+      category:entry.category,deal_type:entry.deal_type,district:entry.district,
+      price_rub:entry.price_rub,
+    });
+    setComposer(true);setNotice('');
+  };
   const filtered=items.filter(entry=>(!deal||entry.deal_type===deal) &&
     (!search.trim()||(entry.title+' '+entry.description+' '+entry.category).toLocaleLowerCase('ru')
       .includes(search.trim().toLocaleLowerCase('ru'))));
@@ -142,7 +156,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
     </div>}
     {tab==='mine'&&userId&&<div className="classifieds-my-actions">
       <div><h2>Ваши объявления</h2><p>Сначала сохраняйте черновик, затем отправляйте его на проверку.</p></div>
-      <button className="classifieds-main-action" onClick={()=>setComposer(value=>!value)} aria-expanded={composer}>
+      <button className="classifieds-main-action" onClick={startNewDraft} aria-expanded={composer}>
         {composer?'Закрыть форму':'+ Подать объявление'}
       </button>
     </div>}
@@ -150,11 +164,16 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
       e.preventDefault();
       const error=validateDraft(draft);
       if(error){setNotice(error);return;}
-      void execute(()=>createDraft(supabase,draft),()=>{
-        setComposer(false);setDraft(newDraft(city));setNotice('Черновик сохранён. Теперь его можно отправить на проверку.');
+      const wasEditing=Boolean(editingId);
+      const save=editingId
+        ?()=>updateClassifiedDraft(supabase,editingId,userId,draft)
+        :()=>createDraft(supabase,draft);
+      void execute(save,()=>{
+        setComposer(false);setEditingId(null);setDraft(newDraft(city));
+        setNotice(wasEditing?'Исправления сохранены. Теперь отправьте объявление на проверку.':'Черновик сохранён. Теперь его можно отправить на проверку.');
       });
     }}>
-      <h3>Новое объявление</h3>
+      <h3>{editingId?'Редактирование объявления':'Новое объявление'}</h3>
       <div className="classifieds-form-grid">
         <label>Что хотите сделать?
           <select value={draft.deal_type} onChange={e=>setDraft(d=>({...d,deal_type:e.target.value as DealType}))}>
@@ -180,7 +199,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
         </label>
       </div>
       <p className="classifieds-note">После сохранения черновика можно добавить до 10 фотографий. Контактный телефон и точный адрес не публикуются автоматически.</p>
-      <button className="classifieds-main-action" disabled={busy} type="submit">Сохранить черновик</button>
+      <button className="classifieds-main-action" disabled={busy} type="submit">{editingId?'Сохранить исправления':'Сохранить черновик'}</button>
     </form>}
     {(tab==='browse'||tab==='mine'||tab==='moderate')&&
       (loading?<p className="classifieds-empty" role="status">Загружаем объявления…</p>:
@@ -205,6 +224,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
           {tab==='browse'&&entry.status==='completed'&&<small>Сделка завершена</small>}
           {tab==='mine'&&<div className="classifieds-card-actions">
             <small>Статус: {({draft:'Черновик',pending:'На проверке',published:'Опубликовано',rejected:'Отклонено',archived:'В архиве',completed:'Завершено'} as Record<string,string>)[entry.status]}</small>
+            {['draft','rejected'].includes(entry.status)&&<button disabled={busy} onClick={()=>editListing(entry)}>Изменить</button>}
             {['draft','rejected'].includes(entry.status)&&<button disabled={busy} onClick={()=>void execute(()=>submitForReview(supabase,entry.id,userId!))}>Отправить на проверку</button>}
             {entry.status==='published'&&<button disabled={busy} onClick={()=>void execute(()=>markComplete(supabase,entry.id))}>Продано / сдано</button>}
           </div>}
