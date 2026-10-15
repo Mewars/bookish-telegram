@@ -34,7 +34,7 @@ test('classified gallery RLS: slots, private drafts, public approvals',async t=>
    ].join(';\n')+';');
    for(const id of users)await db.query('INSERT INTO auth.users(id) VALUES ($1)',[id]);
    await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'Енисейск','editor'),($2,'Лесосибирск','editor')",[editor,foreignEditor]);
-   for(const file of ['classifieds-private-messaging-v1.sql','classifieds-editor-privacy-v2.sql','classified-photos-private-v1.sql'])
+   for(const file of ['classifieds-private-messaging-v1.sql','classifieds-editor-privacy-v2.sql','classified-photos-private-v1.sql','classified-reports-review-v1.sql'])
      await db.exec(await readFile('docs/sql/'+file,'utf8'));
    const bucket=(await db.query("SELECT public,file_size_limit,allowed_mime_types FROM storage.buckets WHERE id='ryadom-classified-photos'")).rows[0];
    assert.equal(bucket.public,false);assert.equal(bucket.file_size_limit,2097152);
@@ -80,6 +80,44 @@ test('classified gallery RLS: slots, private drafts, public approvals',async t=>
      await act('authenticated',seller);
      assert.equal((await db.query('DELETE FROM public.classified_photos WHERE listing_id=$1 RETURNING id',[listing])).rows.length,0);
      assert.equal((await db.query('DELETE FROM storage.objects WHERE name=$1 RETURNING name',[path])).rows.length,0);
+   });
+   await t.test('city report withdraws public photo access without deleting the owner album',async()=>{
+     // Synthetic accounts and storage metadata only; no real photos or signed URLs.
+     await act('authenticated',outsider);
+     const report=(await db.query(
+       "INSERT INTO public.classified_reports(listing_id,reason) VALUES ($1,'Фотография не соответствует описанию объявления') RETURNING id",
+       [listing],
+     )).rows[0].id;
+
+     await act('authenticated',foreignEditor);
+     await assert.rejects(db.query('SELECT public.review_classified_report($1,true)',[report]),/Not authorized/);
+     await act('authenticated',seller);
+     await assert.rejects(db.query('SELECT public.review_classified_report($1,true)',[report]),/Not authorized/);
+
+     await act('authenticated',editor);
+     await db.query('SELECT public.review_classified_report($1,true)',[report]);
+     assert.equal((await db.query('SELECT status FROM public.classifieds WHERE id=$1',[listing])).rows.length,0,
+       'The editor cannot read an archived listing through public or pending-only policies');
+
+     await act('anon');
+     assert.equal((await db.query('SELECT id FROM public.classified_photos WHERE listing_id=$1',[listing])).rows.length,0);
+     assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-classified-photos' AND name=$1",[path])).rows.length,0);
+
+     await act('authenticated',outsider);
+     assert.equal((await db.query('SELECT id FROM public.classified_photos WHERE listing_id=$1',[listing])).rows.length,0);
+     assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-classified-photos' AND name=$1",[path])).rows.length,0);
+     assert.equal((await db.query(
+       "DELETE FROM storage.objects WHERE bucket_id='ryadom-classified-photos' AND name=$1 RETURNING name",[path],
+     )).rows.length,0,'Another user cannot delete a hidden photo');
+
+     await act('authenticated',seller);
+     assert.equal((await db.query('SELECT status FROM public.classifieds WHERE id=$1',[listing])).rows[0].status,'archived');
+     assert.equal((await db.query('SELECT id FROM public.classified_photos WHERE listing_id=$1',[listing])).rows.length,1);
+     assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-classified-photos' AND name=$1",[path])).rows.length,1);
+     await assert.rejects(
+       db.query("INSERT INTO public.classified_photos(listing_id,slot,format) VALUES ($1,1,'webp')",[listing]),
+       /row-level security/,
+     );
    });
  }finally{await db.close();}
 });
