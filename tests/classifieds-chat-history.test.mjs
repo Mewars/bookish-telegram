@@ -65,5 +65,5 @@ test('chat UI distinguishes pending, failed and genuinely empty messages',async(
   assert.match(page,/hasOlderMessages&&currentMessages\.length>0/);
   assert.match(page,/Показать предыдущие сообщения/);
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
-  assert.match(app,/djqhixvlfsbvannoqdjw/);
+  assert.match(app,/isRyadomTestBackend/);
 });
