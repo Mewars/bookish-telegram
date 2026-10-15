@@ -76,6 +76,11 @@ export async function updateCommunityDraft(client:SupabaseClient|null,id:string,
   ensure(error);
   if(!data)throw Error('Черновик нельзя изменить после отправки на проверку.');
 }
+// Withdrawal is server-authorized; the caller cannot supply a different author.
+export async function archiveCommunityPost(client:SupabaseClient|null,id:string):Promise<void>{
+  const {error}=await clientOrThrow(client).rpc('archive_community_post',{p_id:id});
+  ensure(error);
+}
 export async function submitCommunityPost(client:SupabaseClient|null,id:string,authorId:string):Promise<void>{
   const {data,error}=await clientOrThrow(client).from('community_posts').update({status:'pending'})
     .eq('id',id).eq('author_id',authorId).in('status',['draft','rejected']).select('id').maybeSingle();
