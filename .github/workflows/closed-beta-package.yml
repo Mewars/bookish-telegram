@@ -1,0 +1,92 @@
+name: Closed Beta Package (not a deploy)
+
+on:
+  pull_request:
+    branches: [mewars]
+    paths:
+      - '.github/workflows/closed-beta-package.yml'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'src/**'
+      - 'scripts/closed-beta-env.mjs'
+      - 'scripts/check-closed-beta-env.mjs'
+      - 'scripts/verify-closed-beta-dist.mjs'
+      - 'tests/closed-beta-config.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      # Only for a CI test that is NOT uploaded or deployed; never a real project key.
+      CONTEXT: closed-beta
+      VITE_SUPABASE_URL: https://djqhixvlfsbvannoqdjw.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_nonfunctional_placeholder
+      VITE_CLASSIFIEDS_ENABLED: 'true'
+      VITE_COMMUNITY_ENABLED: 'true'
+      VITE_BETA_EMAIL_ONLY: 'true'
+      VITE_VK_ID_ENABLED: 'false'
+      VITE_ADMIN_PANEL_ENABLED: 'false'
+      VITE_CARD_PHOTOS_ENABLED: 'false'
+      VITE_CITY_DIRECTORY_ENABLED: 'false'
+      VITE_ORGANIZATIONS_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:beta-config
+      - run: npm run build:beta
+      # Intentionally do NOT publish or upload a package containing the placeholder key.
+
+  package:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/mewars'
+    runs-on: ubuntu-latest
+    env:
+      CONTEXT: closed-beta
+      VITE_SUPABASE_URL: https://djqhixvlfsbvannoqdjw.supabase.co
+      # Test PROJECT PUBLIC key only; must be configured separately.
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.RYADOM_TEST_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_CLASSIFIEDS_ENABLED: 'true'
+      VITE_COMMUNITY_ENABLED: 'true'
+      VITE_BETA_EMAIL_ONLY: 'true'
+      VITE_VK_ID_ENABLED: 'false'
+      VITE_ADMIN_PANEL_ENABLED: 'false'
+      VITE_CARD_PHOTOS_ENABLED: 'false'
+      VITE_CITY_DIRECTORY_ENABLED: 'false'
+      VITE_ORGANIZATIONS_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build:beta
+      - name: Archive isolated test build; never deploy automatically
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          zip -q -r ../ryadom-closed-beta.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ryadom-closed-beta
+          path: ryadom-closed-beta.zip
+          if-no-files-found: error
+          retention-days: 7
+      - name: Explain next step
+        shell: bash
+        run: |
+          echo '### Closed beta build prepared — NOT published' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Deploy only after configuring a separate, HTTPS-protected test host and verifying Supabase Auth email redirects and RLS.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Never upload this archive to ryadomcity.ru production public_html or GitHub Pages production.' >> "$GITHUB_STEP_SUMMARY"
