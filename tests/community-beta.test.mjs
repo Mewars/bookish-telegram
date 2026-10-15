@@ -36,4 +36,7 @@ test('community route is disabled without explicit test Supabase config',async()
   assert.match(ui,/\bCommunityPage\b/);
   assert.match(ui,/Отправить на проверку/);
   assert.match(ui,/Комментарии/);
+  assert.match(ui,/updateCommunityDraft/);
+  assert.match(ui,/Редактирование черновика/);
+  assert.match(ui,/Сохранить изменения/);
 });
