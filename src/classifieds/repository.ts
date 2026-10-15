@@ -112,6 +112,27 @@ export const CLASSIFIED_MESSAGE_PAGE_SIZE=100;
 export type MessageCursor=Pick<ChatMessage,'created_at'|'id'>;
 const messageUuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const messageTimestampPattern=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+export interface ClassifiedUnreadCount {
+  conversation_id:string;unread_count:number;
+}
+export async function getClassifiedUnreadCounts(client:SupabaseClient|null):Promise<Record<string,number>> {
+  const {data,error}=await db(client).rpc('get_classified_unread_counts');
+  check(error);
+  const output:Record<string,number>=Object.create(null) as Record<string,number>;
+  for(const row of (data??[]) as ClassifiedUnreadCount[]) {
+    const count=Number(row.unread_count);
+    if(Number.isSafeInteger(count)&&count>0)output[row.conversation_id]=count;
+  }
+  return output;
+}
+export async function markClassifiedMessagesRead(
+  client:SupabaseClient|null,threadId:string,messageId:string,
+):Promise<void> {
+  const {error}=await db(client).rpc('mark_classified_messages_read',{
+    p_conversation_id:threadId,p_message_id:messageId,
+  });
+  check(error);
+}
 export async function getMessages(client:SupabaseClient|null,threadId:string):Promise<ChatMessage[]> {
   // Latest window first; reverse only after fetching for chronological display.
   const {data,error}=await db(client).from('classified_messages').select(MESSAGE_FIELDS)
