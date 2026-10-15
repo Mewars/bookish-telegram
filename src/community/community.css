@@ -1,0 +1,46 @@
+.community-page{max-width:1120px;margin:0 auto;padding:32px 22px 100px;color:var(--text)}
+.community-hero{padding:42px;border-radius:25px;background:linear-gradient(135deg,#102738,#214456);color:#fff8eb}
+.community-hero>span{font-size:11px;font-weight:800;color:#efbc64;letter-spacing:.16em}
+.community-hero h1{font:700 clamp(32px,4vw,51px)/1.17 Georgia,serif;margin:15px 0}
+.community-hero p{color:#d9e7e9;line-height:1.6;margin:0}
+.community-tabs,.community-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:22px}
+.community-tabs button,.community-filters button{padding:10px 15px;min-height:41px;border:1px solid #8aa3ac88;border-radius:11px;color:inherit;font-weight:650;font-size:14px}
+.community-tabs button[aria-pressed=true],.community-filters button[aria-pressed=true]{color:#13293a;background:#e9bd6b;border-color:#e9bd6b}
+.community-toolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:28px 0 22px}
+.community-toolbar h2{font-size:27px;margin-bottom:7px}.community-toolbar p,.community-compose>p{font-size:13px;line-height:1.6;color:var(--muted)}
+.community-primary,.community-card-actions button,.community-comments form button{min-height:43px;padding:10px 16px;border-radius:11px;background:#e9bd6b;color:#112738;font-weight:750;font-size:14px}
+.community-primary:disabled,.community-card-actions button:disabled{opacity:.5}
+.community-compose{display:grid;gap:15px;margin:0 0 22px;padding:24px;border:1px solid var(--line,#ffffff33);border-radius:20px;background:var(--surface,#153044)}
+.community-compose h3{font-size:22px}.community-compose label,.community-comments form label{display:grid;gap:8px;font-weight:650;font-size:13px}
+.community-compose input,.community-compose select,.community-compose textarea,.community-comments textarea{width:100%;padding:12px 14px;border:1px solid var(--line,#ffffff33);border-radius:11px;background:var(--bg,#0c2636);color:var(--text);font:inherit;font-size:15px;resize:vertical}
+.community-compose>.community-primary{justify-self:start}
+.community-filters{margin:18px 0 24px}.community-filters button{color:var(--text);border-color:var(--line)}
+.community-list{display:grid;gap:17px}
+.community-card,.community-empty{border:1px solid var(--line,#ffffff26);border-radius:20px;background:var(--surface,#122d3f);padding:24px}
+.community-card h2{font-size:22px;line-height:1.32;margin:15px 0 12px}
+.community-card>p{font-size:15px;line-height:1.68;white-space:pre-wrap;overflow-wrap:anywhere}
+.community-card-meta{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.community-card-meta>span{color:#e7bc70;border:1px solid #d8a65366;border-radius:100px;padding:6px 12px}
+.community-card-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:18px}
+.community-card-actions small{color:var(--muted)}
+.community-empty{text-align:center;padding:45px 20px;line-height:1.6;color:var(--muted)}
+.community-empty h2{font-size:21px;color:var(--text);margin-bottom:7px}
+.community-feedback{padding:14px 17px;border:1px solid #e9bd6b;border-radius:11px;margin:18px 0;color:var(--text);overflow-wrap:anywhere}
+.community-comments{border-top:1px solid var(--line,#ffffff2b);margin-top:20px;padding-top:13px}
+.community-comment-toggle{text-decoration:underline;text-underline-offset:3px;font-size:14px}
+.community-comments>p{margin:13px 0;font-size:13px;color:var(--muted)}
+.community-comments ul{list-style:none;padding:0;margin:15px 0;display:grid;gap:10px}
+.community-comments li{background:var(--bg,#0d2739);border-radius:11px;padding:12px;font-size:14px}
+.community-comments li p{line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 6px}
+.community-comments li small{font-size:11px;color:var(--muted)}
+.community-comments form{display:grid;gap:10px;margin-top:17px}.community-comments form button{justify-self:start}
+@media(max-width:650px){
+.community-page{padding:15px 13px 95px}
+.community-hero{border-radius:19px;padding:27px 19px}
+.community-tabs{gap:7px}.community-tabs button{font-size:12px;min-height:40px;padding:8px 10px}
+.community-filters{gap:7px}.community-filters button{font-size:12px;min-height:40px;padding:8px 11px}
+.community-card,.community-compose{padding:17px;border-radius:15px}
+.community-card h2{font-size:19px}
+.community-toolbar h2{font-size:24px}
+.community-toolbar{align-items:flex-start}
+}
