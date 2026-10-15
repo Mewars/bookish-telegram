@@ -5,7 +5,7 @@ import {
   canEditCityNews,createCommunityPost,myCommunityPosts,pendingCommunityComments,
   pendingCommunityPosts,postTypeNames,publicCommunityComments,publishCityNews,
   publishedPosts,reviewCommunityComment,reviewCommunityPost,sendCommunityComment,
-  submitCommunityPost,validatePost,
+  submitCommunityPost,updateCommunityDraft,validatePost,
 } from './repository';
 import type { CommunityComment,CommunityPost,CommunityPostType } from './repository';
 import './community.css';
@@ -32,6 +32,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
   const [body,setBody]=useState('');
   const [kind,setKind]=useState<'post'|'question'|'news'>('post');
   const [composer,setComposer]=useState(false);
+  const [editingId,setEditingId]=useState<string|null>(null);
   const [selectedPost,setSelectedPost]=useState<string|null>(null);
   const [comments,setComments]=useState<CommunityComment[]>([]);
   const [commentsFor,setCommentsFor]=useState<string|null>(null);
@@ -90,17 +91,26 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
   };
   const onCompose=()=>{
     if(!userId){openLogin();return;}
-    setTitle('');setBody('');setKind('post');setComposer(value=>!value);
+    setEditingId(null);setTitle('');setBody('');setKind('post');setComposer(value=>!value);
   };
   const savePost=()=>{
     const invalid=validatePost(title,body);
     if(invalid){setFeedback(invalid);return;}
-    void doAction(kind==='news'
-      ?()=>publishCityNews(supabase,city,title,body)
-      :()=>createCommunityPost(supabase,city,kind,title,body),()=>{
-        setComposer(false);setTitle('');setBody('');setView(kind==='news'?'feed':'mine');
-        setFeedback(kind==='news'?'Редакционная новость опубликована.':'Черновик сохранён. Теперь отправьте его на проверку.');
-      });
+    const action=editingId && userId
+      ?()=>updateCommunityDraft(supabase,editingId,userId,title,body)
+      :kind==='news'
+        ?()=>publishCityNews(supabase,city,title,body)
+        :()=>createCommunityPost(supabase,city,kind,title,body);
+    void doAction(action,()=>{
+      const wasEditing=Boolean(editingId);
+      setComposer(false);setEditingId(null);setTitle('');setBody('');setView(kind==='news'?'feed':'mine');
+      setFeedback(wasEditing?'Черновик обновлён.':kind==='news'?'Редакционная новость опубликована.':'Черновик сохранён. Теперь отправьте его на проверку.');
+    });
+  };
+  const editDraft=(post:CommunityPost)=>{
+    if(!userId||post.author_id!==userId||!['draft','rejected'].includes(post.status))return;
+    setView('mine');setEditingId(post.id);setTitle(post.title);setBody(post.body);
+    setKind(post.post_type as 'post'|'question');setComposer(true);setFeedback('');
   };
   const chooseView=(next:View)=>{
     if(next==='mine'&&!userId){openLogin();return;}
@@ -128,9 +138,9 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
       <button className="community-primary" onClick={onCompose}>{composer?'Закрыть форму':'+ Написать пост'}</button>
     </div>}
     {composer&&<form className="community-compose" onSubmit={event=>{event.preventDefault();savePost();}}>
-      <h3>Новая публикация</h3>
+      <h3>{editingId?'Редактирование черновика':'Новая публикация'}</h3>
       <label>Тип
-        <select value={kind} onChange={e=>setKind(e.target.value as 'post'|'question'|'news')}>
+        <select disabled={Boolean(editingId)} value={kind} onChange={e=>setKind(e.target.value as 'post'|'question'|'news')}>
           <option value="post">Пост жителя</option>
           <option value="question">Вопрос</option>
           {isEditor&&<option value="news">Официальная городская новость</option>}
@@ -145,7 +155,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
           onChange={e=>setBody(e.target.value)} placeholder="Напишите своими словами, что происходит в городе…"/>
       </label>
       <p>Новые посты жителей публикуются только после проверки. Фотографии появятся после отдельной проверки безопасной загрузки.</p>
-      <button type="submit" className="community-primary" disabled={busy}>{kind==='news'?'Опубликовать новость':'Сохранить черновик'}</button>
+      <button type="submit" className="community-primary" disabled={busy}>{editingId?'Сохранить изменения':kind==='news'?'Опубликовать новость':'Сохранить черновик'}</button>
     </form>}
     {view==='feed'&&<div className="community-filters" role="group" aria-label="Фильтр ленты">
       {(['all','news','post','question'] as const).map(item=><button key={item} aria-pressed={filter===item}
@@ -162,6 +172,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
         <h2>{post.title}</h2><p>{post.body}</p>
         {view==='mine'&&<div className="community-card-actions">
           <small>Статус: {({draft:'Черновик',pending:'На проверке',published:'Опубликовано',rejected:'Отклонено',archived:'Скрыто'} as Record<string,string>)[post.status]}</small>
+          {(post.status==='draft'||post.status==='rejected')&&<button disabled={busy} onClick={()=>editDraft(post)}>Изменить</button>}
           {(post.status==='draft'||post.status==='rejected')&&<button disabled={busy}
             onClick={()=>void doAction(()=>submitCommunityPost(supabase,post.id,userId!))}>Отправить на проверку</button>}
         </div>}
