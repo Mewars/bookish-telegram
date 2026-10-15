@@ -1,3 +1,4 @@
+/* global process, console */
 import { validateClosedBetaEnvironment } from './closed-beta-env.mjs';
 
 validateClosedBetaEnvironment(process.env);
