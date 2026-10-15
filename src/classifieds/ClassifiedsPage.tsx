@@ -10,6 +10,7 @@ import type { ChatMessage,Classified,ClassifiedReport,Conversation,DealType,Draf
 import { ClassifiedReportControl } from './ClassifiedReportControl';
 import { ClassifiedPhotoGallery } from './ClassifiedPhotoGallery';
 import { classifiedsSessionKey } from './sessionKey';
+import { visibleClassifiedListings } from './listFilters';
 import './classifieds.css';
 
 type Tab='browse'|'mine'|'messages'|'moderate'|'reports';
@@ -47,6 +48,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const [reload,setReload]=useState(0);
   const [busy,setBusy]=useState(false);
   const [loadedView,setLoadedView]=useState('');
+  const [loadFailedKey,setLoadFailedKey]=useState('');
   const [messagesFor,setMessagesFor]=useState<string|null>(null);
   const [notice,setNotice]=useState('');
   const [canReview,setCanReview]=useState(false);
@@ -85,7 +87,14 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
         if(active){setThreads(result);setBlockedUsers(blocks);}
       }
     };
-    void load().catch(reason=>{if(active)setNotice(errorText(reason));})
+    void load().then(()=>{if(active)setLoadFailedKey('');})
+      .catch(reason=>{
+        if(!active)return;
+        setLoadFailedKey(viewKey);
+        setNotice(errorText(reason));
+        // Never show rows from a previous tab as if they belonged to this one.
+        setItems([]);setReports([]);setThreads([]);
+      })
       .finally(()=>{if(active)setLoadedView(viewKey);});
     return ()=>{active=false;};
   },[city,userId,tab,canReview,reload,viewKey]);
@@ -124,10 +133,8 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
     });
     setComposer(true);setNotice('');
   };
-  const filtered=items.filter(entry=>(!deal||entry.deal_type===deal) &&
-    (!search.trim()||(entry.title+' '+entry.description+' '+entry.category).toLocaleLowerCase('ru')
-      .includes(search.trim().toLocaleLowerCase('ru'))));
-  const activeThread=threads.find(x=>x.id===threadId);
+  const filtered=visibleClassifiedListings(items,tab==='browse'?'browse':tab==='moderate'?'moderate':'mine',deal,search);
+  const activeThread=loading||loadFailedKey===viewKey?undefined:threads.find(x=>x.id===threadId);
   const otherParticipant=activeThread ? activeThread.buyer_id===userId?activeThread.seller_id:activeThread.buyer_id : null;
   const isBlocked=otherParticipant ? blockedUsers.includes(otherParticipant) : false;
   const currentMessages=messagesFor===threadId?messages:[];
@@ -203,7 +210,11 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
     </form>}
     {(tab==='browse'||tab==='mine'||tab==='moderate')&&
       (loading?<p className="classifieds-empty" role="status">Загружаем объявления…</p>:
-       filtered.length===0?<div className="classifieds-empty">
+       loadFailedKey===viewKey?<div className="classifieds-empty" role="alert">
+          <h2>Не удалось загрузить объявления</h2>
+          <p>Повторите запрос. Старые данные других разделов скрыты.</p>
+          <button onClick={()=>setReload(value=>value+1)}>Повторить загрузку</button>
+        </div>:filtered.length===0?<div className="classifieds-empty">
           <h2>{tab==='moderate'?'Нет объявлений на проверке':'Объявлений пока нет'}</h2>
           <p>{tab==='browse'?'Здесь появятся объявления жителей после проверки. Вымышленные карточки не добавляем.':
                tab==='mine'?'Нажмите «Подать объявление», чтобы сохранить первый черновик.':'Все заявки на текущий момент обработаны.'}</p>
@@ -235,7 +246,10 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
         </article>)}</div>)}
     {tab==='reports'&&<section className="classifieds-reports">
       <h2>Жалобы жителей · {city}</h2>
-      {loading?<p role="status">Загружаем жалобы…</p>:reports.length===0?<p>Новых жалоб нет.</p>:
+      {loading?<p role="status">Загружаем жалобы…</p>:
+       loadFailedKey===viewKey?<div role="alert"><p>Не удалось загрузить жалобы.</p>
+         <button onClick={()=>setReload(value=>value+1)}>Повторить загрузку</button>
+       </div>:reports.length===0?<p>Новых жалоб нет.</p>:
         reports.map(report=><article className="classifieds-report-card" key={report.id}>
           <h3>{report.classifieds.title}</h3><p>{report.reason}</p>
           <small>{new Date(report.created_at).toLocaleString('ru-RU')}</small>
@@ -248,7 +262,10 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
     {tab==='messages'&&<div className="classifieds-messages">
       <aside className="classifieds-thread-list">
         <h2>Переписки</h2>
-        {loading?<p>Загружаем…</p>:threads.length===0?<p>Пока нет переписок. Откройте объявление и нажмите «Написать автору».</p>:
+        {loading?<p>Загружаем…</p>:
+         loadFailedKey===viewKey?<div role="alert"><p>Не удалось загрузить переписки.</p>
+           <button onClick={()=>setReload(value=>value+1)}>Повторить загрузку</button>
+         </div>:threads.length===0?<p>Пока нет переписок. Откройте объявление и нажмите «Написать автору».</p>:
         threads.map(entry=><button key={entry.id} aria-pressed={threadId===entry.id}
           onClick={()=>{setThreadId(entry.id);setMessageDraft('');}}>
           <strong>{entry.buyer_id===userId?'Диалог с автором':'Диалог с покупателем'}</strong>
