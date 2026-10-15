@@ -62,8 +62,8 @@ test('chat UI distinguishes pending, failed and genuinely empty messages',async(
   assert.match(page,/messageLoading\?<p role="status">Загружаем сообщения/);
   assert.match(page,/messageLoadFailed\?<p role="alert">Не удалось загрузить сообщения/);
   assert.match(page,/disabled=\{busy\|\|isBlocked\|\|messageLoading\|\|messageLoadFailed/);
-  assert.match(page,/currentMessages\.length===CLASSIFIED_MESSAGE_PAGE_SIZE/);
-  assert.match(page,/Более ранние пока не загружаются/);
+  assert.match(page,/hasOlderMessages&&currentMessages\.length>0/);
+  assert.match(page,/Показать предыдущие сообщения/);
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
   assert.match(app,/djqhixvlfsbvannoqdjw/);
 });
