@@ -4,10 +4,11 @@ import { supabase } from '../lib/supabase';
 import {
   canEditCityNews,createCommunityPost,myCommunityPosts,pendingCommunityComments,
   pendingCommunityPosts,postTypeNames,publicCommunityComments,publishCityNews,
+  mayModerateCommunityMaterial,
   publishedPosts,reviewCommunityComment,reviewCommunityPost,sendCommunityComment,
   submitCommunityPost,updateCommunityDraft,validatePost,
 } from './repository';
-import type { CommunityComment,CommunityPost,CommunityPostType } from './repository';
+import type { CommunityComment,CommunityPost,CommunityPostType,ModerationCommunityComment } from './repository';
 import './community.css';
 
 type View='feed'|'mine'|'moderate'|'comments';
@@ -26,7 +27,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
   const [view,setView]=useState<View>('feed');
   const [filter,setFilter]=useState<Filter>('all');
   const [items,setItems]=useState<CommunityPost[]>([]);
-  const [pendingComments,setPendingComments]=useState<CommunityComment[]>([]);
+  const [pendingComments,setPendingComments]=useState<ModerationCommunityComment[]>([]);
   const [isEditor,setIsEditor]=useState(false);
   const [title,setTitle]=useState('');
   const [body,setBody]=useState('');
@@ -177,8 +178,10 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
             onClick={()=>void doAction(()=>submitCommunityPost(supabase,post.id,userId!))}>Отправить на проверку</button>}
         </div>}
         {view==='moderate'&&<div className="community-card-actions">
-          <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityPost(supabase,post.id,true))}>Одобрить</button>
-          <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityPost(supabase,post.id,false))}>Отклонить</button>
+          {mayModerateCommunityMaterial(userId,post.author_id)?<>
+            <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityPost(supabase,post.id,true))}>Одобрить</button>
+            <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityPost(supabase,post.id,false))}>Отклонить</button>
+          </>:<small>Собственную публикацию должен проверить другой редактор.</small>}
         </div>}
         {view==='feed'&&<section className="community-comments">
           <button className="community-comment-toggle" aria-expanded={selectedPost===post.id}
@@ -202,10 +205,17 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
     {view==='comments'&&<div className="community-list">
       {loading?<p>Загружаем комментарии…</p>:pendingComments.length===0?<div className="community-empty">Нет комментариев на проверке.</div>:
         pendingComments.map(comment=><article className="community-card" key={comment.id}>
+          <div className="community-comment-context" aria-label="Публикация, к которой относится комментарий">
+            <small>{postTypeNames[comment.community_posts.post_type]} · {comment.community_posts.city}</small>
+            <h3>{comment.community_posts.title}</h3>
+            <p>{comment.community_posts.body}</p>
+          </div>
           <h2>Комментарий жителя</h2><p>{comment.body}</p>
           <div className="community-card-actions">
-            <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityComment(supabase,comment.id,true))}>Одобрить</button>
-            <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityComment(supabase,comment.id,false))}>Отклонить</button>
+            {mayModerateCommunityMaterial(userId,comment.author_id)?<>
+              <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityComment(supabase,comment.id,true))}>Одобрить</button>
+              <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityComment(supabase,comment.id,false))}>Отклонить</button>
+            </>:<small>Собственный комментарий должен проверить другой редактор.</small>}
           </div>
         </article>)}
     </div>}

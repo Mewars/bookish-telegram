@@ -10,6 +10,13 @@ export interface CommunityComment {
   id:string;post_id:string;author_id:string;body:string;
   status:'pending'|'published'|'rejected'|'archived';created_at:string;
 }
+// The embedded parent is a published post visible under existing RLS.
+export interface ModerationCommunityComment extends CommunityComment {
+  community_posts: Pick<CommunityPost,'city'|'title'|'body'|'post_type'|'status'>;
+}
+export function mayModerateCommunityMaterial(actorId:string|null,authorId:string):boolean {
+  return actorId!==null && actorId!==authorId;
+}
 export const postTypeNames:Record<CommunityPostType,string>={
   post:'Пост жителя',question:'Вопрос',news:'Новости редакции',
 };
@@ -98,12 +105,14 @@ export async function sendCommunityComment(client:SupabaseClient|null,postId:str
   const {error}=await clientOrThrow(client).rpc('submit_community_comment',{p_post_id:postId,p_body:body.trim()});
   ensure(error);
 }
-export async function pendingCommunityComments(client:SupabaseClient|null,city:string):Promise<CommunityComment[]>{
-  // The join cannot leak other cities: PostgREST embeds only posts visible through RLS.
+export async function pendingCommunityComments(client:SupabaseClient|null,city:string):Promise<ModerationCommunityComment[]>{
+  // Read context only for a published parent in the selected city, still subject to RLS.
   const {data,error}=await clientOrThrow(client).from('community_comments')
-    .select('id,post_id,author_id,body,status,created_at,community_posts!inner(city)')
-    .eq('status','pending').eq('community_posts.city',city).order('created_at',{ascending:true}).limit(100);
-  ensure(error);return (data??[]) as unknown as CommunityComment[];
+    .select('id,post_id,author_id,body,status,created_at,community_posts!inner(city,title,body,post_type,status)')
+    .eq('status','pending').eq('community_posts.city',city)
+    .eq('community_posts.status','published')
+    .order('created_at',{ascending:true}).limit(100);
+  ensure(error);return (data??[]) as unknown as ModerationCommunityComment[];
 }
 export async function reviewCommunityComment(client:SupabaseClient|null,id:string,approve:boolean):Promise<void>{
   const {error}=await clientOrThrow(client).rpc('review_community_comment',{p_id:id,p_approve:approve});

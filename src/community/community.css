@@ -44,3 +44,10 @@
 .community-toolbar h2{font-size:24px}
 .community-toolbar{align-items:flex-start}
 }
+
+
+/* Context for pending comments, visible only in the editor's closed-beta queue. */
+.community-comment-context{border:1px solid var(--line,#ffffff25);border-radius:12px;padding:12px;margin-bottom:12px}
+.community-comment-context h3{margin:6px 0;font-size:16px}
+.community-comment-context p{white-space:pre-wrap;overflow-wrap:anywhere}
+.community-comment-context small{opacity:.8}
