@@ -10,6 +10,7 @@ export const HOME_METADATA = {
 export interface PageMetadata { title: string; description: string; canonical?: string }
 
 const sections: Record<Section | 'import', PageMetadata> = {
+  community: { title: 'Городская лента — Рядом', description: 'Будущая городская лента новостей, вопросов и обсуждений жителей.' },
   classifieds: { title: 'Объявления — Рядом', description: 'Будущая городская площадка объявлений и переписки жителей.' },
   home: HOME_METADATA,
   places: { title: 'Места и достопримечательности Енисейска — Рядом', description: 'Музеи, исторические места, парки и кафе Енисейска. Знакомьтесь с городом, ищите адреса и сохраняйте интересные места в Рядом.' },
