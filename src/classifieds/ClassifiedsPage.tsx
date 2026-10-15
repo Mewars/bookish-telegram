@@ -12,6 +12,7 @@ import { ClassifiedReportControl } from './ClassifiedReportControl';
 import { ClassifiedPhotoGallery } from './ClassifiedPhotoGallery';
 import { classifiedsSessionKey } from './sessionKey';
 import { visibleClassifiedListings } from './listFilters';
+import { hasNewUnreadMessages,INBOX_REFRESH_INTERVAL_MS } from './inboxRefresh';
 import './classifieds.css';
 
 type Tab='browse'|'mine'|'messages'|'moderate'|'reports';
@@ -39,6 +40,8 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const [items,setItems]=useState<Classified[]>([]);
   const [threads,setThreads]=useState<Conversation[]>([]);
   const [unreadCounts,setUnreadCounts]=useState<Record<string,number>>({});
+  const unreadCountsRef=useRef<Record<string,number>>({});
+  const [newUnreadNotice,setNewUnreadNotice]=useState(false);
   const [reports,setReports]=useState<ClassifiedReport[]>([]);
   const [blockedUsers,setBlockedUsers]=useState<string[]>([]);
   const [messages,setMessages]=useState<ChatMessage[]>([]);
@@ -69,6 +72,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   },[city,userId]);
   const viewKey=[tab,city,userId??'',canReview,reload].join('|');
   const loading=loadedView!==viewKey;
+  useEffect(()=>{unreadCountsRef.current=unreadCounts;},[unreadCounts]);
   useEffect(()=>{
     let active=true;
     const load=async()=>{
@@ -107,6 +111,36 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
       .finally(()=>{if(active)setLoadedView(viewKey);});
     return ()=>{active=false;};
   },[city,userId,tab,canReview,reload,viewKey]);
+  // In-app inbox hint only while the private inbox is open and visible.
+  // No browser notification permission or background tracking is requested.
+  useEffect(()=>{
+    if(tab!=='messages'||!userId||loading||loadFailedKey===viewKey)return;
+    let active=true;
+    let querying=false;
+    const refreshUnread=async()=>{
+      if(document.visibilityState!=='visible'||querying)return;
+      querying=true;
+      try {
+        const counts=await getClassifiedUnreadCounts(supabase);
+        if(active){
+          if(hasNewUnreadMessages(unreadCountsRef.current,counts))setNewUnreadNotice(true);
+          unreadCountsRef.current=counts;
+          setUnreadCounts(counts);
+        }
+      } catch {
+        // Keep the last known counts rather than inventing zero unread messages.
+      } finally {
+        querying=false;
+      }
+    };
+    const interval=window.setInterval(()=>{void refreshUnread();},INBOX_REFRESH_INTERVAL_MS);
+    const onVisibility=()=>{if(document.visibilityState==='visible')void refreshUnread();};
+    document.addEventListener('visibilitychange',onVisibility);
+    return ()=>{
+      active=false;window.clearInterval(interval);
+      document.removeEventListener('visibilitychange',onVisibility);
+    };
+  },[tab,userId,loading,loadFailedKey,viewKey]);
   useEffect(()=>{
     let active=true;
     const generation=++historyGeneration.current;
@@ -325,6 +359,12 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
           </div>
         </article>)}
     </section>}
+    {tab==='messages'&&newUnreadNotice&&<div className="classifieds-inbox-notice" role="status">
+      <span>Появились новые сообщения.</span>
+      <button type="button" onClick={()=>{
+        setNewUnreadNotice(false);setReload(value=>value+1);
+      }}>Обновить переписки</button>
+    </div>}
     {tab==='messages'&&<div className="classifieds-messages">
       <aside className="classifieds-thread-list">
         <h2>Переписки</h2>
@@ -377,7 +417,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
               onChange={e=>setMessageDraft(e.target.value)} placeholder="Написать сообщение…"/>
             <button className="classifieds-main-action" type="submit" disabled={busy||isBlocked||messageLoading||messageLoadFailed||!messageDraft.trim()}>Отправить</button>
           </form>
-          <button className="classifieds-refresh" onClick={()=>setReload(v=>v+1)}>Обновить сообщения</button>
+          <button className="classifieds-refresh" onClick={()=>{setNewUnreadNotice(false);setReload(v=>v+1);}}>Обновить сообщения</button>
         </>:<p>Выберите диалог слева или начните новую переписку из объявления.</p>}
       </section>
     </div>}
