@@ -20,7 +20,7 @@ function record(value: unknown): JsonRecord | null {
 }
 
 function utcTimestamp(value: unknown): string | null {
-  if (typeof value !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/.test(value)) return null;
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value)) return null;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) && new Date(parsed).toISOString().replace('.000Z', 'Z') === value
     ? value : null;
