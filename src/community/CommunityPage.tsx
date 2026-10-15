@@ -2,7 +2,7 @@ import { useEffect,useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import {
-  canEditCityNews,createCommunityPost,myCommunityPosts,pendingCommunityComments,
+  archiveCommunityPost,canEditCityNews,createCommunityPost,myCommunityPosts,pendingCommunityComments,
   pendingCommunityPosts,postTypeNames,publicCommunityComments,publishCityNews,
   mayModerateCommunityMaterial,
   publishedPosts,reviewCommunityComment,reviewCommunityPost,sendCommunityComment,
@@ -176,6 +176,13 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
           {(post.status==='draft'||post.status==='rejected')&&<button disabled={busy} onClick={()=>editDraft(post)}>Изменить</button>}
           {(post.status==='draft'||post.status==='rejected')&&<button disabled={busy}
             onClick={()=>void doAction(()=>submitCommunityPost(supabase,post.id,userId!))}>Отправить на проверку</button>}
+          {post.post_type!=='news'&&post.status!=='archived'&&<button disabled={busy}
+            onClick={()=>{
+              if(window.confirm('Скрыть публикацию? Она исчезнет из городской ленты вместе с комментариями. Вернуть её самостоятельно нельзя.'))
+                void doAction(()=>archiveCommunityPost(supabase,post.id),()=>{
+                  setFeedback('Публикация скрыта из городской ленты.');
+                });
+            }}>Скрыть публикацию</button>}
         </div>}
         {view==='moderate'&&<div className="community-card-actions">
           {mayModerateCommunityMaterial(userId,post.author_id)?<>
