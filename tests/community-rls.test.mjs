@@ -99,5 +99,23 @@ test('community city feed enforces author, moderation, news provenance and comme
       await assert.rejects(db.query("SELECT public.submit_community_comment('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Hello city')"),/unavailable/);
       await assert.rejects(db.query("SELECT public.submit_community_comment($1,'x')",[postId]),/Invalid comment/);
     });
+    await t.test('daily resident post limit is enforced inside PostgreSQL',async()=>{
+      await switchTo('authenticated',resident);
+      for(let i=0;i<9;i++){
+        await db.query("SELECT public.create_community_post('Енисейск','post',$1,'Проверка серверного ограничения частоты публикаций')",['Вопрос '+i+' от жителя']);
+      }
+      await assert.rejects(db.query("SELECT public.create_community_post('Енисейск','post','Лишняя публикация','Ещё один текст сверх дневного лимита')"),/Daily post limit reached/);
+      await switchTo('authenticated',commenter);
+      await db.query("SELECT public.create_community_post('Енисейск','post','Объявление для города','Лимит другого пользователя не должен блокировать меня')");
+    });
+    await t.test('comment creation is server rate limited',async()=>{
+      await switchTo('authenticated',resident);
+      for(let i=0;i<20;i++){
+        await db.query("SELECT public.submit_community_comment($1,$2)",[postId,'Сообщение теста '+i]);
+      }
+      await assert.rejects(db.query("SELECT public.submit_community_comment($1,'Дополнительное сообщение')",[postId]),/Too many comments/);
+      await switchTo('authenticated',owner);
+      await db.query("SELECT public.submit_community_comment($1,'У другого пользователя собственный лимит')",[postId]);
+    });
   }finally{await db.close();}
 });
