@@ -67,5 +67,5 @@ test('editor form supports correction before renewed review but not after submis
   assert.match(sql,/classifieds_author_edit_unpublished/);
   assert.match(sql,/status IN \('draft','rejected'\)/);
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
-  assert.match(app,/djqhixvlfsbvannoqdjw/);
+  assert.match(app,/isRyadomTestBackend/);
 });
