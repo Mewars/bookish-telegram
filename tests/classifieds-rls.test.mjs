@@ -26,6 +26,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     await db.exec("CREATE TABLE public.city_admin_access(user_id uuid REFERENCES auth.users(id),city text,role text,active boolean NOT NULL DEFAULT true,PRIMARY KEY(user_id,city)); GRANT SELECT ON public.city_admin_access TO authenticated;");
     await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'*','owner'),($2,'Енисейск','editor'),($3,'Лесосибирск','editor')",[owner,editor,foreignEditor]);
     await db.exec(await readFile('docs/sql/classifieds-private-messaging-v1.sql','utf8'));
+    await db.exec(await readFile('docs/sql/classified-unread-receipts-v1.sql','utf8'));
     await db.exec(await readFile('docs/sql/classifieds-editor-privacy-v2.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-reports-review-v1.sql','utf8'));
 
@@ -83,6 +84,62 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await switchTo('authenticated',buyer);
       await db.query("DELETE FROM public.classified_user_blocks WHERE blocked_id=$1",[seller]);
       await db.query("SELECT public.send_classified_message($1,'Разблокирован')",[thread]);
+    });
+    await t.test('unread receipts belong to each participant and cannot be forged',async()=>{
+      await switchTo('authenticated',seller);
+      const ownUnread=(await db.query(
+        'SELECT conversation_id,unread_count FROM public.get_classified_unread_counts()'
+      )).rows;
+      assert.equal(ownUnread.length,1);
+      assert.equal(ownUnread[0].conversation_id,thread);
+      assert.equal(Number(ownUnread[0].unread_count),2,'Buyer has sent two messages');
+      const buyerMessages=(await db.query(
+        'SELECT id FROM public.classified_messages WHERE sender_id=$1 ORDER BY created_at DESC,id DESC',[buyer]
+      )).rows;
+      const latestBuyerMessage=buyerMessages[0].id;
+      await db.query('SELECT public.mark_classified_messages_read($1,$2)',[thread,latestBuyerMessage]);
+      assert.equal((await db.query('SELECT count(*)::int as amount FROM public.get_classified_unread_counts()')).rows[0].amount,0);
+      // A stale client cannot move the receipt backwards.
+      await db.query('SELECT public.mark_classified_messages_read($1,$2)',[thread,buyerMessages.at(-1).id]);
+      assert.equal((await db.query('SELECT count(*)::int as amount FROM public.get_classified_unread_counts()')).rows[0].amount,0);
+      await assert.rejects(
+        db.query("INSERT INTO public.classified_conversation_reads(conversation_id,user_id,last_read_at,last_read_id) VALUES ($1,$2,now(),$3)",[thread,seller,latestBuyerMessage]),
+        /permission denied/,
+      );
+
+      await switchTo('authenticated',buyer);
+      const buyerUnread=(await db.query('SELECT unread_count FROM public.get_classified_unread_counts()')).rows;
+      assert.equal(buyerUnread.length,1);
+      assert.equal(Number(buyerUnread[0].unread_count),1,'Outgoing buyer messages never counted');
+      assert.equal((await db.query('SELECT * FROM public.classified_conversation_reads')).rows.length,0,
+        'Seller receipt is not visible to buyer');
+      await assert.rejects(
+        db.query('SELECT public.mark_classified_messages_read($1,$2)',[thread,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa']),
+        /Message unavailable/,
+      );
+      const sellerReply=(await db.query(
+        'SELECT id FROM public.classified_messages WHERE sender_id=$1 ORDER BY created_at DESC,id DESC LIMIT 1',[seller]
+      )).rows[0].id;
+      await db.query('SELECT public.mark_classified_messages_read($1,$2)',[thread,sellerReply]);
+      assert.equal((await db.query('SELECT count(*)::int as amount FROM public.get_classified_unread_counts()')).rows[0].amount,0);
+      assert.equal((await db.query('SELECT * FROM public.classified_conversation_reads')).rows.length,1,
+        'Buyer may only inspect their own receipt');
+
+      await switchTo('authenticated',stranger);
+      assert.equal((await db.query('SELECT * FROM public.get_classified_unread_counts()')).rows.length,0);
+      assert.equal((await db.query('SELECT * FROM public.classified_conversation_reads')).rows.length,0);
+      await assert.rejects(
+        db.query('SELECT public.mark_classified_messages_read($1,$2)',[thread,latestBuyerMessage]),
+        /Conversation unavailable/,
+      );
+
+      await switchTo('anon');
+      await assert.rejects(db.query('SELECT * FROM public.get_classified_unread_counts()'),/permission denied/);
+      await assert.rejects(
+        db.query('SELECT public.mark_classified_messages_read($1,$2)',[thread,latestBuyerMessage]),
+        /permission denied/,
+      );
+      await assert.rejects(db.query('SELECT * FROM public.classified_conversation_reads'),/permission denied/);
     });
     await t.test('moderation stays limited to assigned city; seller may close listing',async()=>{
       await switchTo('authenticated',seller);
