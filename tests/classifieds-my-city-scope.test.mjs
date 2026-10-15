@@ -36,5 +36,5 @@ test('a failed user-scoped query cannot be reported as an empty success', async 
     select() { return this; }, eq() { return this; }, order() { return this; },
     limit() { return Promise.resolve({data:null, error: {message:'Temporary connectivity error'}}); },
   };
-  await assert.rejects(getMine({from:()=>query}, 'owner-123', 'Енисейск'), /Temporary connectivity error/);
+  await assert.rejects(getMine({from:()=>query}, 'owner-123', 'Енисейск'), /Операция не выполнена/);
 });
