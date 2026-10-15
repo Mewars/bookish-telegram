@@ -44,6 +44,7 @@ import { DetailPage } from './pages/DetailPage';
 import { EmptyState } from './components/EmptyState';
 import type { Item, Section } from './types';
 import { pageMetadata } from './seo/metadata';
+import { isRyadomTestBackend } from './config/betaBackend';
 import { usePageMetadata } from './seo/usePageMetadata';
 const organizationsEnabled = featureEnabled(import.meta.env.VITE_ORGANIZATIONS_ENABLED, window.location.protocol, window.location.hostname, import.meta.env.DEV);
 const adminEnabled = featureEnabled(import.meta.env.VITE_ADMIN_PANEL_ENABLED, window.location.protocol, window.location.hostname, import.meta.env.DEV);
@@ -55,11 +56,10 @@ const photoEnabled = featureEnabled(import.meta.env.VITE_CARD_PHOTOS_ENABLED, wi
 // production. The real role-protected admin remains separately feature gated.
 const adminPreviewEnabled = true;
 // Never enable the classifieds beta against the production Supabase project.
-const classifiedsBeta = import.meta.env.VITE_CLASSIFIEDS_ENABLED === 'true' &&
-  import.meta.env.VITE_SUPABASE_URL?.includes('djqhixvlfsbvannoqdjw') === true;
+const testBackend = isRyadomTestBackend(import.meta.env.VITE_SUPABASE_URL);
+const classifiedsBeta = import.meta.env.VITE_CLASSIFIEDS_ENABLED === 'true' && testBackend;
 // Community content is strictly isolated from the production Supabase database.
-const communityBeta = import.meta.env.VITE_COMMUNITY_ENABLED === 'true' &&
-  import.meta.env.VITE_SUPABASE_URL?.includes('djqhixvlfsbvannoqdjw') === true;
+const communityBeta = import.meta.env.VITE_COMMUNITY_ENABLED === 'true' && testBackend;
 const legalSections: Section[] = ['privacy', 'cookies', 'terms', 'contacts', 'organization-consent'];
 export default function App() {
  const isWideScreen = useMediaQuery('(min-width: 900px)');
