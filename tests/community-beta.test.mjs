@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { validatePost,validateComment,postTypeNames } from '../src/community/repository.ts';
+import { archiveCommunityPost,validatePost,validateComment,postTypeNames } from '../src/community/repository.ts';
 
 test('community drafts and comments are validated before making network calls',()=>{
   assert.equal(validatePost('Вопрос соседям','Подскажите хорошую мастерскую'),null);
@@ -10,6 +10,13 @@ test('community drafts and comments are validated before making network calls',(
   assert.match(validateComment('x'),/Комментарий/);
   assert.equal(validateComment('Спасибо, помогли!'),null);
   assert.equal(postTypeNames.news,'Новости редакции');
+});
+test('author withdrawal calls server RPC and never accepts an author ID',async()=>{
+  const calls=[];
+  const client={rpc:async(name,args)=>{calls.push({name,args});return {error:null};}};
+  await archiveCommunityPost(client,'example-post');
+  assert.deepEqual(calls,[{name:'archive_community_post',args:{p_id:'example-post'}}]);
+  await assert.rejects(archiveCommunityPost({rpc:async()=>({error:{message:'Denied'}})},'post'),/Не удалось выполнить действие/);
 });
 test('community route is disabled without explicit test Supabase config',async()=>{
   const [app,route,types,header,mobile,profile,sql,ui]=await Promise.all([
@@ -39,4 +46,7 @@ test('community route is disabled without explicit test Supabase config',async()
   assert.match(ui,/updateCommunityDraft/);
   assert.match(ui,/Редактирование черновика/);
   assert.match(ui,/Сохранить изменения/);
+  assert.match(ui,/archiveCommunityPost/);
+  assert.match(ui,/Скрыть публикацию/);
+  assert.match(ui,/Вернуть её самостоятельно нельзя/);
 });
