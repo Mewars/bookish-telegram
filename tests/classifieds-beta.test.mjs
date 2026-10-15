@@ -42,7 +42,7 @@ test('reports and block controls stay in gated beta and use protected repository
   ]);
   assert.match(page,/ClassifiedReportControl/);
   assert.match(page,/setClassifiedUserBlock/);
-  assert.match(page,/isBlocked\|\|!messageDraft\.trim\(\)/);
+  assert.match(page,/isBlocked\|\|messageLoading\|\|messageLoadFailed\|\|!messageDraft\.trim\(\)/);
   assert.match(page,/reviewClassifiedReport/);
   assert.match(control,/submitClassifiedReport/);
   assert.match(repo,/\.rpc\('review_classified_report'/);
