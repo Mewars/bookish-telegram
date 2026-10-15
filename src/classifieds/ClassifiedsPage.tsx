@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import {
   createDraft,dealLabels,getBlockedClassifiedUsers,getConversations,getMessages,getOlderMessages,getMine,getOpenClassifiedReports,getPending,
+  getClassifiedUnreadCounts,markClassifiedMessagesRead,
   getPublished,markComplete,mayReview,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
   submitForReview,updateClassifiedDraft,validateDraft,CLASSIFIED_MESSAGE_PAGE_SIZE,
 } from './repository';
@@ -37,6 +38,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const [search,setSearch]=useState('');
   const [items,setItems]=useState<Classified[]>([]);
   const [threads,setThreads]=useState<Conversation[]>([]);
+  const [unreadCounts,setUnreadCounts]=useState<Record<string,number>>({});
   const [reports,setReports]=useState<ClassifiedReport[]>([]);
   const [blockedUsers,setBlockedUsers]=useState<string[]>([]);
   const [messages,setMessages]=useState<ChatMessage[]>([]);
@@ -87,10 +89,11 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
         if(active)setReports(result);
       } else if(tab==='messages') {
         if(!userId){if(active)setThreads([]);return;}
-        const [result,blocks]=await Promise.all([
+        const [result,blocks,unread]=await Promise.all([
           getConversations(supabase,userId),getBlockedClassifiedUsers(supabase,userId),
+          getClassifiedUnreadCounts(supabase),
         ]);
-        if(active){setThreads(result);setBlockedUsers(blocks);}
+        if(active){setThreads(result);setBlockedUsers(blocks);setUnreadCounts(unread);}
       }
     };
     void load().then(()=>{if(active)setLoadFailedKey('');})
@@ -99,7 +102,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
         setLoadFailedKey(viewKey);
         setNotice(errorText(reason));
         // Never show rows from a previous tab as if they belonged to this one.
-        setItems([]);setReports([]);setThreads([]);
+        setItems([]);setReports([]);setThreads([]);setUnreadCounts({});
       })
       .finally(()=>{if(active)setLoadedView(viewKey);});
     return ()=>{active=false;};
@@ -107,7 +110,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   useEffect(()=>{
     let active=true;
     const generation=++historyGeneration.current;
-    if(!threadId)return ()=>{active=false;};
+    if(!threadId||tab!=='messages')return ()=>{active=false;};
     const requestKey=JSON.stringify([threadId,reload]);
     void getMessages(supabase,threadId)
       .then(rows=>{
@@ -115,6 +118,19 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
           setMessages(rows);setMessagesFor(threadId);setMessageFailedKey('');
           setHasOlderMessages(rows.length===CLASSIFIED_MESSAGE_PAGE_SIZE);
           setOlderMessagesBusy(false);setOlderMessagesError('');
+          const latest=rows[rows.length-1];
+          if(latest&&userId) {
+            // Mark only the last message actually loaded into this visible chat.
+            // A new message arriving concurrently is not automatically marked read.
+            void markClassifiedMessagesRead(supabase,threadId,latest.id)
+              .then(()=>getClassifiedUnreadCounts(supabase))
+              .then(counts=>{
+                if(active&&historyGeneration.current===generation)setUnreadCounts(counts);
+              })
+              .catch(reason=>{
+                if(active&&historyGeneration.current===generation)setNotice(errorText(reason));
+              });
+          }
         }
       })
       .catch(reason=>{
@@ -128,7 +144,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
         if(active&&historyGeneration.current===generation)setMessageLoadedKey(requestKey);
       });
     return ()=>{active=false;};
-  },[threadId,reload]);
+  },[threadId,reload,tab,userId]);
   const loadOlderMessages=()=>{
     if(!threadId||olderMessagesBusy||messageLoading||messageLoadFailed||
         !hasOlderMessages||messagesFor!==threadId||messages.length===0)return;
@@ -320,6 +336,10 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
           onClick={()=>{setThreadId(entry.id);setMessageDraft('');}}>
           <strong>{entry.buyer_id===userId?'Диалог с автором':'Диалог с покупателем'}</strong>
           <small>Объявление · {entry.listing_id.slice(0,8)}</small>
+          {unreadCounts[entry.id]>0&&<span className="classifieds-unread-count"
+            aria-label={`Непрочитанных сообщений: ${unreadCounts[entry.id]}`}>
+            {unreadCounts[entry.id]>99?'99+':unreadCounts[entry.id]}
+          </span>}
         </button>)}
       </aside>
       <section className="classifieds-chat" aria-label="Чат по объявлению">
