@@ -23,7 +23,8 @@ test('community route is disabled without explicit test Supabase config',async()
     readFile('src/community/CommunityPage.tsx','utf8'),
   ]);
   assert.match(app,/VITE_COMMUNITY_ENABLED === 'true'/);
-  assert.match(app,/VITE_SUPABASE_URL\?\.includes\('djqhixvlfsbvannoqdjw'\)/);
+  assert.match(app,/isRyadomTestBackend\(import\.meta\.env\.VITE_SUPABASE_URL\)/);
+  assert.doesNotMatch(app,/VITE_SUPABASE_URL\?\.includes\(/);
   assert.match(app,/section === 'community' \? communityBeta/);
   assert.match(route,/'community'/);
   assert.match(types,/'community'/);

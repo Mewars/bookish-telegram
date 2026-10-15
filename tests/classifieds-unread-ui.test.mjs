@@ -57,5 +57,5 @@ test('closed beta UI marks only visible chats as read and shows bounded labels',
   assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.mark_classified_messages_read/);
   assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.get_classified_unread_counts/);
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
-  assert.match(app,/djqhixvlfsbvannoqdjw/);
+  assert.match(app,/isRyadomTestBackend/);
 });

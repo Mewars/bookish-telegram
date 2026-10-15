@@ -96,5 +96,5 @@ test('older-history UI has safe session refresh and retry without exposing beta'
   assert.match(page,/olderMessagesError&&<p role="alert">/);
   assert.match(page,/setHasOlderMessages\(older\.length===CLASSIFIED_MESSAGE_PAGE_SIZE\)/);
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
-  assert.match(app,/djqhixvlfsbvannoqdjw/);
+  assert.match(app,/isRyadomTestBackend/);
 });

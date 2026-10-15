@@ -8,6 +8,8 @@ export function usePageMetadata({ title, description, canonical }: PageMetadata)
     if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.append(meta); }
     meta.content = description;
     const links = document.querySelectorAll<HTMLLinkElement>('link[rel="canonical"]');
+    // A beta must never emit production canonical URLs, including after SPA navigation.
+    if (import.meta.env.VITE_BETA_EMAIL_ONLY === 'true') { links.forEach(link => link.remove()); return; }
     if (!canonical) links.forEach(link => link.remove());
     else {
       const link = links[0] ?? document.createElement('link');

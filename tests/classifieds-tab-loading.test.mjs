@@ -33,5 +33,5 @@ test('load failures never misrepresent stale listings, reports or conversations 
 test('production remains protected by explicit test-only beta gating',async()=>{
   const app=await readFile('src/App.tsx','utf8');
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
-  assert.match(app,/djqhixvlfsbvannoqdjw/);
+  assert.match(app,/isRyadomTestBackend/);
 });
