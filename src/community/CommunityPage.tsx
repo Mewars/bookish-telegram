@@ -106,7 +106,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
     if(next==='mine'&&!userId){openLogin();return;}
     setView(next);setSelectedPost(null);setFeedback('');
   };
-  const shown=items.filter(item=>filter==='all'||item.post_type===filter);
+  const shown=items.filter(item=>view!=='feed'||filter==='all'||item.post_type===filter);
   return <section className="community-page">
     <header className="community-hero">
       <span>РЯДОМ · ЗАКРЫТАЯ БЕТА</span>
