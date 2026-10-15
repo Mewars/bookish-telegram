@@ -27,11 +27,12 @@ test('community city feed enforces author, moderation, news provenance and comme
 
     await t.test('resident drafts, publication cannot be self-approved or spoofed as news',async()=>{
       await switchTo('authenticated',resident);
-      const draft=await db.query("INSERT INTO public.community_posts(city,post_type,title,body) VALUES ('Енисейск','question','Где починить велосипед?','Посоветуйте проверенную мастерскую по ремонту велосипеда') RETURNING id,status,author_id");
-      postId=draft.rows[0].id;
+      postId=(await db.query("SELECT public.create_community_post('Енисейск','question','Где починить велосипед?','Посоветуйте проверенную мастерскую по ремонту велосипеда') AS id")).rows[0].id;
+      const draft=await db.query('SELECT id,status,author_id FROM public.community_posts WHERE id=$1',[postId]);
       assert.equal(draft.rows[0].status,'draft');
       assert.equal(draft.rows[0].author_id,resident);
-      await assert.rejects(db.query("INSERT INTO public.community_posts(city,post_type,title,body) VALUES ('Енисейск','news','Новость города','Редакционная публикация от пользователя')"),/row-level security/);
+      await assert.rejects(db.query("INSERT INTO public.community_posts(city,post_type,title,body) VALUES ('Енисейск','question','Прямое создание','Попытка пропустить лимиты')"),/permission denied/);
+      await assert.rejects(db.query("SELECT public.create_community_post('Енисейск','news','Новость города','Редакционная публикация от пользователя')"),/Invalid community post/);
       await assert.rejects(db.query("UPDATE public.community_posts SET author_id=$1 WHERE id=$2",[editor,postId]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.community_posts SET post_type='news' WHERE id=$1",[postId]),/permission denied/);
       await assert.rejects(db.query("UPDATE public.community_posts SET status='published' WHERE id=$1",[postId]),/row-level security/);
@@ -39,6 +40,7 @@ test('community city feed enforces author, moderation, news provenance and comme
       assert.equal((await db.query("UPDATE public.community_posts SET title='Тихая замена' WHERE id=$1 RETURNING id",[postId])).rows.length,0);
       await assert.rejects(db.query("SELECT public.review_community_post($1,true)",[postId]),/Not authorized/);
       await assert.rejects(db.query("SELECT public.publish_city_news('Енисейск','Редакция сообщает','Редакционная новость без полномочий')"),/Not authorized/);
+      await assert.rejects(db.query("SELECT public.create_community_post('Енисейск','post','x','Слишком короткая запись')"),/Invalid community post/);
     });
     await t.test('pending content is hidden from public and foreign city staff',async()=>{
       await switchTo('anon');
