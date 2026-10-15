@@ -114,7 +114,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
   };
   const chooseView=(next:View)=>{
     if(next==='mine'&&!userId){openLogin();return;}
-    setView(next);setSelectedPost(null);setFeedback('');
+    setView(next);setSelectedPost(null);setFeedback('');setEditingId(null);setComposer(false);
   };
   const shown=items.filter(item=>view!=='feed'||filter==='all'||item.post_type===filter);
   return <section className="community-page">
