@@ -97,3 +97,12 @@
 .classifieds-report-card small{color:var(--muted);font-size:12px}
 .classifieds-chat-block{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
 .classifieds-chat-block p{font-size:13px;line-height:1.5;margin:0}
+
+/* Private inbox indicators: keep counts legible in compact mobile layouts. */
+.classifieds-unread-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  align-self:center;min-width:1.7rem;padding:.2rem .48rem;
+  border-radius:999px;background:#d8ac56;color:#172137;
+  font-size:.78rem;font-weight:750;line-height:1.35;
+  font-variant-numeric:tabular-nums;
+}
