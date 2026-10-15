@@ -63,6 +63,36 @@ try {
         'Accessibility button is not docked near the bottom');
       result.checks.push('Accessibility launcher fixed near lower-right corner');
 
+      // Check the actual deployed footer, not just the source or release hash.
+      const footer = page.locator('.web-footer');
+      const adminLink = footer.locator('.footer-admin-link');
+      await adminLink.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await adminLink.count(), 1, 'Expected exactly one footer admin entry');
+      assert.equal(await footer.locator('.footer-legal').getByText('Административная панель').count(), 0,
+        'Old oversized admin entry still appears beneath legal links');
+      assert.equal(await footer.locator('.footer-navigation').count(), 0, 'Duplicate footer navigation returned');
+      const adminPlacement = await adminLink.evaluate(element => {
+        const parent = element.closest('.web-footer-note');
+        const bounds = element.getBoundingClientRect();
+        const fontSize = Number.parseFloat(getComputedStyle(element).fontSize);
+        const noteBounds = parent?.getBoundingClientRect();
+        return {
+          inUtilityRow: !!parent,
+          fontSize,
+          insideUtilityRow: !!noteBounds && bounds.top >= noteBounds.top - 1 && bounds.bottom <= noteBounds.bottom + 1,
+          rightAligned: !!noteBounds && noteBounds.right - bounds.right < 30,
+          noWrap: getComputedStyle(element).whiteSpace === 'nowrap',
+        };
+      });
+      assert(adminPlacement.inUtilityRow && adminPlacement.insideUtilityRow,
+        `Admin entry is outside footer utility row: ${JSON.stringify(adminPlacement)}`);
+      assert(adminPlacement.fontSize <= 12, 'Admin entry is too large');
+      assert(adminPlacement.noWrap, 'Admin entry wraps into multiple lines');
+      if (scenario.name === 'desktop-1440') assert(adminPlacement.rightAligned, 'Desktop admin entry is not right-aligned');
+      result.checks.push('Admin entry compact and in footer bottom row; old link and duplicate navigation absent');
+      await adminLink.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${folder}/${scenario.name}-footer.png`, animations: 'disabled' });
+
       const track = page.locator('.home-carousel-track').first();
       await track.scrollIntoViewIfNeeded();
       const start = await track.evaluate(el => ({ x: el.scrollLeft, overflow: el.scrollWidth > el.clientWidth + 10 }));
