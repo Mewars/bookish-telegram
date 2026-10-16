@@ -29,14 +29,16 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
   assert(username && password, 'Dedicated host HTTP Basic Auth credentials are required');
   assert.match(expectedSha || '', /^[a-f0-9]{40}$/i, 'Expected build commit SHA must be 40 hex characters');
 
-  const basic = `Basic ${Buffer.from(`${username}:${password}`, 'utf8').toString('base64')}`;
-  const request = async (path, authenticated) => fetchImpl(origin + path, {
+  const encodeBasic = (user, pass) => `Basic ${Buffer.from(`${user}:${pass}`, 'utf8').toString('base64')}`;
+  const basic = encodeBasic(username, password);
+  const invalidCredentials = [encodeBasic(`${username}-invalid-probe`, password), encodeBasic(username, `${password}-invalid-probe`)];
+  const request = async (path, authenticated, overrideAuthorization) => fetchImpl(origin + path, {
     method: 'GET',
     redirect: 'manual', // Never forward Basic credentials across redirects.
     cache: 'no-store',
     headers: {
       'Cache-Control': 'no-store',
-      ...(authenticated ? { Authorization: basic } : {}),
+      ...(authenticated ? { Authorization: overrideAuthorization || basic } : {}),
     },
     signal: AbortSignal.timeout(12000),
   });
@@ -45,6 +47,8 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
   const deniedPaths = ['/', '/index.html', '/robots.txt', '/version.json',
     '/assets/__ryadom_access_probe__.js', '/brand/pin-yellow.svg'];
   for (const path of deniedPaths) assertDenied(await request(path, false), path);
+
+  for (const invalid of invalidCredentials) assertDenied(await request('/', true, invalid), 'invalid HTTP Basic credentials');
 
   const htmlResponse = await request('/', true);
   assert.equal(htmlResponse.status, 200, 'Authorized request to beta HTML must return 200');
@@ -68,6 +72,20 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
   const js = await scriptResponse.text();
   assert(!js.includes(PRODUCTION_BACKEND_ID), 'Production backend ID found in JS entry chunk');
 
+  const styles = [...html.matchAll(/<link\\b[^>]*\\bhref=["']([^"']+\\.css(?:\\?[^"']*)?)["']/gi)]
+    .map(match => new URL(match[1], origin))
+    .filter(url => url.origin === origin && url.pathname.startsWith('/assets/'));
+  assert(styles.length > 0, 'Beta HTML must reference at least one same-origin CSS bundle');
+  for (const style of styles) {
+    assertDenied(await request(style.pathname, false), 'CSS bundle');
+    const cssResponse = await request(style.pathname, true);
+    assert.equal(cssResponse.status, 200, 'Authorized CSS bundle must load');
+    assert.match(cssResponse.headers.get('content-type') || '', /text\\/css/i, 'CSS content type must be text/css');
+    const css = await cssResponse.text();
+    assert(!css.includes(PRODUCTION_BACKEND_ID), 'Production backend ID found in CSS');
+    assert(!/sb_secret_|service_role|SUPABASE_SERVICE_ROLE_KEY/i.test(css), 'Supabase secret found in CSS');
+  }
+
   const robotsResponse = await request('/robots.txt', true);
   assert.equal(robotsResponse.status, 200, 'Authorized robots.txt must load');
   assert.match(await robotsResponse.text(), /User-agent:\s*\*\s*Disallow:\s*\//i,
@@ -77,7 +95,7 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
   assert.equal(versionResponse.status, 200, 'Authorized version.json must load');
   const version = await versionResponse.json();
   assert.equal(version.version, expectedSha, 'Deployed beta build SHA does not match approved commit');
-  return { origin, checkedUnauthenticatedPaths: deniedPaths.length + 1, version: expectedSha };
+  return { origin, checkedUnauthenticatedPaths: deniedPaths.length + 1 + styles.length + invalidCredentials.length, version: expectedSha };
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
