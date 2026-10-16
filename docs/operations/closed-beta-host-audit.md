@@ -18,11 +18,12 @@
 - `expected_sha`: полный SHA коммита **реально загруженного beta ZIP**.
 
 Сценарий `scripts/audit-closed-beta-host.mjs` проверит:
-- отказ без HTTP Basic Auth для корня, index, robots, version, известного брендинга, несуществующего asset и **реального** JS из HTML;
+- отказ без HTTP Basic Auth для корня, index, robots, version, известного брендинга, несуществующего asset и **реального** JS и CSS из HTML;
+- отказ для двух неверных комбинаций Basic Auth: неправильного имени и неправильного пароля;
 - отсутствие перенаправлений, которые могли бы переслать Basic Auth в другое место;
-- доступность корня и JS с правильным доступом и наличие `Cache-Control: no-store` у HTML;
+- доступность корня, JS и CSS с правильным доступом и наличие `Cache-Control: no-store` у HTML;
 - бета-теги `noindex`, отсутствие canonical, `robots.txt` с `Disallow: /`;
-- точный SHA `version.json` и отсутствие production backend ID в полученном HTML/entry JS.
+- точный SHA `version.json` и отсутствие production backend ID в полученном HTML/entry JS/CSS, корректный MIME-тип CSS и отсутствие известных маркеров секретов в CSS.
 
 Изолированные тесты функции выполняются в PR без сетевых запросов. Проверка настоящего адреса запускается **только вручную**, не во время PR, не по расписанию и не выполняет публикацию/изменение DNS, хостинга или базы.
 

@@ -72,7 +72,7 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
   const js = await scriptResponse.text();
   assert(!js.includes(PRODUCTION_BACKEND_ID), 'Production backend ID found in JS entry chunk');
 
-  const styles = [...html.matchAll(/<link\\b[^>]*\\bhref=["']([^"']+\\.css(?:\\?[^"']*)?)["']/gi)]
+  const styles = [...html.matchAll(/<link\b[^>]*\bhref=["']([^"']+\.css(?:\?[^"']*)?)["']/gi)]
     .map(match => new URL(match[1], origin))
     .filter(url => url.origin === origin && url.pathname.startsWith('/assets/'));
   assert(styles.length > 0, 'Beta HTML must reference at least one same-origin CSS bundle');
