@@ -32,10 +32,12 @@ function check(error:{message:string}|null):void {
   if(error) throw Error('Операция не выполнена. Проверьте вход и попробуйте снова.');
 }
 export function validateDraft(d:Draft):string|null {
-  if(d.title.trim().length<5 || d.title.trim().length>140) return 'Название: от 5 до 140 символов.';
-  if(d.description.trim().length<15 || d.description.trim().length>4000) return 'Описание: от 15 до 4000 символов.';
-  if(d.category.trim().length<2 || d.category.trim().length>80) return 'Укажите категорию.';
-  if(d.district.length>100) return 'Название района слишком длинное.';
+  if(typeof d.city!=='string' || !d.city.trim()) return 'Выберите город.';
+  if(typeof d.deal_type!=='string' || !Object.hasOwn(dealLabels,d.deal_type)) return 'Выберите тип объявления.';
+  if(typeof d.title!=='string' || d.title.trim().length<5 || d.title.trim().length>140) return 'Название: от 5 до 140 символов.';
+  if(typeof d.description!=='string' || d.description.trim().length<15 || d.description.trim().length>4000) return 'Описание: от 15 до 4000 символов.';
+  if(typeof d.category!=='string' || d.category.trim().length<2 || d.category.trim().length>80) return 'Укажите категорию.';
+  if(typeof d.district!=='string' || d.district.length>100) return 'Название района слишком длинное.';
   if(d.price_rub!==null && (!Number.isFinite(d.price_rub)||d.price_rub<0||d.price_rub>999999999.99)) return 'Проверьте цену.';
   return null;
 }
@@ -64,7 +66,7 @@ export async function createDraft(client:SupabaseClient|null,d:Draft):Promise<vo
   const err=validateDraft(d);
   if(err) throw Error(err);
   const {error}=await db(client).from('classifieds').insert({
-    city:d.city,title:d.title.trim(),description:d.description.trim(),
+    city:d.city.trim(),title:d.title.trim(),description:d.description.trim(),
     category:d.category.trim(),district:d.district.trim(),deal_type:d.deal_type,price_rub:d.price_rub,
   });
   check(error);
