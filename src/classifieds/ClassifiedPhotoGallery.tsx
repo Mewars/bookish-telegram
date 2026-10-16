@@ -8,6 +8,9 @@ import {
 } from './photos';
 import type { VisiblePhoto } from './photos';
 
+// Signed Storage URLs expire after 600 seconds; refresh before expiry.
+const PHOTO_URL_REFRESH_MS=9*60*1000;
+
 function explain(error:unknown):string{
   return error instanceof Error?error.message:'Не удалось обновить галерею.';
 }
@@ -35,6 +38,12 @@ export function ClassifiedPhotoGallery({listing,editable}:{
       .catch(reason=>{if(alive){setLoadError(explain(reason));setLoaded(true);}});
     return ()=>{alive=false;};
   },[listing.id,listing.status,revision]);
+
+  useEffect(()=>{
+    if(!loaded||loadError||images.length===0)return;
+    const timeout=window.setTimeout(()=>setRevision(n=>n+1),PHOTO_URL_REFRESH_MS);
+    return ()=>window.clearTimeout(timeout);
+  },[loaded,loadError,images.length,revision]);
 
   const upload=async()=>{
     if(busy||!editable||!rights||!selected.length)return;
