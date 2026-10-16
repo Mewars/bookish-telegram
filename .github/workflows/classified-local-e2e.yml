@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      TEST_WORKDIR: ${{ runner.temp }}/ryadom-local-e2e
+      TEST_WORKDIR: ${{ github.workspace }}/../ryadom-local-e2e
       CONTEXT: closed-beta
       VITE_SUPABASE_URL: https://djqhixvlfsbvannoqdjw.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_nonfunctional_placeholder
@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: classified-local-e2e-report
-          path: ${{ runner.temp }}/ryadom-local-e2e/report.json
+          path: ${{ github.workspace }}/../ryadom-local-e2e/report.json
           if-no-files-found: error
       - name: Remove only owned ephemeral containers
         if: always()
