@@ -10,17 +10,19 @@
 
 ## Текущий этап #80
 
-Ветка `agent/classified-photo-load-errors-20261016`: ошибка подписания приватного снимка больше не скрывает его как будто снимка нет. Альбом показывает ошибку/повтор; редактирование недоступно до полного чтения. RLS/Storage-политики и production-флаги не изменены.
+PR [#118](https://github.com/Mewars/bookish-telegram/pull/118), ветка `agent/classified-photo-load-errors-20261016`, код `19ad844`, проверенный HEAD `82ff658909e923439f17cf76c1cc037bfd9de56e`: ошибка подписания приватного снимка больше не скрывает его как будто снимка нет. Альбом показывает ошибку/повтор; редактирование недоступно до полного чтения. RLS/Storage-политики и production-флаги не изменены.
+
+CI HEAD `82ff658`: [regression/build 38857984178](https://github.com/Mewars/bookish-telegram/actions/runs/38857984178), [beta smoke 38857984181](https://github.com/Mewars/bookish-telegram/actions/runs/38857984181) и Netlify preview SUCCESS. После коммита этого handoff снова дождаться проверок актуального HEAD.
 
 Локально: пять тестов `classified-photos-ui`, полная регрессия `npm test`, ESLint и TypeScript/Vite build PASS. Тесты Storage синтетические, UI-проверка структурная; браузерный E2E и физические устройства не проверялись.
 
 ## Публикация
 
-После merge #117 запущены Sprinthost [38857870852](https://github.com/Mewars/bookish-telegram/actions/runs/38857870852) и Pages [38857870862](https://github.com/Mewars/bookish-telegram/actions/runs/38857870862). На момент записи выполняются: перед следующим merge проверить их итог и Published Home Browser QA. Бета не публикуется этими изменениями.
+После merge #117 запущены Sprinthost [38857870852](https://github.com/Mewars/bookish-telegram/actions/runs/38857870852) и Pages [38857870862](https://github.com/Mewars/bookish-telegram/actions/runs/38857870862). Оба завершились SUCCESS. [Published Home Browser QA 38857983417](https://github.com/Mewars/bookish-telegram/actions/runs/38857983417) также SUCCESS: проверка опубликованного SHA, desktop/mobile Chromium и закрытых beta-маршрутов. Это не физический телефон и не проверка сетей РФ. Бета не публикуется этими изменениями.
 
 ## Тестовое окружение
 
-Через подключённый Supabase подтверждено: Ryadom-Test `djqhixvlfsbvannoqdjw` ACTIVE_HEALTHY, регион `eu-west-1`. Read-only запрос 16.10.2026 подтвердил RLS + FORCE RLS у всех семи таблиц объявлений/сообщений/фото/жалоб/блокировок/отметок прочтения. Это проверка флагов, не полный аудит политик. Данные пользователей не запрашивались, SQL-изменений не выполнялось.
+Через подключённый Supabase подтверждено: Ryadom-Test `djqhixvlfsbvannoqdjw` ACTIVE_HEALTHY, регион `eu-west-1`. Read-only запрос 16.10.2026 подтвердил RLS + FORCE RLS у всех семи таблиц объявлений/сообщений/фото/жалоб/блокировок/отметок прочтения. Это проверка флагов, не полный аудит политик. Также подтверждён приватный bucket `ryadom-classified-photos` (`public=false`, лимит 2097152 байт, только WebP/JPEG). Данные пользователей не запрашивались, SQL-изменений не выполнялось.
 
 ## Расписание и ограничения
 
