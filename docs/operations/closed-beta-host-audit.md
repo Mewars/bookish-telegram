@@ -30,3 +30,17 @@
 **Ограничение:** проход этой проверки **не** подтверждает права RLS, содержание всех chunks JavaScript, доступность Supabase Auth, выдачу/получение email, E2E между пользователями, разрешённость обработки персональных данных в зарубежном регионе или готовность к релизу. Все эти проверки нужны отдельно; требования локализации и юридическая оценка выполняются **до** работы с реальными персональными данными.
 
 Основной чек-лист: [closed-beta-package-and-release.md](./closed-beta-package-and-release.md).
+
+### JavaScript audit coverage (2026-10-16)
+
+The host gate audits every HTML script and modulepreload URL, including query
+strings, and follows same-origin `/assets/` JavaScript strings in bundled imports
+and Vite dependency arrays. Repeated/cyclic URLs are checked once (500-URL limit).
+Each discovered chunk must deny anonymous access, load with HTTP Basic Auth as
+JavaScript, and contain neither the production backend ID nor Supabase secret
+markers. External and off-path HTML JavaScript references fail closed, without
+forwarding credentials. `npm run test:beta-host` is part of `npm test`.
+
+This checks the discovered dependency graph, not unreferenced files or dynamically
+computed URLs. It does not replace the dist audit, server-wide host gate or real
+multi-user Supabase E2E.
