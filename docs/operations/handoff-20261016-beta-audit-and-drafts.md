@@ -64,3 +64,23 @@ Supabase changelog заблокирован сетевой политикой (C
 тестами ошибок подготовки, загрузки, cleanup и повторной попытки. Не ослаблять RLS.
 Далее реальный A/B/C E2E только на изолированной разрешённой инфраструктуре.
 Публичный релиз и окончательная приёмка не выполнены.
+
+## Последующее подтверждение и SDK regression
+
+PR #121 объединён после зелёных проверок текущего HEAD cc9861f202071f3f3d18dddbaffedf7df97e1f84:
+merge `4939ea52194453eb088bf1ae65b25f5cc65fe82e`.
+CI [38926083808](https://github.com/Mewars/bookish-telegram/actions/runs/38926083808) и
+[38926083806](https://github.com/Mewars/bookish-telegram/actions/runs/38926083806) SUCCESS.
+Browser QA #120 [38925888076](https://github.com/Mewars/bookish-telegram/actions/runs/38925888076) SUCCESS.
+
+Дополнительная проверка аудитора на настоящем локальном beta bundle обнаружила
+ложное срабатывание: Supabase SDK содержит startsWith("sb_secret_") для определения
+типа ключа. [PR #122](https://github.com/Mewars/bookish-telegram/pull/122) требует
+непустое значение после префикса, как существующий dist audit. 34 host tests PASS;
+новый тест разрешает SDK detector, но по-прежнему отклоняет синтетическое значение ключа.
+Локальная build:beta с фиктивным нерабочим CI public key и затем auditor с имитацией
+HTTP gate прошли: обнаружены все 3 JS chunks, 12 anonymous/invalid-auth probes отклонены.
+Это интеграционная проверка локальной сборки, не живой host/E2E. Пакет никуда не публиковался.
+
+Актуальные merge SHA #122 и deploy после #121/#122 нужно перепроверить в GitHub;
+эта запись не утверждает успех будущих проверок.
