@@ -49,11 +49,15 @@ export async function signedClassifiedPhotos(client:SupabaseClient|null,photos:C
 }
 // Reserve a DB row before upload: Storage RLS only permits objects whose
 // canonical path is already registered on this owner's editable draft.
-export async function uploadClassifiedPhotos(client:SupabaseClient|null,listingId:string,files:File[]):Promise<void> {
+export async function uploadClassifiedPhotos(
+  client:SupabaseClient|null,listingId:string,files:File[],
+  onUploaded?:(completed:number)=>void,
+):Promise<void> {
   const c=db(client);
   const slots=await listClassifiedPhotos(c,listingId);
   assertPhotoBatch(files,slots.length);
   const occupied=[...slots];
+  let completed=0;
   for(const file of files){
     const slot=nextPhotoSlot(occupied);
     if(slot===null)throw Error('Достигнут лимит фотографий.');
@@ -66,15 +70,22 @@ export async function uploadClassifiedPhotos(client:SupabaseClient|null,listingI
       .select('id,listing_id,slot,format,object_path').single();
     if(error || !data || data.object_path!==path)
       throw Error('Не удалось зарезервировать место для фотографии.');
-    const {error:uploadError}=await c.storage.from(CLASSIFIED_PHOTO_BUCKET).upload(path,blob,{
-      contentType:blob.type,cacheControl:'3600',upsert:false,
-    });
-    if(uploadError){
+    let uploadFailed:boolean;
+    try {
+      const {error}=await c.storage.from(CLASSIFIED_PHOTO_BUCKET).upload(path,blob,{
+        contentType:blob.type,cacheControl:'3600',upsert:false,
+      });
+      uploadFailed=!!error;
+    }catch{uploadFailed=true;}
+    if(uploadFailed){
       const {error:cleanupError}=await c.from('classified_photos').delete().eq('id',id);
       if(cleanupError)throw Error('Загрузка не выполнена, и зарезервированное место не удалось освободить. Попробуйте позже.');
       throw Error('Не удалось загрузить фотографию. Попробуйте ещё раз.');
     }
     occupied.push(data as ClassifiedPhoto);
+    // Only confirmed uploads leave the retry queue; later failures must not
+    // cause this successfully stored prefix to be uploaded under new UUIDs.
+    onUploaded?.(++completed);
   }
 }
 export async function deleteClassifiedPhoto(client:SupabaseClient|null,photo:ClassifiedPhoto):Promise<void>{
