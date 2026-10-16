@@ -93,7 +93,7 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
       'JS content type must be JavaScript');
     const js = await scriptResponse.text();
     assert(!js.includes(PRODUCTION_BACKEND_ID), 'Production backend ID found in JS bundle');
-    assert(!/sb_secret_|service_role|SUPABASE_SERVICE_ROLE_KEY/i.test(js), 'Supabase secret found in JS bundle');
+    assert(!/sb_secret_[A-Za-z0-9_-]+|service_role|SUPABASE_SERVICE_ROLE_KEY/i.test(js), 'Supabase secret found in JS bundle');
     for (const dependency of js.matchAll(/["'`]([^"'`\s]+\.js(?:\?[^"'`\s]*)?)["'`]/g)) {
       const value = dependency[1];
       const url = new URL(value, value.startsWith('assets/') ? `${origin}/` : script.href);

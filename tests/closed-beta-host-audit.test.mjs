@@ -131,3 +131,12 @@ test('rejects external or off-path JS references without sending host credential
     assert(!calls.some(call => call.path === '/public.js' || call.path === '/bundle.js'));
   }
 });
+
+
+test('allows the SDK secret-prefix detector without allowing a secret key value', async () => {
+  const prefixDetector = 'const isKey = value => value.startsWith("sb_secret_");';
+  await audit(mockFetch({ jsAssets: { '/assets/index-123.js': { body: prefixDetector } } }).fetchImpl);
+  await assert.rejects(() => audit(mockFetch({ jsAssets: {
+    '/assets/index-123.js': { body: prefixDetector + 'const leaked="sb_secret_synthetic_test";' },
+  } }).fetchImpl), /Supabase secret found in JS bundle/);
+});
