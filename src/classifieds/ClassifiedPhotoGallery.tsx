@@ -46,7 +46,10 @@ export function ClassifiedPhotoGallery({listing,editable}:{
     }
     setBusy(true);setError('');
     try {
-      await uploadClassifiedPhotos(supabase,listing.id,selected);
+      const batch=selected;
+      await uploadClassifiedPhotos(supabase,listing.id,batch,completed=>{
+        setSelected(batch.slice(completed));
+      });
       setSelected([]);setRights(false);setRevision(n=>n+1);
     }catch(reason){setError(explain(reason));setRevision(n=>n+1);}
     finally{setBusy(false);}
