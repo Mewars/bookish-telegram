@@ -80,7 +80,7 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
     assertDenied(await request(style.pathname, false), 'CSS bundle');
     const cssResponse = await request(style.pathname, true);
     assert.equal(cssResponse.status, 200, 'Authorized CSS bundle must load');
-    assert.match(cssResponse.headers.get('content-type') || '', /text\\/css/i, 'CSS content type must be text/css');
+    assert.match(cssResponse.headers.get('content-type') || '', new RegExp('text/css', 'i'), 'CSS content type must be text/css');
     const css = await cssResponse.text();
     assert(!css.includes(PRODUCTION_BACKEND_ID), 'Production backend ID found in CSS');
     assert(!/sb_secret_|service_role|SUPABASE_SERVICE_ROLE_KEY/i.test(css), 'Supabase secret found in CSS');
