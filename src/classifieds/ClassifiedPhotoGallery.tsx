@@ -26,24 +26,40 @@ export function ClassifiedPhotoGallery({listing,editable}:{
   const [loadError,setLoadError]=useState('');
   const [revision,setRevision]=useState(0);
   const [loaded,setLoaded]=useState(false);
+  const [signedAt,setSignedAt]=useState(0);
   useEffect(()=>{
     let alive=true;
+    let signingStartedAt=0;
     Promise.resolve().then(()=>{
       if(!alive)return [];
       setLoaded(false);setLoadError('');
       return listClassifiedPhotos(supabase,listing.id);
     })
-      .then(rows=>signedClassifiedPhotos(supabase,rows))
-      .then(rows=>{if(alive){setImages(rows);setActive(0);setLoaded(true);}})
+      .then(rows=>{
+        if(!alive)return [];
+        signingStartedAt=Date.now();
+        return signedClassifiedPhotos(supabase,rows);
+      })
+      .then(rows=>{if(alive){setImages(rows);setActive(index=>Math.max(0,Math.min(index,rows.length-1)));setSignedAt(signingStartedAt);setLoaded(true);}})
       .catch(reason=>{if(alive){setLoadError(explain(reason));setLoaded(true);}});
     return ()=>{alive=false;};
   },[listing.id,listing.status,revision]);
 
   useEffect(()=>{
     if(!loaded||loadError||images.length===0)return;
-    const timeout=window.setTimeout(()=>setRevision(n=>n+1),PHOTO_URL_REFRESH_MS);
-    return ()=>window.clearTimeout(timeout);
-  },[loaded,loadError,images.length,revision]);
+    const refreshIfDue=()=>{
+      if(document.visibilityState==='hidden'||Date.now()-signedAt<PHOTO_URL_REFRESH_MS)return;
+      setLoaded(false);setRevision(n=>n+1);
+    };
+    const timeout=window.setTimeout(refreshIfDue,Math.max(0,PHOTO_URL_REFRESH_MS-(Date.now()-signedAt)));
+    document.addEventListener('visibilitychange',refreshIfDue);
+    window.addEventListener('focus',refreshIfDue);
+    return ()=>{
+      window.clearTimeout(timeout);
+      document.removeEventListener('visibilitychange',refreshIfDue);
+      window.removeEventListener('focus',refreshIfDue);
+    };
+  },[loaded,loadError,images.length,signedAt]);
 
   const upload=async()=>{
     if(busy||!editable||!rights||!selected.length)return;
@@ -75,11 +91,12 @@ export function ClassifiedPhotoGallery({listing,editable}:{
     <p role="alert" className="classifieds-feedback">{loadError}</p>
     <button type="button" onClick={()=>{setLoaded(false);setRevision(n=>n+1);}}>Повторить загрузку фотографий</button>
   </div>;
+  const imageFailed=()=>setLoadError('Не удалось показать фотографию. Обновите ссылки и попробуйте снова.');
   const current=images[Math.min(active,images.length-1)];
   if(!editable && images.length===0 && loaded && !error)return null;
   return <div className="classified-gallery" aria-label="Фотографии объявления">
     {current&&<div className="classified-gallery-main">
-      <img src={current.url} alt={'Фото объявления «'+listing.title+'»'}/>
+      <img src={current.url} onError={imageFailed} alt={'Фото объявления «'+listing.title+'»'}/>
       {images.length>1&&<div className="classified-gallery-navigation">
         <button type="button" aria-label="Предыдущее фото" onClick={()=>setActive(i=>(i-1+images.length)%images.length)}>‹</button>
         <span>{Math.min(active,images.length-1)+1} / {images.length}</span>
@@ -89,7 +106,7 @@ export function ClassifiedPhotoGallery({listing,editable}:{
     {images.length>1&&<div className="classified-gallery-thumbs">
       {images.map((photo,index)=><button key={photo.id} type="button" aria-label={'Фото '+(index+1)}
         aria-pressed={index===active} onClick={()=>setActive(index)}>
-        <img src={photo.url} alt=""/>
+        <img src={photo.url} onError={imageFailed} alt=""/>
       </button>)}
     </div>}
     {editable&&<div className="classified-gallery-edit">

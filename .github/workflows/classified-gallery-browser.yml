@@ -1,0 +1,43 @@
+name: Classified Gallery Browser Regression
+
+on:
+  pull_request:
+    branches: [mewars]
+    paths:
+      - 'src/classifieds/**'
+      - 'src/photos/adminImage.ts'
+      - 'tests/browser-gallery/**'
+      - 'tests/classified-gallery-browser.py'
+      - '.github/workflows/classified-gallery-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gallery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - name: Install isolated browser test runner
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+      - name: Exercise the real gallery component with mocked Storage
+        run: |
+          node tests/browser-gallery/server.mjs > "$RUNNER_TEMP/gallery-server.log" 2>&1 &
+          gallery_pid=$!
+          trap 'kill "$gallery_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4179/tests/browser-gallery/index.html > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/classified-gallery-browser.py
