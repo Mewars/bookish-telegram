@@ -20,14 +20,19 @@ export function ClassifiedPhotoGallery({listing,editable}:{
   const [rights,setRights]=useState(false);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
+  const [loadError,setLoadError]=useState('');
   const [revision,setRevision]=useState(0);
   const [loaded,setLoaded]=useState(false);
   useEffect(()=>{
     let alive=true;
-    Promise.resolve().then(()=>listClassifiedPhotos(supabase,listing.id))
+    Promise.resolve().then(()=>{
+      if(!alive)return [];
+      setLoaded(false);setLoadError('');
+      return listClassifiedPhotos(supabase,listing.id);
+    })
       .then(rows=>signedClassifiedPhotos(supabase,rows))
       .then(rows=>{if(alive){setImages(rows);setActive(0);setLoaded(true);}})
-      .catch(reason=>{if(alive){setError(explain(reason));setLoaded(true);}});
+      .catch(reason=>{if(alive){setLoadError(explain(reason));setLoaded(true);}});
     return ()=>{alive=false;};
   },[listing.id,listing.status,revision]);
 
@@ -53,6 +58,11 @@ export function ClassifiedPhotoGallery({listing,editable}:{
     catch(reason){setError(explain(reason));}
     finally{setBusy(false);}
   };
+  if(!loaded)return <p className="classifieds-note" role="status">Загружаем фотографии…</p>;
+  if(loadError)return <div className="classified-gallery" aria-label="Фотографии объявления">
+    <p role="alert" className="classifieds-feedback">{loadError}</p>
+    <button type="button" onClick={()=>{setLoaded(false);setRevision(n=>n+1);}}>Повторить загрузку фотографий</button>
+  </div>;
   const current=images[Math.min(active,images.length-1)];
   if(!editable && images.length===0 && loaded && !error)return null;
   return <div className="classified-gallery" aria-label="Фотографии объявления">
@@ -70,7 +80,6 @@ export function ClassifiedPhotoGallery({listing,editable}:{
         <img src={photo.url} alt=""/>
       </button>)}
     </div>}
-    {!loaded&&<p className="classifieds-note" role="status">Загружаем фотографии…</p>}
     {editable&&<div className="classified-gallery-edit">
       <small>Снимков: {images.length} из {CLASSIFIED_PHOTO_LIMIT}</small>
       {current&&<button className="classified-gallery-remove" type="button" disabled={busy}

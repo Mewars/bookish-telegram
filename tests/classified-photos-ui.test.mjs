@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { assertPhotoBatch,nextPhotoSlot,photoKey,CLASSIFIED_PHOTO_LIMIT } from '../src/classifieds/photos.ts';
+import { assertPhotoBatch,nextPhotoSlot,photoKey,CLASSIFIED_PHOTO_LIMIT,signedClassifiedPhotos } from '../src/classifieds/photos.ts';
 
 test('classified album validates reservation keys and ten available slots',()=>{
   assert.equal(CLASSIFIED_PHOTO_LIMIT,10);
@@ -32,4 +32,46 @@ test('classified storage remains private and release route remains gated',async(
   assert.doesNotMatch(repo,/getPublicUrl/);
   assert.match(ui,/право публиковать эти фотографии/);
   assert.match(app,/VITE_CLASSIFIEDS_ENABLED === 'true'/);
+});
+
+const album = [0,1].map(slot=>({ id: String(slot), listing_id:'listing', slot,
+  format:'webp', object_path:`listing/photo-${slot}.webp` }));
+function signingClient(sign) {
+  return { storage: { from(bucket) {
+    assert.equal(bucket,'ryadom-classified-photos');
+    return { createSignedUrl: sign };
+  } } };
+}
+
+test('private gallery keeps every photo in slot order when signing succeeds',async()=>{
+  const calls=[];
+  const client=signingClient(async(path,ttl)=>{
+    calls.push([path,ttl]);
+    return {data:{signedUrl:`https://storage.example/${path}`},error:null};
+  });
+  const images=await signedClassifiedPhotos(client,album);
+  assert.deepEqual(images.map(photo=>photo.slot),[0,1]);
+  assert.deepEqual(calls,album.map(photo=>[photo.object_path,600]));
+  assert.equal(images.length,album.length);
+});
+
+test('signing failure cannot silently turn a partial album into a successful empty gallery',async()=>{
+  for(const failed of [{data:null,error:{message:'temporary outage'}},{data:{},error:null}]) {
+    let retry=false;
+    const client=signingClient(async(path)=>path===album[1].object_path && !retry
+      ?failed:{data:{signedUrl:`https://storage.example/${path}`},error:null});
+    await assert.rejects(()=>signedClassifiedPhotos(client,album),/Не удалось загрузить фотографии/);
+    retry=true;
+    assert.equal((await signedClassifiedPhotos(client,album)).length,2);
+  }
+  assert.deepEqual(await signedClassifiedPhotos(signingClient(()=>assert.fail('Empty album must not sign')),[]),[]);
+});
+
+test('gallery offers retry and withholds editing controls while the album is unavailable',async()=>{
+  const ui=await readFile('src/classifieds/ClassifiedPhotoGallery.tsx','utf8');
+  assert.match(ui,/setLoadError\(explain\(reason\)\)/);
+  const retry=ui.indexOf('if(loadError)return');
+  assert(retry>0 && retry<ui.indexOf('{editable&&'));
+  assert.match(ui,/setLoaded\(false\);setRevision\(n=>n\+1\)/);
+  assert.match(ui,/Повторить загрузку фотографий/);
 });

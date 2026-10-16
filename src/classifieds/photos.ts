@@ -41,9 +41,11 @@ export async function signedClassifiedPhotos(client:SupabaseClient|null,photos:C
   const storage=db(client).storage.from(CLASSIFIED_PHOTO_BUCKET);
   const signed=await Promise.all(photos.map(async photo=>{
     const {data,error}=await storage.createSignedUrl(photo.object_path,600);
-    return !error && data?.signedUrl?{...photo,url:data.signedUrl}:null;
+    if(error || !data?.signedUrl)
+      throw Error('Не удалось загрузить фотографии объявления. Повторите попытку.');
+    return {...photo,url:data.signedUrl};
   }));
-  return signed.filter((photo):photo is VisiblePhoto=>photo!==null);
+  return signed;
 }
 // Reserve a DB row before upload: Storage RLS only permits objects whose
 // canonical path is already registered on this owner's editable draft.
