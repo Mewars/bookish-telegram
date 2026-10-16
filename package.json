@@ -11,7 +11,7 @@
     "build:beta": "node scripts/check-closed-beta-env.mjs && npm run build -- --mode closed-beta && node scripts/verify-closed-beta-dist.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "lint": "eslint .",
-    "test": "npm run test:beta-config && npm run test:maps && npm run test:osm && npm run test:import && npm run test:seo && npm run test:organizations && npm run test:verified && npm run test:mobile-design && npm run test:admin && npm run test:photo-editor && npm run test:startup && npm run test:oauth && npm run test:home-shortcuts && npm run test:release && npm run test:vk-bridge && npm run test:rutube && npm run test:accessibility && npm run test:classifieds && npm run test:community",
+    "test": "npm run test:beta-config && npm run test:maps && npm run test:osm && npm run test:import && npm run test:seo && npm run test:organizations && npm run test:verified && npm run test:mobile-design && npm run test:admin && npm run test:photo-editor && npm run test:startup && npm run test:oauth && npm run test:home-shortcuts && npm run test:release && npm run test:vk-bridge && npm run test:rutube && npm run test:accessibility && npm run test:classifieds && npm run test:community && npm run test:weather",
     "test:oauth": "node --loader ./tests/typescript-loader.mjs tests/website-oauth.test.mjs",
     "test:beta-config": "node --loader ./tests/typescript-loader.mjs tests/closed-beta-config.test.mjs && node --test tests/closed-beta-assets.test.mjs",
     "test:mobile-design": "node tests/mobile-design-regressions.test.mjs",
@@ -30,7 +30,8 @@
     "test:rutube": "node --loader ./tests/typescript-loader.mjs tests/rutube-video.test.mjs",
     "test:accessibility": "node --loader ./tests/typescript-loader.mjs tests/accessibility.test.mjs",
     "test:classifieds": "node --loader ./tests/typescript-loader.mjs tests/classifieds-my-city-scope.test.mjs && node tests/classifieds-rls.test.mjs && node tests/classified-photos-rls.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classified-photos-ui.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-beta.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-session-isolation.test.mjs && node tests/classifieds-session-remount.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-report-retry.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-draft-edit.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-tab-loading.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-chat-history.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-chat-pagination.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-unread-ui.test.mjs && node --loader ./tests/typescript-loader.mjs tests/classifieds-inbox-notices.test.mjs",
-    "test:community": "node tests/community-rls.test.mjs && node --loader ./tests/typescript-loader.mjs tests/community-beta.test.mjs && node --loader ./tests/typescript-loader.mjs tests/community-moderation-context.test.mjs"
+    "test:community": "node tests/community-rls.test.mjs && node --loader ./tests/typescript-loader.mjs tests/community-beta.test.mjs && node --loader ./tests/typescript-loader.mjs tests/community-moderation-context.test.mjs",
+    "test:weather": "node --loader ./tests/typescript-loader.mjs tests/met-norway-forecast.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
