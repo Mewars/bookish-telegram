@@ -62,15 +62,44 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
   assert.doesNotMatch(html, /<link rel="canonical"/i, 'Beta must not advertise a production canonical URL');
   assert.doesNotMatch(html, new RegExp(PRODUCTION_BACKEND_ID), 'Production backend ID found in beta HTML');
 
-  const script = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+\.js(?:\?[^"']*)?)["']/gi)]
-    .map(match => new URL(match[1], origin))
-    .find(url => url.origin === origin && url.pathname.startsWith('/assets/'));
-  assert(script, 'Beta HTML must reference at least one same-origin JS bundle');
-  assertDenied(await request(script.pathname, false), 'JS bundle');
-  const scriptResponse = await request(script.pathname, true);
-  assert.equal(scriptResponse.status, 200, 'Authorized JavaScript asset must load');
-  const js = await scriptResponse.text();
-  assert(!js.includes(PRODUCTION_BACKEND_ID), 'Production backend ID found in JS entry chunk');
+  // Include every entry and modulepreload, then follow bundled import/dependency
+  // strings. Vite also lists lazy chunks in its generated dependency arrays.
+  const scripts = new Map();
+  const addScript = (value, base = origin) => {
+    const url = new URL(value, base);
+    assert(url.origin === origin && url.pathname.startsWith('/assets/'),
+      'Beta JS assets must stay on the isolated same-origin /assets/ path');
+    url.hash = '';
+    scripts.set(url.href, url);
+    assert(scripts.size <= 500, 'Beta JS dependency graph exceeds the audit limit');
+  };
+  for (const tag of html.matchAll(/<(?:script|link)\b[^>]*>/gi)) {
+    const isScript = /^<script\b/i.test(tag[0]);
+    const isPreload = /\brel=["']modulepreload["']/i.test(tag[0]);
+    if (!isScript && !isPreload) continue;
+    const attribute = isScript ? /\bsrc=["']([^"']+)["']/i : /\bhref=["']([^"']+)["']/i;
+    const source = tag[0].match(attribute);
+    if (source) addScript(source[1]);
+  }
+  assert(scripts.size > 0, 'Beta HTML must reference at least one same-origin JS bundle');
+  // Map iteration visits newly discovered URLs; repeated/cyclic imports are deduplicated.
+  for (const script of scripts.values()) {
+    const path = script.pathname + script.search;
+    assertDenied(await request(path, false), 'JS bundle');
+    const scriptResponse = await request(path, true);
+    assert.equal(scriptResponse.status, 200, 'Authorized JavaScript asset must load');
+    assert.match(scriptResponse.headers.get('content-type') || '',
+      /(?:text|application)\/(?:javascript|ecmascript)\b/i,
+      'JS content type must be JavaScript');
+    const js = await scriptResponse.text();
+    assert(!js.includes(PRODUCTION_BACKEND_ID), 'Production backend ID found in JS bundle');
+    assert(!/sb_secret_|service_role|SUPABASE_SERVICE_ROLE_KEY/i.test(js), 'Supabase secret found in JS bundle');
+    for (const dependency of js.matchAll(/["'`]([^"'`\s]+\.js(?:\?[^"'`\s]*)?)["'`]/g)) {
+      const value = dependency[1];
+      const url = new URL(value, value.startsWith('assets/') ? `${origin}/` : script.href);
+      if (url.origin === origin && url.pathname.startsWith('/assets/')) addScript(url.href);
+    }
+  }
 
   const styles = [...html.matchAll(/<link\b[^>]*\bhref=["']([^"']+\.css(?:\?[^"']*)?)["']/gi)]
     .map(match => new URL(match[1], origin))
@@ -95,7 +124,7 @@ export async function auditClosedBetaHost({ origin: rawOrigin, username, passwor
   assert.equal(versionResponse.status, 200, 'Authorized version.json must load');
   const version = await versionResponse.json();
   assert.equal(version.version, expectedSha, 'Deployed beta build SHA does not match approved commit');
-  return { origin, checkedUnauthenticatedPaths: deniedPaths.length + 1 + styles.length + invalidCredentials.length, version: expectedSha };
+  return { origin, checkedUnauthenticatedPaths: deniedPaths.length + scripts.size + styles.length + invalidCredentials.length, version: expectedSha, checkedJavaScriptAssets: scripts.size };
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {

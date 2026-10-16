@@ -9,24 +9,28 @@ const expectedSha = 'a'.repeat(40);
 const html = '<html><head><meta name="robots" content="noindex, nofollow, noarchive, nosnippet"/></head>' +
   '<body><link rel="stylesheet" href="/assets/index-123.css"><script type="module" src="/assets/index-123.js"></script></body></html>';
 
-function mockFetch({ publicPath, redirect, cacheable, wrongSha, exposeScript, missingRobots, exposeCss, allowWrongBasic, noStylesheet, wrongCssType, cssProductionId, cssSecret } = {}) {
+function mockFetch({ publicPath, redirect, cacheable, wrongSha, exposeScript, missingRobots, exposeCss, allowWrongBasic, noStylesheet, wrongCssType, cssProductionId, cssSecret, extraHtml = '', jsAssets = {} } = {}) {
   const calls = [];
   const fetchImpl = async (url, options) => {
     const u = new URL(url);
     const auth = options.headers.Authorization;
     const valid = auth === `Basic ${Buffer.from('beta:private').toString('base64')}`;
-    calls.push({ path: u.pathname, authenticated: !!auth, valid, redirect: options.redirect });
+    calls.push({ url: u.pathname + u.search, path: u.pathname, authenticated: !!auth, valid, redirect: options.redirect });
     if (auth && !valid && !allowWrongBasic) return new Response('denied', { status: 401 });
     if (!auth) {
+      if (jsAssets[u.pathname + u.search]?.public) return new Response('exposed');
       if (redirect && u.pathname === '/') return new Response('', { status: 302, headers: { Location: 'https://elsewhere.test' } });
       if (publicPath === u.pathname || (exposeScript && u.pathname.endsWith('.js')) || (exposeCss && u.pathname.endsWith('.css'))) return new Response('exposed');
       return new Response('blocked', { status: 401 });
     }
     if (u.pathname === '/robots.txt') return new Response(missingRobots ? 'User-agent: *\nAllow: /' : 'User-agent: *\nDisallow: /');
     if (u.pathname === '/version.json') return Response.json({ version: wrongSha ? 'b'.repeat(40) : expectedSha });
-    if (u.pathname.endsWith('.js')) return new Response('console.log("test")');
+    if (u.pathname.endsWith('.js')) {
+      const asset = jsAssets[u.pathname + u.search] || {};
+      return new Response(asset.body || 'console.log("test")', { status: asset.status || 200, headers: { 'Content-Type': asset.type || 'text/javascript' } });
+    }
     if (u.pathname.endsWith('.css')) return new Response(cssProductionId ? 'cptbmepnbzogqkfhflsg' : cssSecret || 'body{color:black}', { headers: { 'Content-Type': wrongCssType ? 'text/html' : 'text/css' } });
-    return new Response(noStylesheet ? html.replace(/<link[^>]+>/, '') : html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': cacheable ? 'public,max-age=3600' : 'private, no-store' } });
+    return new Response(noStylesheet ? html.replace(/<link[^>]+>/, '') : html + extraHtml, { headers: { 'Content-Type': 'text/html', 'Cache-Control': cacheable ? 'public,max-age=3600' : 'private, no-store' } });
   };
   return { fetchImpl, calls };
 }
@@ -83,3 +87,47 @@ for (const [name, options, reason] of [
     await assert.rejects(() => audit(mockFetch(options).fetchImpl), reason);
   });
 }
+
+const extraHtml = '<script src="/assets/second.js?v=2"></script>' +
+  '<link href="/assets/preload.js" rel="modulepreload">' +
+  '<script src="/assets/index-123.js"></script>';
+const jsAssets = {
+  '/assets/index-123.js': { body: 'import "./shared.js"; const deps=["assets/lazy.js"];' },
+  '/assets/shared.js': { body: 'import "./index-123.js";' },
+};
+
+test('audits every script, modulepreload and transitive/lazy chunk once, preserving query strings', async () => {
+  const { fetchImpl, calls } = mockFetch({ extraHtml, jsAssets });
+  const result = await audit(fetchImpl);
+  assert.equal(result.checkedJavaScriptAssets, 5);
+  assert.equal(result.checkedUnauthenticatedPaths, 14);
+  for (const url of ['/assets/index-123.js', '/assets/second.js?v=2',
+    '/assets/preload.js', '/assets/shared.js', '/assets/lazy.js']) {
+    assert.equal(calls.filter(call => call.url === url && !call.authenticated).length, 1, url);
+    assert.equal(calls.filter(call => call.url === url && call.valid).length, 1, url);
+  }
+});
+
+for (const path of ['/assets/second.js?v=2', '/assets/preload.js', '/assets/shared.js', '/assets/lazy.js']) {
+  for (const [name, asset, reason] of [
+    ['public', { public: true }, /Unauthenticated request JS bundle/],
+    ['production backend', { body: 'cptbmepnbzogqkfhflsg' }, /Production backend ID found in JS bundle/],
+    ['secret', { body: 'sb_secret_synthetic_test' }, /Supabase secret found in JS bundle/],
+    ['HTML fallback', { type: 'text/html' }, /JS content type must be JavaScript/],
+    ['missing', { status: 404 }, /Authorized JavaScript asset must load/],
+  ]) {
+    test(`rejects ${name} in secondary JS asset ${path}`, async () => {
+      await assert.rejects(() => audit(mockFetch({ extraHtml,
+        jsAssets: { ...jsAssets, [path]: asset },
+      }).fetchImpl), reason);
+    });
+  }
+}
+
+test('rejects external or off-path JS references without sending host credentials there', async () => {
+  for (const path of ['https://outside.test/bundle.js', '/public.js']) {
+    const { fetchImpl, calls } = mockFetch({ extraHtml: `<script src="${path}"></script>` });
+    await assert.rejects(() => audit(fetchImpl), /isolated same-origin/);
+    assert(!calls.some(call => call.path === '/public.js' || call.path === '/bundle.js'));
+  }
+});
