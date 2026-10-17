@@ -1,0 +1,45 @@
+name: Friends Server Capabilities (read only)
+on:
+  pull_request:
+    branches: [mewars]
+    paths: ['scripts/probe-friends-host.php', '.github/workflows/friends-host.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: php -l scripts/probe-friends-host.php
+  probe:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/mewars'
+    runs-on: ubuntu-latest
+    env:
+      SPRINTHOST_HOST: ${{ secrets.SPRINTHOST_SSH_HOST }}
+      SPRINTHOST_USER: ${{ secrets.SPRINTHOST_SSH_USER }}
+      SPRINTHOST_SSH_PRIVATE_KEY: ${{ secrets.SPRINTHOST_SSH_PRIVATE_KEY }}
+      SPRINTHOST_SSH_KNOWN_HOSTS: ${{ secrets.SPRINTHOST_SSH_KNOWN_HOSTS }}
+      SPRINTHOST_SSH_PORT: ${{ vars.SPRINTHOST_SSH_PORT || '22' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up existing SSH identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SPRINTHOST_SSH_PRIVATE_KEY" > "$HOME/.ssh/friends-probe"
+          printf '%s\n' "$SPRINTHOST_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/friends-probe" "$HOME/.ssh/known_hosts"
+      - name: Read PHP capabilities without changing the server
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$HOME/.ssh/friends-probe" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" php < scripts/probe-friends-host.php > friends-host-capabilities.json
+          cat friends-host-capabilities.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: friends-host-capabilities
+          path: friends-host-capabilities.json
+          retention-days: 7
