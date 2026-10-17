@@ -7,6 +7,7 @@ import type { OrganizationRow } from '../organizations/model';
 import { EmptyState } from '../components/EmptyState';
 import { Icon } from '../components/Icon';
 import { BrandWordmark } from '../components/BrandWordmark';
+import { VkFederalComposer } from './VkFederalComposer';
 import {
   canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft,
   validateAdminDraft, type AdminDraft, type CityAdminAccess, type AdminStatus,
@@ -376,6 +377,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
               })}
             </div>
           </section>}
+          {screen === 'overview' && owner && import.meta.env.VITE_VK_FEDERAL_POSTING_ENABLED === 'true' && <VkFederalComposer/>}
           {screen === 'overview' && <section className="admin-cms-stats" aria-label="Статистика каталога">
             <div><small>Действующие карточки</small><strong>{activeRows.length}</strong></div>
             <div><small>Опубликовано</small><strong>{published}</strong></div>
