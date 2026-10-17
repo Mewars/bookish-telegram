@@ -36,6 +36,18 @@ async function requireUser(client: SupabaseClient, userId: string): Promise<void
   const { data, error } = await withDeadline(() => client.auth.getUser());
   if (error || data.user?.id !== userId) throw new Error('Сессия истекла. Войдите в аккаунт ещё раз.');
 }
+/** Show the profile shortcut only when the current account has submitted an application.
+ * Query no application details, and rely on the existing server RLS owner policy.
+ */
+export async function hasOwnApplications(client: SupabaseClient | null, userId: string): Promise<boolean> {
+  const db = clientOrThrow(client);
+  await requireUser(db, userId);
+  const { data, error } = await withDeadline(signal => db.from('organization_applications')
+    .select('id').eq('applicant_id', userId).limit(1).abortSignal(signal));
+  if (error || !Array.isArray(data)) throw new Error(CONNECTION_MESSAGE);
+  return data.length > 0;
+}
+
 export async function readApplications(client: SupabaseClient | null, userId: string): Promise<ApplicationRow[]> {
   const db = clientOrThrow(client);
   await requireUser(db, userId);
