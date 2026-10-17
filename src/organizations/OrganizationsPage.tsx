@@ -5,7 +5,8 @@ import { Icon } from '../components/Icon';
 import { EmptyState } from '../components/EmptyState';
 import { applicationFields, emptyDraft, statusLabels, validateDraft } from './model';
 import type { ApplicationDraft, ApplicationErrors, ApplicationRow } from './model';
-import { readApplications, submitApplication } from './repository';
+import { readApplications, submitApplication, attachApplicationPhoto } from './repository';
+import {validPhotoFile} from '../photos/adminImage';
 import './organizations.css';
 
 export function OrganizationsPage({ enabled, mode, city, goBack, openLogin, openApplications }: {
@@ -25,6 +26,8 @@ function ApplicationForm({ userId, city, openApplications }: { userId: string; c
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
+  const [photoFile,setPhotoFile]=useState<File|null>(null);
+  const [photoWarning,setPhotoWarning]=useState('');
   const requestId = useRef<string | null>(null);
   const mounted = useRef(true);
   const locked = useRef(false);
@@ -42,12 +45,16 @@ function ApplicationForm({ userId, city, openApplications }: { userId: string; c
     locked.current = true; setBusy(true);
     try {
       requestId.current ??= crypto.randomUUID();
-      await submitApplication(supabase, userId, draft, consent, requestId.current);
+      const saved=await submitApplication(supabase, userId, draft, consent, requestId.current);
+      if(photoFile){
+        try {await attachApplicationPhoto(supabase,userId,saved.id,photoFile);}
+        catch(error){if(mounted.current)setPhotoWarning(error instanceof Error?error.message:'Фотография не прикрепилась.');}
+      }
       if (mounted.current) setSuccess(true);
     } catch (error) { if (mounted.current) setMessage(error instanceof Error ? error.message : 'Не удалось отправить заявку. Попробуйте позже.'); }
     finally { locked.current = false; if (mounted.current) setBusy(false); }
   };
-  if (success) return <section className="organization-panel" role="status"><h2>Заявка отправлена</h2><p>Статус: «На рассмотрении». Организация появится в каталоге только после ручной проверки и публикации.</p><button className="primary-button" onClick={openApplications}>Мои заявки <Icon name="arrow" size={18}/></button></section>;
+  if (success) return <section className="organization-panel" role="status"><h2>Заявка отправлена</h2><p>Статус: «На рассмотрении». Организация появится в каталоге только после ручной проверки и публикации.</p>{photoWarning&&<p className="organization-error">{photoWarning}</p>}<button className="primary-button" onClick={openApplications}>Мои заявки <Icon name="arrow" size={18}/></button></section>;
   return <form className="organization-panel organization-form" onSubmit={submit} noValidate aria-busy={busy}>
     <p>Указывайте сведения организации, которые можно опубликовать. Не отправляйте документы, пароли или чужие личные контакты. Поля со знаком * обязательны.</p>
     <fieldset disabled={busy}>{applicationFields.map(([key, label, limit, required]) => <div className={`organization-field ${['description', 'source_note'].includes(key) ? 'organization-wide' : ''}`} key={key}>
@@ -56,6 +63,20 @@ function ApplicationForm({ userId, city, openApplications }: { userId: string; c
       {errors[key] && <small id={`error-${key}`} className="organization-error">{errors[key]}</small>}
       {key === 'source_note' && <small>Укажите ссылку или объясните, откуда получены сведения. Источник заявки не публикуется автоматически.</small>}
     </div>)}
+    <div className="organization-wide organization-file-field">
+      <label htmlFor="organization-photo">Фотография организации (необязательно)</label>
+      <input id="organization-photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" disabled={busy}
+        onChange={event=>{
+          const file=event.currentTarget.files?.[0]??null;
+          if(file&&!validPhotoFile(file)){
+            setPhotoFile(null);setMessage('Для фотографии выберите JPG, PNG, WebP или HEIC до 24 МБ.');
+            event.currentTarget.value='';return;
+          }
+          setPhotoFile(file);setMessage('');
+        }}/>
+      <small>Можно приложить один снимок. Он останется закрытым до проверки заявки и не будет опубликован автоматически.</small>
+      {photoFile&&<small>Выбран файл: {photoFile.name}</small>}
+    </div>
     <div className="organization-wide"><label className="organization-consent"><input id="organization-consent" type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)} aria-invalid={!!errors.consent} aria-describedby={errors.consent ? 'error-consent' : undefined}/><span>Я даю отдельное <a href="#/organization-consent" target="_blank" rel="noopener noreferrer">согласие на обработку данных заявки</a> и публикацию проверенных сведений организации.</span></label>{errors.consent && <small id="error-consent" className="organization-error">{errors.consent}</small>}</div>
     <button className="primary-button organization-wide" type="submit">{busy ? 'Отправляем…' : 'Отправить на рассмотрение'}</button></fieldset>
     {message && <p className="organization-error" role="alert">{message}</p>}

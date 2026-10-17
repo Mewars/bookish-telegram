@@ -8,5 +8,11 @@ export function FooterBrand({ city, region, goHome }: { city: string; region: st
 }
 
 export function FooterCooperation({ showLegal = true }: { showLegal?: boolean }) {
-  return <div className="footer-cooperation"><p>Франшиза · Добавление организации · Платные услуги</p><a className="vk-link" href={FEDERAL_VK_COMMUNITY.url} target="_blank" rel="noopener noreferrer" aria-label="Открыть федеральное сообщество РЯДОМ во ВКонтакте (новая вкладка)"><img src={brandAssets.vk} width="28" height="28" alt=""/>{FEDERAL_VK_COMMUNITY.label}</a>{showLegal && <LegalLinks/>}</div>;
+  return <div className="footer-cooperation"><div className="footer-cooperation-links">
+    <a href="https://vk.me/ryadomcity" target="_blank" rel="noopener noreferrer" aria-label="Франшиза — написать в сообщения сообщества РЯДОМ во ВКонтакте">Франшиза</a>
+    <span aria-hidden="true">·</span>
+    <a href="#/add-organization">Добавление организации</a>
+    <span aria-hidden="true">·</span>
+    <span title="Раздел готовится">Платные услуги</span>
+  </div><a className="vk-link" href={FEDERAL_VK_COMMUNITY.url} target="_blank" rel="noopener noreferrer" aria-label="Открыть федеральное сообщество РЯДОМ во ВКонтакте (новая вкладка)"><img src={brandAssets.vk} width="28" height="28" alt=""/>{FEDERAL_VK_COMMUNITY.label}</a>{showLegal && <LegalLinks/>}</div>;
 }

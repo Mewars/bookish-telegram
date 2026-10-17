@@ -24,7 +24,7 @@ export interface OrganizationRow {
 }
 export interface ApplicationRow extends ApplicationDraft {
   id: string; applicant_id: string; client_request_id: string; status: ApplicationStatus;
-  created_at: string; review_message: string | null; organization_id: string | null;
+  created_at: string; review_message: string | null; organization_id: string | null; photo_path?: string | null;
 }
 export function emptyDraft(city: string): ApplicationDraft {
   return Object.fromEntries(applicationFields.map(([key]) => [key, key === 'city' ? city : ''])) as ApplicationDraft;

@@ -3,16 +3,17 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { availableCities, type DirectoryCity } from '../data/cities';
 import { CityManagement } from './CityManagement';
-import type { OrganizationRow } from '../organizations/model';
+import type { OrganizationRow,ApplicationRow } from '../organizations/model';
 import { EmptyState } from '../components/EmptyState';
 import { Icon } from '../components/Icon';
 import { BrandWordmark } from '../components/BrandWordmark';
 import { VkFederalComposer } from './VkFederalComposer';
+import { AdminApplicationsPanel } from './AdminApplicationsPanel';
 import {
   canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft,
   validateAdminDraft, type AdminDraft, type CityAdminAccess, type AdminStatus,
 } from './model';
-import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto, removeOrphanedAdminPhoto, changeAdminOrganizationAvailability } from './repository';
+import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto, removeOrphanedAdminPhoto, changeAdminOrganizationAvailability, downloadApplicantPhoto, decideOrganizationApplication } from './repository';
 import { directoryCategories, categoryForOrganization, type DirectoryCategoryId } from './directoryCategories';
 import './admin.css';
 
@@ -34,7 +35,8 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   const [kindFilter, setKindFilter] = useState('Все разделы');
   const [statusFilter, setStatusFilter] = useState('Действующие');
   const [categoryFilter, setCategoryFilter] = useState<DirectoryCategoryId | 'all'>('all');
-  const [screen, setScreen] = useState<'overview' | 'catalog' | 'photos' | 'cities'>('overview');
+  const [screen, setScreen] = useState<'overview' | 'catalog' | 'applications' | 'cities'>('overview');
+  const [applicationOrigin,setApplicationOrigin]=useState<ApplicationRow|null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
@@ -60,10 +62,12 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   }, [enabled, userId, attempt]);
 
   const edit = (row: OrganizationRow) => {
+    setApplicationOrigin(null);
     setDraft(rowToAdminDraft(row)); chooseFile(null); setConfirmed(false); setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const create = (groupId?: DirectoryCategoryId) => {
+    setApplicationOrigin(null);
     const preferred = cityFilter !== 'Все города' && access && canManageCity(access, cityFilter) ? cityFilter : null;
     const city = preferred ?? access?.find(entry => entry.active && entry.city !== '*')?.city ?? directoryCities[0]?.name ?? availableCities[0].name;
     const group = directoryCategories.find(entry => entry.id === groupId) ?? directoryCategories[0];
@@ -71,14 +75,31 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     chooseFile(null); setConfirmed(false); setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  const openApplication = async (app:ApplicationRow) => {
+    if(!userId||!supabase||!access||!canManageCity(access,app.city))return;
+    setApplicationOrigin(app);setMessage('');chooseFile(null);setConfirmed(false);
+    setDraft({
+      ...newAdminDraft(app.city), title:app.title,category:app.category,
+      description:app.description,address:app.address,phone:app.phone,hours:app.hours,
+      website:app.website,vk_url:app.vk_url,source_url:app.website||app.vk_url,
+      status:'published',
+    });
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(app.photo_path){
+      try{
+        const image=await downloadApplicantPhoto(supabase,userId,access,app);
+        if(image)chooseFile(image);
+      }catch(error){setMessage(error instanceof Error?error.message:'Не удалось открыть фото заявителя.');}
+    }
+  };
   const chooseCategory = (id: DirectoryCategoryId) => {
     setCategoryFilter(id);
     setScreen('catalog');
     setStatusFilter('Действующие');
     setFilter('');
   };
-  const navigateAdmin = (next: 'overview' | 'catalog' | 'photos' | 'cities') => {
-    setDraft(null); setMessage(''); setScreen(next);
+  const navigateAdmin = (next: 'overview' | 'catalog' | 'applications' | 'cities') => {
+    setDraft(null); setApplicationOrigin(null); chooseFile(null); setMessage(''); setScreen(next);
     setCategoryFilter('all'); setFilter(''); setStatusFilter('Действующие');
   };
   const change = (key: keyof AdminDraft, value: string) => {
@@ -99,9 +120,13 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
         uploadedPath = photo.path;
         values = { ...draft, image_url: photo.url };
       }
-      const saved = await saveAdminOrganization(supabase, userId, access, values, confirmed);
+      const saved = applicationOrigin
+        ? await decideOrganizationApplication(supabase,userId,access,applicationOrigin,'approved',values,confirmed)
+        : await saveAdminOrganization(supabase, userId, access, values, confirmed);
+      if(!saved)throw Error('Публикация не подтверждена.');
       setRows(current => [...current.filter(row => row.id !== saved.id), saved].sort((a,b) => a.title.localeCompare(b.title, 'ru')));
-      setDraft(rowToAdminDraft(saved)); chooseFile(null); setConfirmed(false);
+      setDraft(applicationOrigin?null:rowToAdminDraft(saved)); chooseFile(null); setConfirmed(false);
+      if(applicationOrigin){setScreen('applications');setApplicationOrigin(null);}
       setMessage(saved.status === 'published' ? 'Карточка опубликована. Посетители увидят её при следующей загрузке каталога.' : 'Изменения сохранены.');
       window.dispatchEvent(new Event('ryadom:organizations-changed'));
     } catch (error) {
@@ -153,7 +178,6 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     (categoryFilter === 'all' || categoryForOrganization(row) === categoryFilter)
     && (kindFilter === 'Все разделы' || (row.kind === 'services' ? 'services' : 'places') === kindFilter)
     && (statusFilter === 'Все статусы' || (statusFilter === 'Действующие' ? row.status !== 'archived' : row.status === statusFilter))
-    && (screen !== 'photos' || Boolean(row.image_url))
     && [row.title, row.category, row.address ?? ''].some(value => value.toLocaleLowerCase('ru').includes(filter.trim().toLocaleLowerCase('ru')))
   ).sort((left, right) => left.title.localeCompare(right.title, 'ru'));
   const published = cityRows.filter(row => row.status === 'published').length;
@@ -218,7 +242,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
       <nav className="admin-cms-nav" aria-label="Разделы админки">
         <button type="button" className={screen === 'overview' && !draft ? 'active' : ''} onClick={() => navigateAdmin('overview')}>▦ <span>Обзор города</span></button>
         <button type="button" className={screen === 'catalog' && !draft ? 'active' : ''} onClick={() => navigateAdmin('catalog')}>▤ <span>Организации</span></button>
-        <button type="button" className={screen === 'photos' && !draft ? 'active' : ''} onClick={() => navigateAdmin('photos')}>▧ <span>Фотографии</span></button>
+        <button type="button" className={screen === 'applications' && !draft ? 'active' : ''} onClick={() => navigateAdmin('applications')}>▤ <span>Заявки</span></button>
         {owner && <button type="button" className={screen === 'cities' && !draft ? 'active' : ''} onClick={() => navigateAdmin('cities')}>⌖ <span>Города</span></button>}
         <button type="button" className={draft ? 'active' : ''} onClick={() => create()}>＋ <span>Добавить организацию</span></button>
       </nav>
@@ -229,7 +253,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     </aside>
     <div className="admin-cms-main">
       <div className="admin-cms-topbar">
-        <span>Рядом / {draft ? 'Редактор организации' : screen === 'overview' ? 'Обзор города' : screen === 'photos' ? 'Фотографии' : screen === 'cities' ? 'Города' : 'Организации'}</span>
+        <span>Рядом / {draft ? 'Редактор организации' : screen === 'overview' ? 'Обзор города' : screen === 'applications' ? 'Заявки' : screen === 'cities' ? 'Города' : 'Организации'}</span>
         <div className="admin-cms-top-actions">
           {cities.length > 1 && <select aria-label="Город управления" value={cityFilter} onChange={event => { setCityFilter(event.target.value); setCategoryFilter('all'); }}>
             <option>Все города</option>{cities.map(city => <option key={city}>{city}</option>)}
@@ -240,14 +264,15 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
       <div className="admin-shell admin-cms-content">
         <header className="admin-cms-header">
           <div><span className="eyebrow">РЯДОМ · УПРАВЛЕНИЕ ГОРОДОМ</span>
-            <h1>{draft ? draft.id ? 'Редактирование организации' : 'Новая организация' : screen === 'overview' ? 'Управление каталогом' : screen === 'photos' ? 'Фотографии организаций' : screen === 'cities' ? 'Управление городами' : selectedLabel}</h1>
+            <h1>{draft ? draft.id ? 'Редактирование организации' : 'Новая организация' : screen === 'overview' ? 'Управление каталогом' : screen === 'applications' ? 'Входящие заявки' : screen === 'cities' ? 'Управление городами' : selectedLabel}</h1>
             <p>{owner ? 'Главный администратор' : 'Редактор города'} · {cityFilter === 'Все города' ? 'Все доступные города' : cityFilter} · {activeRows.length} карточек</p>
           </div>
           {!draft && <button className="primary-button" onClick={() => create()}>＋ Добавить организацию</button>}
         </header>
 
         {draft ? <form className="admin-cms-form" onSubmit={save} noValidate aria-busy={busy}>
-          <button type="button" className="admin-cms-back" disabled={busy} onClick={() => { setDraft(null); chooseFile(null); setMessage(''); }}>← К списку организаций</button>
+          <button type="button" className="admin-cms-back" disabled={busy} onClick={() => { setDraft(null); setApplicationOrigin(null); chooseFile(null); setMessage(''); }}>← К списку организаций</button>
+          {applicationOrigin&&<div className="admin-panel"><h2>Проверка заявки</h2><p>Отправитель: {applicationOrigin.title} · {applicationOrigin.city}. Перед публикацией проверь сведения и приложенную фотографию. Исходные данные не публикуются без твоего подтверждения.</p><small>Источник заявки: {applicationOrigin.source_note}</small></div>}
           <section className="admin-panel admin-cms-form-section">
             <h2>Основная информация</h2>
             <p>Название, категория и описание будут показаны посетителям городского каталога.</p>
@@ -256,7 +281,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
                 <input required disabled={busy} maxLength={160} value={draft.title} placeholder="Например, кафе «Уют»" onChange={event => change('title',event.target.value)}/>
               </label>
               <label>Город
-                <select disabled={busy || !!draft.id} value={draft.city} onChange={event => change('city',event.target.value)}>
+                <select disabled={busy || !!draft.id || !!applicationOrigin} value={draft.city} onChange={event => change('city',event.target.value)}>
                   {[...new Set([...cities,draft.city])].filter(city => canManageCity(access,city)).map(city => <option key={city}>{city}</option>)}
                 </select>
               </label>
@@ -335,7 +360,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             <h2>Публикация</h2><p>Сохраняй новые карточки в черновиках до проверки сведений.</p>
             <div className="admin-form-grid">
               <label>Статус
-                <select disabled={busy} value={draft.status} onChange={event => {change('status',event.target.value as AdminStatus);setConfirmed(false);}}>
+                <select disabled={busy || !!applicationOrigin} value={draft.status} onChange={event => {change('status',event.target.value as AdminStatus);setConfirmed(false);}}>
                   <option value="draft">Черновик</option><option value="published">Опубликовано</option><option value="archived">Архив</option>
                 </select>
               </label>
@@ -346,7 +371,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             </div>
             {message && <p role="status" className="admin-message">{message}</p>}
             <div className="admin-cms-form-actions">
-              <button type="button" className="secondary-button" disabled={busy} onClick={() => setDraft(null)}>Отмена</button>
+              <button type="button" className="secondary-button" disabled={busy} onClick={() => {setDraft(null);setApplicationOrigin(null);}}>Отмена</button>
               <button type="submit" className="primary-button" disabled={busy}>{busy ? 'Сохраняем…' : draft.status === 'published' ? 'Проверить и опубликовать' : 'Сохранить карточку'}</button>
             </div>
           </section>
@@ -354,7 +379,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
           ? <CityManagement cities={directoryCities} refreshCities={refreshCities}
               onCitySaved={cityName => { setCityFilter(cityName); setCategoryFilter('all'); setFilter(''); }}/>
           : <section className="admin-panel"><h2>Подключение городов</h2><p>Настройка новых городов пока выключена до резервной копии и безопасного подключения Supabase.</p></section>
-        ) : <>
+) : screen === 'applications' && supabase ? <AdminApplicationsPanel client={supabase} userId={userId} access={access} cityFilter={cityFilter} onEdit={app=>{void openApplication(app);}}/> : <>
           {screen === 'overview' && owner && <section className="admin-panel admin-cms-network" aria-label="Города сети">
             <div className="admin-cms-panel-heading">
               <div>
@@ -383,7 +408,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             <div><small>Опубликовано</small><strong>{published}</strong></div>
             <div><small>Черновики</small><strong>{draftCount}</strong></div>
           </section>}
-          {screen !== 'photos' && <section className="admin-panel admin-cms-categories">
+          {<section className="admin-panel admin-cms-categories">
             <div className="admin-cms-panel-heading">
               <h2>Категории города</h2>
               {categoryFilter !== 'all' && <button type="button" className="admin-cms-link" onClick={() => setCategoryFilter('all')}>Показать все →</button>}
@@ -393,7 +418,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
           </section>}
           {message && <p role="status" className="admin-message admin-cms-list-message">{message}</p>}
           <section className="admin-panel admin-cms-directory">
-            <div className="admin-cms-panel-heading"><h2>{screen === 'overview' ? 'Последние карточки' : screen === 'photos' ? 'Организации с фотографиями' : selectedLabel}</h2>
+            <div className="admin-cms-panel-heading"><h2>{screen === 'overview' ? 'Последние карточки' : selectedLabel}</h2>
               {screen === 'overview' && <button type="button" className="admin-cms-link" onClick={() => navigateAdmin('catalog')}>Все организации →</button>}
             </div>
             {screen !== 'overview' && <div className="admin-filters">

@@ -1,9 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { APPLICATION_CONSENT_VERSION, normalizeDraft, validateDraft } from './model';
 import type { ApplicationDraft, ApplicationRow, OrganizationRow } from './model';
+import {prepareAdminImage,adminImageExtension} from '../photos/adminImage';
 
 export const ORGANIZATION_COLUMNS = 'id,kind,city,title,category,description,address,phone,hours,website,vk_url,latitude,longitude,source_type,source_url,verified_at,status,created_at,updated_at,image_url';
-const APPLICATION_COLUMNS = 'id,applicant_id,client_request_id,title,city,category,address,phone,hours,description,website,vk_url,source_note,status,created_at,review_message,organization_id';
+export const APPLICATION_COLUMNS = 'id,applicant_id,client_request_id,title,city,category,address,phone,hours,description,website,vk_url,source_note,status,created_at,review_message,organization_id,photo_path';
 export const CONNECTION_MESSAGE = 'Не удалось соединиться с сервисом организаций. Попробуйте позже.';
 function clientOrThrow(client: SupabaseClient | null): SupabaseClient {
   if (!client) throw new Error('Приём заявок пока не настроен. Попробуйте позже.');
@@ -78,4 +79,26 @@ export async function submitApplication(client: SupabaseClient | null, userId: s
   }
   if (error || !data) throw new Error('Не удалось подтвердить отправку. Проверьте «Мои заявки» и повторите попытку с теми же данными.');
   return data as ApplicationRow;
+}
+
+/** Photo belongs to an existing pending request; never public before review.
+ * Submission succeeded even if the image fails: report the photo failure explicitly.
+ */
+export async function attachApplicationPhoto(client:SupabaseClient|null,userId:string,applicationId:string,file:File):Promise<string>{
+ const db=clientOrThrow(client);
+ await requireUser(db,userId);
+ const img=await prepareAdminImage(file,'gallery');
+ const ext=adminImageExtension(img);
+ const path=`${userId}/${applicationId}/${crypto.randomUUID()}.${ext}`;
+ const {error:uploadError}=await db.storage.from('ryadom-org-requests')
+  .upload(path,img,{contentType:img.type,upsert:false});
+ if(uploadError)throw Error('Заявка сохранена, но фотография не прикрепилась. Сообщите об этом при обращении к администратору.');
+ const {data,error}=await withDeadline(signal=>db.from('organization_applications')
+  .update({photo_path:path}).eq('id',applicationId).eq('applicant_id',userId).eq('status','pending')
+  .is('photo_path',null).select('id').abortSignal(signal).single());
+ if(error||!data){
+   await db.storage.from('ryadom-org-requests').remove([path]).catch(()=>{});
+   throw Error('Заявка сохранена, но не удалось закрепить фотографию.');
+ }
+ return path;
 }

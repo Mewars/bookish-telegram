@@ -22,3 +22,8 @@
 .organization-catalog-action { margin-top:20px; font-size:14px; }
 .organization-catalog-status { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:12px 0; color:var(--muted); font-size:13px; }
 @media(max-width:599px) { .organization-panel { padding:20px 16px; }.organization-form fieldset { grid-template-columns:minmax(0,1fr); }.organization-wide { grid-column:auto; }.organization-form .primary-button { width:100%; justify-content:center; white-space:normal; } }
+
+.organization-file-field {display:grid;gap:8px;}
+.organization-file-field label {font-weight:700;font-size:14px;}
+.organization-file-field input[type=file] {width:100%;max-width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--bg);color:var(--text);}
+.organization-file-field small {color:var(--muted);font-size:12px;line-height:1.6;}
