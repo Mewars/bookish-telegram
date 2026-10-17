@@ -8,6 +8,7 @@ const centers:Record<string,[number,number]>={'Енисейск':[58.45,92.17],'
 export function FriendsMap({city,data,now}:{city:string;data:NearbyState;now:number}) {
   const element=useRef<HTMLDivElement>(null);
   const map=useRef<L.Map|null>(null);
+  const initialFit=useRef(false);
   const markers=useRef<L.LayerGroup|null>(null);
   const [tiles,setTiles]=useState(false);
   const [tileError,setTileError]=useState(false);
@@ -37,6 +38,11 @@ export function FriendsMap({city,data,now}:{city:string;data:NearbyState;now:num
       L.circleMarker([point.latitude!,point.longitude!],{radius:10,color:point.self?'#edbc61':'#92dbd0',fillColor:point.self?'#edbc61':'#92dbd0',fillOpacity:0.9,weight:3})
         .bindTooltip(label,{permanent:true,direction:'top',offset:[0,-10]}).addTo(group);
       L.circle([point.latitude!,point.longitude!],{radius:700,color:point.self?'#edbc61':'#92dbd0',weight:1,fillOpacity:0.08,interactive:false}).addTo(group);
+    }
+    const visible=points.filter(point=>activePoint(point,now));
+    if(visible.length&&!initialFit.current){
+      map.current?.fitBounds(L.latLngBounds(visible.map(point=>[point.latitude!,point.longitude!] as [number,number])),{padding:[70,70],maxZoom:13});
+      initialFit.current=true;
     }
   },[data,now,center]);
   const showAll=()=>{
