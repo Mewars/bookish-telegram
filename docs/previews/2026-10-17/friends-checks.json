@@ -1,0 +1,14 @@
+{
+  "scope": "local synthetic multi-user friends/GPS E2E; no cloud writes",
+  "passed": [
+    "anonymous access to private friends API is denied",
+    "opening friends/map makes no GPS call and sends no third-party map requests",
+    "a personal invitation needs recipient approval; requester cannot self-accept",
+    "only accepted friend sees the rounded point; outsiders and both city moderators see nothing",
+    "map layers load only after explicit consent; names/individual point coordinates are not in tile URLs",
+    "hiding removes access immediately and a late/replayed GPS upload cannot restore it",
+    "cancelling the browser GPS prompt ignores a delayed successful position",
+    "friend nicknames remain harmless text in both list and map tooltip",
+    "blocking removes the relationship and all location access"
+  ]
+}
