@@ -69,8 +69,13 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
           :await publishedPosts(supabase,city);
       if(live)setItems(rows);
     };
-    void load().catch(reason=>{if(live)setFeedback(explain(reason));})
-      .finally(()=>{if(live)setLoadedKey(requestKey);});
+    void load().catch(reason=>{
+      if(!live)return;
+      // A failed request must not expose rows from a previous private or moderation tab.
+      if(view==='comments')setPendingComments([]);
+      else setItems([]);
+      setFeedback(explain(reason));
+    }).finally(()=>{if(live)setLoadedKey(requestKey);});
     return ()=>{live=false;};
   },[requestKey,view,city,userId,revision,isEditor]);
 
