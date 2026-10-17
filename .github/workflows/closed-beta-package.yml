@@ -30,6 +30,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_nonfunctional_placeholder
       VITE_CLASSIFIEDS_ENABLED: 'true'
       VITE_COMMUNITY_ENABLED: 'true'
+      VITE_FRIENDS_ENABLED: 'true'
       VITE_BETA_EMAIL_ONLY: 'true'
       VITE_VK_ID_ENABLED: 'false'
       VITE_ADMIN_PANEL_ENABLED: 'false'
@@ -58,6 +59,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.RYADOM_TEST_SUPABASE_PUBLISHABLE_KEY }}
       VITE_CLASSIFIEDS_ENABLED: 'true'
       VITE_COMMUNITY_ENABLED: 'true'
+      VITE_FRIENDS_ENABLED: 'true'
       VITE_BETA_EMAIL_ONLY: 'true'
       VITE_VK_ID_ENABLED: 'false'
       VITE_ADMIN_PANEL_ENABLED: 'false'

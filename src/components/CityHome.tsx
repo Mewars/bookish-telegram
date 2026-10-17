@@ -25,7 +25,7 @@ function homeShortcuts(today: number): { label: string; icon: IconName; matches:
   ];
 }
 
-export function CityHome({ city, cityProfile, items, navigate, ...actions }: CardActions & { city: string; cityProfile?: DirectoryCity; items: Item[]; navigate: (section: Section) => void }) {
+export function CityHome({ city, cityProfile, items, navigate, openFriends, ...actions }: CardActions & { city: string; cityProfile?: DirectoryCity; items: Item[]; navigate: (section: Section) => void; openFriends?:()=>void }) {
   const [query, setQuery] = useState('');
   const cover = getCityCover(city, cityProfile?.cover_url);
   const discoveries = homeShortcuts(weekdayInCity(new Date()));
@@ -95,6 +95,7 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
 
 
 
+    {openFriends&&<section className="city-section"><button className="primary-button" onClick={openFriends}><Icon name="pin" size={20}/> Друзья рядом · Открыть карту</button></section>}
     <div id="city-selections">
       {homeBackdropEnabled && cover && <div className="city-selections-backdrop" aria-hidden="true"><MediaImage src={cover.src} alt=""/></div>}
       {searching ? <section className="city-section">
