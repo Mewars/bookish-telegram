@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright, expect
 
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"))
-    page = browser.new_page(viewport={"width": 390, "height": 844})
+    page = browser.new_page(viewport={"width": 360, "height": 740})
     page.add_init_script("localStorage.setItem('ryadom_cookie_consent_v1','necessary')")
     page.route("**/*", lambda route: route.continue_() if route.request.url.startswith("http://127.0.0.1:8188/") else route.abort())
     page.goto("http://127.0.0.1:8188/#/home")
