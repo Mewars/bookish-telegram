@@ -44,6 +44,15 @@ try {
       const cookies = page.getByRole('button', { name: 'Только необходимые' });
       if (await cookies.isVisible().catch(() => false)) await cookies.click();
 
+      const weather = page.locator('.city-weather');
+      await weather.locator('.weather-current strong').waitFor({ state: 'visible', timeout: 20000 });
+      assert.equal(await weather.getByRole('link', { name: 'MET Norway' }).count(), 1);
+      await weather.locator('summary').click();
+      assert(await weather.locator('.weather-hours li').count() >= 2, 'City forecast has no next-hour cards');
+      await weather.screenshot({ path: `${folder}/${scenario.name}-weather.png`, animations: 'disabled' });
+      await weather.locator('summary').click();
+      result.checks.push('Live city weather and expandable hourly forecast');
+
       const titles = await page.locator('#city-selections .section-heading h2').allTextContents();
       for (const name of ['Выбор «Рядом»','Афиша города','Где поесть','Что посмотреть','За покупками','Услуги','Партнёры «Рядом»']) {
         assert(titles.includes(name), `Missing section: ${name}`);
