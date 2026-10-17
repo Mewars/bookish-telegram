@@ -219,3 +219,18 @@
 .admin-location-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
 .admin-location-grid label {display:grid;gap:7px;min-width:0;}
 @media(max-width:520px) {.admin-location-grid {grid-template-columns:1fr;}}
+
+/* Federally scoped VK composer: never visible without server and frontend gates. */
+.vk-federal-composer { display:grid;gap:13px; }
+.vk-federal-composer h2 { margin:0; }
+.vk-federal-composer p { font-size:13px;line-height:1.7;color:var(--muted); }
+.vk-federal-composer label { font-size:13px;font-weight:700; }
+.vk-federal-composer textarea {
+  width:100%;box-sizing:border-box;resize:vertical;min-height:140px;
+  border:1px solid var(--line);border-radius:12px;padding:13px;
+  background:var(--bg);color:var(--text);font:inherit;
+}
+.vk-federal-composer textarea:focus-visible {outline:2px solid var(--primary);outline-offset:2px;}
+.vk-federal-composer small {color:var(--muted);font-size:11px;}
+.vk-federal-composer button {justify-self:start;min-height:44px;}
+.vk-federal-composer [role=status] {color:var(--text);}
