@@ -9,3 +9,12 @@
 @media (max-width:359px) { .app-header .music-launch { padding-inline: 5px; }.music-player { padding: 10px; gap: 4px 5px; }.music-symbol { width: 30px; height: 34px; }.music-info { gap: 7px; } }
 
 @media (hover:hover) and (pointer:fine) { .music-play:hover { background: var(--primary-hover); }.music-close:hover, .music-settings button:hover { background: var(--primary-soft); color: var(--primary-ink); border-radius: 10px; } }
+
+/* Header music uses the same Ryadom gold as the brand on the dark city cover. */
+.web-header .music-launch, .app-header .music-launch { color: var(--primary-ink); }
+.app-shell:has(.city-home) .web-header .music-launch,
+.app-shell:has(.city-home) .app-header .music-launch { color: #F3BD5D; }
+.app-shell:has(.city-home) .web-header .music-launch:hover,
+.app-shell:has(.city-home) .app-header .music-launch:hover {
+  color: #FFD178; background: rgba(243,189,93,.13);
+}
