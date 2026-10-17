@@ -44,16 +44,17 @@ try {
       const cookies = page.getByRole('button', { name: 'Только необходимые' });
       if (await cookies.isVisible().catch(() => false)) await cookies.click();
 
-      const weather = page.locator('.city-weather');
+      const weatherTrigger = page.locator('.city-name-weather .city-weather-trigger');
+      const weather = page.getByRole('dialog', { name: 'Погода — Енисейск' });
+      assert.equal(await weather.isVisible(), false, 'Weather should be collapsed into the city icon');
+      await weatherTrigger.click();
       await weather.locator('.weather-current strong').waitFor({ state: 'visible', timeout: 20000 });
       assert.equal(await weather.getByRole('link', { name: 'MET Norway' }).count(), 1);
-      await weather.locator('summary').evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
-      await weather.locator('summary').click();
-      assert(await weather.locator('.weather-hours li').count() >= 2, 'City forecast has no next-hour cards');
+      assert(await weather.locator('.weather-hours li').count() >= 2, 'City forecast has no hourly cards');
       await weather.screenshot({ path: `${folder}/${scenario.name}-weather.png`, animations: 'disabled' });
-      await weather.locator('summary').evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
-      await weather.locator('summary').click();
-      result.checks.push('Live city weather and expandable hourly forecast');
+      await weather.getByRole('button', { name: 'Закрыть погоду' }).click();
+      assert.equal(await weather.isVisible(), false);
+      result.checks.push('Compact city weather icon opens current and hourly forecast');
 
       const titles = await page.locator('#city-selections .section-heading h2').allTextContents();
       for (const name of ['Выбор «Рядом»','Афиша города','Где поесть','Что посмотреть','За покупками','Услуги','Партнёры «Рядом»']) {

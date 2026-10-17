@@ -35,3 +35,17 @@ export function weatherDescription(symbol:string|null):string {
   if(code.includes('rain'))return 'Дождь';
   return ({clearsky:'Ясно',fair:'Малооблачно',partlycloudy:'Переменная облачность',cloudy:'Облачно',fog:'Туман'} as Record<string,string>)[code]??'Прогноз погоды';
 }
+
+export function weatherIconKind(symbol:string|null|undefined):'snow'|'rain'|'sleet'|'thunder'|'fog'|'cloud'|'partly'|'sun'|'moon'|'unknown' {
+  const code=symbol??'';
+  if(code.includes('thunder'))return 'thunder';
+  if(code.includes('sleet'))return 'sleet';
+  if(code.includes('snow'))return 'snow';
+  if(code.includes('rain'))return 'rain';
+  if(code.includes('fog'))return 'fog';
+  if(code.startsWith('partlycloudy')||code.startsWith('fair'))return 'partly';
+  if(code.startsWith('cloudy'))return 'cloud';
+  if(code.startsWith('clearsky'))return code.endsWith('_night')?'moon':'sun';
+  return 'unknown';
+}
+
