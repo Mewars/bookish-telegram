@@ -23,7 +23,7 @@ export function CityWeather({city}:{city:string}) {
   const current=weather?.points[0];
   return <section className="city-weather" aria-label={`Погода — ${city}`}>
     <div className="weather-heading"><div><span className="section-index">ПОГОДА РЯДОМ</span><h2>{city}</h2></div>
-      <span className="weather-mark" aria-hidden="true">{current?.symbolCode?.includes('snow')?'❄':current?.symbolCode?.includes('rain')?'☂':'☀'}</span></div>
+      <span className="weather-mark" aria-hidden="true">{current?.symbolCode?.includes('snow')?'❄':current?.symbolCode?.includes('rain')?'☂':current?.symbolCode?.includes('cloud')||current?.symbolCode?.includes('fog')?'☁':'☀'}</span></div>
     {loading?<p role="status">Загружаем прогноз…</p>:current&&weather?<>
       <div className="weather-current"><strong>{temperature(current.temperatureC)}</strong><div><p>{weatherDescription(current.symbolCode)}</p><small>Прогноз на {timeLabel(current.validAt)}</small></div></div>
       <p className="weather-details">{current.rainMm===null?'Осадки: нет данных':`Осадки за час: ${current.rainMm.toLocaleString('ru-RU')} мм`}
