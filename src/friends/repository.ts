@@ -11,7 +11,7 @@ export async function nearbyCall<T=void>(client:NearbyClient|null,name:string,pa
     if(error.code==='unauthorized')throw Error('Войдите в аккаунт ещё раз, чтобы открыть друзей.');
     if(error.code==='42900')throw Error('Слишком много запросов. Попробуйте через минуту.');
     if(error.code==='54000')throw Error('На сегодня достаточно приглашений. Попробуйте завтра.');
-    if(name==='nearby_request')throw Error('Код недействителен или приглашение уже недоступно. Попросите друга создать новый код.');
+    if(name==='nearby_request'&&error.code==='42501')throw Error('Код недействителен или приглашение уже недоступно. Попросите друга создать новый код.');
     throw Error('Не удалось выполнить действие. Проверьте соединение и повторите.');
   }
   return data as T;

@@ -45,4 +45,5 @@ test('unavailable invitations and quotas have useful messages without internal S
   const client=code=>({rpc:async()=>({data:null,error:{code,message:'private table and user identifier'}})});
   await assert.rejects(nearbyCall(client('42501'),'nearby_request'),/Код недействителен/);
   await assert.rejects(nearbyCall(client('54000'),'nearby_request'),/Попробуйте завтра/);
+  await assert.rejects(nearbyCall(client('unavailable'),'nearby_request'),/Не удалось выполнить действие/);
 });
