@@ -7,9 +7,29 @@ export function VkFederalComposer(){
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState('');
  const [postUrl,setPostUrl]=useState('');
+ const [preflightPassed,setPreflightPassed]=useState(false);
+ const [checking,setChecking]=useState(false);
+ const checkConnection=async()=>{
+   if(checking||busy||!supabase)return;
+   setChecking(true);setPreflightPassed(false);setStatus('Проверяем разрешение «Стена» без публикации…');
+   try{
+     const {data,error}=await supabase.functions.invoke('vk-federal-publish',{body:{action:'check'}});
+     if(error||!data||data.ok!==true)throw Error('Сервер не подтвердил разрешения. Проверь сохранённый ключ в Edge Functions → Secrets.');
+     if(data.wallPermission!==true){
+       setStatus('Ключ существует, но право публикации на стене не подтверждено.');
+     }else if(data.publishingEnabled!==true){
+       setStatus('Право «Стена» подтверждено. Отправка пока выключена в настройках сервера.');
+     }else{
+       setPreflightPassed(true);
+       setStatus('Ключ проверен, право «Стена» есть. Можно отправить текст после подтверждения.');
+     }
+   }catch(error){
+     setStatus(error instanceof Error?error.message:'Не удалось проверить ключ ВК.');
+   }finally{setChecking(false);}
+ };
  const requestId=useRef<string|null>(null);
  const send=async()=>{
-  if(busy||message.trim().length<20||message.trim().length>2500||!supabase)return;
+  if(busy||!preflightPassed||message.trim().length<20||message.trim().length>2500||!supabase)return;
   if(!window.confirm('Опубликовать этот текст от имени федеральной группы «РЯДОМ» во ВКонтакте? Публикация будет публичной.'))return;
   setBusy(true);setStatus('Проверяем права и отправляем…');setPostUrl('');
   try{
@@ -31,12 +51,14 @@ export function VkFederalComposer(){
  return <section className="admin-panel vk-federal-composer" aria-label="Публикации федеральной группы ВКонтакте">
    <h2>Федеральная группа ВК</h2>
    <p>Публикация от имени <a href={FEDERAL_VK_COMMUNITY.url} target="_blank" rel="noopener noreferrer">{FEDERAL_VK_COMMUNITY.label}</a> (ID {FEDERAL_VK_COMMUNITY.id}). Доступно только владельцу платформы после отдельного подключения VK API.</p>
+   <button type="button" className="secondary-button" disabled={checking||busy||!supabase}
+     onClick={()=>void checkConnection()}>{checking?'Проверяем…':'Проверить подключение ВК (без публикации)'}</button>
    <label htmlFor="vk-federal-message">Текст публикации</label>
    <textarea id="vk-federal-message" value={message} disabled={busy} rows={6} maxLength={2500}
     placeholder="Напишите официальную новость о сервисе, подключении городов или партнёрстве…"
     onChange={event=>{setMessage(event.target.value);requestId.current=null;setStatus('');setPostUrl('');}}/>
    <small>{message.trim().length} / 2500 символов. Без автоматической отправки объявлений жителей.</small>
-   <button type="button" className="primary-button" disabled={busy||message.trim().length<20||!supabase} onClick={()=>void send()}>
+   <button type="button" className="primary-button" disabled={busy||checking||!preflightPassed||message.trim().length<20||!supabase} onClick={()=>void send()}>
      {busy?'Отправляем…':'Подтвердить и опубликовать в ВК'}
    </button>
    {status&&<p role="status">{status}</p>}
