@@ -30,6 +30,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     await db.exec(await readFile('docs/sql/classifieds-editor-privacy-v2.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-reports-review-v1.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-owner-archive-v1.sql','utf8'));
+    await db.exec(await readFile('docs/sql/classified-rejection-reasons-v1.sql','utf8'));
 
     let id,thread;
     await t.test('draft and moderation: no author self-publishing',async()=>{
