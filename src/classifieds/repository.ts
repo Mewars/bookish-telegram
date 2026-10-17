@@ -99,6 +99,10 @@ export async function markComplete(client:SupabaseClient|null,id:string):Promise
   const {error}=await db(client).rpc('complete_classified',{p_listing_id:id});
   check(error);
 }
+export async function archiveClassified(client:SupabaseClient|null,id:string):Promise<void> {
+  const {error}=await db(client).rpc('archive_classified',{p_listing_id:id});
+  check(error);
+}
 export async function getConversations(client:SupabaseClient|null,userId:string):Promise<Conversation[]> {
   const {data,error}=await db(client).from('classified_conversations').select(THREAD_FIELDS)
     .or('buyer_id.eq.'+userId+',seller_id.eq.'+userId)

@@ -41,6 +41,9 @@ from Python failure reports. Upload only `report.json`, never the workdir/env fi
 - A real short-lived Storage URL succeeds before expiry and is denied afterward.
 - Buyer/seller UI messages in both directions; outsider reads/sends, sender
   spoofing and messages after participant blocking denied over the HTTP APIs.
+- Owner confirms removal of a published listing in the real browser; the archived
+  row disappears from public queries while prior messages remain private, and new
+  messages/conversations are denied. Other identities cannot archive the listing.
 
 The local fixture automatically confirms synthetic emails. It does **not** test
 external email delivery, production OAuth, family beta acceptance, real Russian

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import {
   createDraft,dealLabels,getBlockedClassifiedUsers,getConversations,getMessages,getOlderMessages,getMine,getOpenClassifiedReports,getPending,
   getClassifiedUnreadCounts,markClassifiedMessagesRead,
-  getPublished,markComplete,mayReview,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
+  getPublished,markComplete,archiveClassified,mayReview,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
   submitForReview,updateClassifiedDraft,validateDraft,CLASSIFIED_MESSAGE_PAGE_SIZE,
 } from './repository';
 import type { ChatMessage,Classified,ClassifiedReport,Conversation,DealType,Draft } from './repository';
@@ -338,6 +338,10 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
             {['draft','rejected'].includes(entry.status)&&<button disabled={busy} onClick={()=>editListing(entry)}>Изменить</button>}
             {['draft','rejected'].includes(entry.status)&&<button disabled={busy} onClick={()=>void execute(()=>submitForReview(supabase,entry.id,userId!))}>Отправить на проверку</button>}
             {entry.status==='published'&&<button disabled={busy} onClick={()=>void execute(()=>markComplete(supabase,entry.id))}>Продано / сдано</button>}
+            {['published','completed'].includes(entry.status)&&<button disabled={busy} onClick={()=>{
+              if(!window.confirm('Снять объявление с публикации? Вернуть его через интерфейс пока нельзя. Новые сообщения по объявлению будут недоступны.'))return;
+              void execute(()=>archiveClassified(supabase,entry.id),()=>setNotice('Объявление снято с публикации.'));
+            }}>Снять с публикации</button>}
           </div>}
           {tab==='moderate'&&entry.author_id!==userId&&<div className="classifieds-card-actions">
             <button disabled={busy} onClick={()=>void execute(()=>moderate(supabase,entry.id,true))}>Опубликовать</button>
