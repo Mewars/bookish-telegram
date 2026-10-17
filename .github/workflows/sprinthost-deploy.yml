@@ -27,6 +27,8 @@ jobs:
       VITE_CITY_DIRECTORY_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
       VITE_ORGANIZATIONS_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
       VITE_VK_ID_ENABLED: 'true'
+      # Shows only the owner preflight interface; server publishing remains disabled.
+      VITE_VK_FEDERAL_POSTING_ENABLED: 'true'
       VITE_FRIENDS_ENABLED: 'true'
       VITE_FRIENDS_BACKEND: host
       SPRINTHOST_HOST: ${{ secrets.SPRINTHOST_SSH_HOST }}
