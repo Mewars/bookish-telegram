@@ -512,10 +512,11 @@ with sync_playwright() as p:
     )
     assert not page_errors, "Unexpected JavaScript page errors"
     for context in contexts:
-        # Stop new network traffic, then drain asynchronous route.fetch/fulfill
-        # handlers before context.close disposes their API response objects.
+        # All assertions already passed. During teardown the app may still
+        # have in-flight refresh requests; do not treat a late double-fulfill
+        # while disconnecting the browser as an application/test failure.
         context.set_offline(True)
-        context.unroute_all(behavior="wait")
+        context.unroute_all(behavior="ignoreErrors")
         context.close()
     browser.close()
 (args.workdir / "report.json").write_text(
