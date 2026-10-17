@@ -32,6 +32,11 @@ def sanitized_exception(kind, error, tb):
         r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+", "[redacted JWT]", text
     )
     sys.stderr.write(text)
+    sys.stderr.write(
+        "\nChat HTTP diagnostics (no message bodies or tokens): "
+        + json.dumps(chat_http_events)
+        + "\n"
+    )
 
 
 sys.excepthook = sanitized_exception
@@ -39,6 +44,7 @@ origin = "http://127.0.0.1:4180"
 virtual = "djqhixvlfsbvannoqdjw.supabase.co"
 tokens = {}
 results = []
+chat_http_events = []
 
 
 def passed(text):
@@ -127,6 +133,27 @@ with sync_playwright() as p:
             response = route.fetch(
                 url=origin + url.path + ("?" + url.query if url.query else "")
             )
+            if url.path in [
+                "/rest/v1/classified_messages",
+                "/rest/v1/rpc/send_classified_message",
+            ]:
+                role = next(
+                    (
+                        role
+                        for role, page in pages.items()
+                        if page == route.request.frame.page
+                    ),
+                    "unknown",
+                )
+                event = {
+                    "role": role,
+                    "method": route.request.method,
+                    "path": url.path,
+                    "status": response.status,
+                }
+                if response.status == 200 and route.request.method == "GET":
+                    event["rows"] = len(response.json())
+                chat_http_events.append(event)
             route.fulfill(response=response)
         elif url.netloc == "127.0.0.1:4180":
             route.continue_()
@@ -349,8 +376,15 @@ with sync_playwright() as p:
     expect(buyer.get_by_label("Сообщение", exact=True)).to_be_visible()
     message = "Синтетическое сообщение покупателя " + uuid.uuid4().hex[:6]
     buyer.get_by_label("Сообщение", exact=True).fill(message)
-    buyer.get_by_role("button", name="Отправить", exact=True).click()
-    expect(buyer.get_by_text(message, exact=True)).to_be_visible()
+    with buyer.expect_response(
+        lambda response: response.url.endswith("/rest/v1/rpc/send_classified_message")
+        and response.request.method == "POST"
+    ) as sent:
+        buyer.get_by_role("button", name="Отправить", exact=True).click()
+    assert sent.value.status == 200, "Buyer message RPC did not commit"
+    expect(
+        buyer.locator(".classifieds-message").get_by_text(message, exact=True)
+    ).to_be_visible()
     seller.get_by_role("button", name="Сообщения", exact=True).click()
     _, threads, _ = api(
         "seller",
@@ -359,12 +393,32 @@ with sync_playwright() as p:
     )
     assert len(threads) == 1
     thread = threads[0]["id"]
+    status, saved, _ = api(
+        "seller",
+        "GET",
+        f"/rest/v1/classified_messages?select=body&conversation_id=eq.{thread}",
+    )
+    assert status == 200 and any(
+        row["body"] == message for row in saved
+    ), "Committed buyer message is not readable by the seller"
     seller.locator(".classifieds-thread-list button").filter(
         has_text=listing[:8]
     ).click()
-    expect(seller.get_by_text(message, exact=True)).to_be_visible()
+    expect(
+        seller.locator(".classifieds-message").get_by_text(message, exact=True)
+    ).to_be_visible()
     seller.get_by_label("Сообщение", exact=True).fill("Синтетический ответ автора")
-    seller.get_by_role("button", name="Отправить", exact=True).click()
+    with seller.expect_response(
+        lambda response: response.url.endswith("/rest/v1/rpc/send_classified_message")
+        and response.request.method == "POST"
+    ) as sent:
+        seller.get_by_role("button", name="Отправить", exact=True).click()
+    assert sent.value.status == 200, "Seller message RPC did not commit"
+    expect(
+        seller.locator(".classifieds-message").get_by_text(
+            "Синтетический ответ автора", exact=True
+        )
+    ).to_be_visible()
     buyer.get_by_role("button", name="Обновить сообщения", exact=True).click()
     expect(buyer.get_by_text("Синтетический ответ автора", exact=True)).to_be_visible()
     for table in ["classified_conversations", "classified_messages"]:
