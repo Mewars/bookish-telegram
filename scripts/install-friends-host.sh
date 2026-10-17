@@ -26,7 +26,8 @@ ssh "${ssh_args[@]}" "$remote" 'bash -s' <<'FRIENDS_CRON'
 set -euo pipefail
 umask 077
 private=/home/mewars/.ryadom-friends
-php -r 'require "/home/mewars/.ryadom-friends/server/friends-core.php"; new NearbyStore("/home/mewars/.ryadom-friends");'
+php -r 'require "/home/mewars/.ryadom-friends/server/friends-http.php"; $config=json_decode(file_get_contents("/home/mewars/.ryadom-friends/config.json"),true); try {nearby_authenticated_user($config,"Bearer ".str_repeat("x",64));} catch(NearbyFailure $e) {exit($e->httpStatus===401?0:1);} exit(1);'
+php -r 'require "/home/mewars/.ryadom-friends/server/friends-core.php"; new NearbyStore("/home/mewars/.ryadom-friends");' 
 php_bin=$(command -v php)
 [[ "$php_bin" =~ ^/[A-Za-z0-9_./-]+$ ]]
 job="*/5 * * * * $php_bin /home/mewars/.ryadom-friends/server/friends-cleanup.php >/dev/null 2>&1 # RYADOM_FRIENDS_EXPIRE_V1"
