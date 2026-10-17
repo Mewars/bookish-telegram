@@ -7,7 +7,7 @@ ALTER TABLE public.organization_applications
   ADD CONSTRAINT organization_application_photo_safe
   CHECK (photo_path IS NULL OR (
     char_length(photo_path) < 250
-    AND photo_path ~ ('^' || applicant_id::text || '/' || id::text || '/[a-f0-9-]{36}\\.(webp|jpg)$')
+    AND photo_path ~ ('^' || applicant_id::text || '/' || id::text || '/[a-f0-9-]{36}\.(webp|jpg)$')
   ));
 
 -- Only the submitting account may attach a photo while a request is pending.
@@ -36,7 +36,7 @@ CREATE POLICY ryadom_org_requests_submit_photo ON storage.objects
   FOR INSERT TO authenticated WITH CHECK (
     bucket_id='ryadom-org-requests'
     AND split_part(name,'/',1)=(SELECT auth.uid())::text
-    AND (name ~ '^[-a-f0-9]{36}/[-a-f0-9]{36}/[-a-f0-9]{36}\\.(webp|jpg)$')
+    AND (name ~ '^[-a-f0-9]{36}/[-a-f0-9]{36}/[-a-f0-9]{36}\.(webp|jpg)$')
     AND EXISTS (
       SELECT 1 FROM public.organization_applications app
       WHERE app.id::text=split_part(name,'/',2) AND app.applicant_id=(SELECT auth.uid())
