@@ -56,3 +56,14 @@ GPS callbacks, nickname XSS safety and blocking. `ALLOW_PUBLIC_MAP_TILES=1` perm
 only public OpenStreetMap tiles after an explicit click; names and individual
 markers are never sent to the tile provider. No cloud writes are performed.
 Only `friends-report.json` and the cropped `friends-map.png` are safe artifacts.
+
+## Same-origin production friends API
+
+The workflow also starts `friends-host.py`, rebuilds with
+`VITE_FRIENDS_BACKEND=host` and runs `FRIENDS_HOST_E2E=1 friends.py`.
+The PHP container uses the pinned CLI image and a new private SQLite directory;
+its Auth origin is strictly loopback. Set `FRIENDS_LOCAL_PHP_ORIGIN=http://127.0.0.1:8187`
+on the test gateway. The generated database/config remain private and must never
+be uploaded. `stack.py stop` removes only the fixture's labeled PHP container.
+Only the separate host report/map crop may be uploaded. No production token or
+cloud user is required for these real HTTP/Auth/browser scenarios.

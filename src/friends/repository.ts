@@ -1,20 +1,22 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+export type NearbyClient={rpc:(name:string,params?:Record<string,unknown>)=>PromiseLike<{data:unknown;error:{code?:string}|null}>};
 
 export type NearbyPoint={latitude:number|null;longitude:number|null;expires_at:string|null};
 export type NearbyFriend=NearbyPoint&{id:string;name:string;accepted:boolean;incoming:boolean;updated_at:string|null};
 export type NearbyState={self:NearbyPoint&{display_name:string;invite_code:string|null;invite_expires:string|null};friends:NearbyFriend[];blocked:{id:string;name:string}[]};
 
-export async function nearbyCall<T=void>(client:SupabaseClient|null,name:string,params?:Record<string,unknown>):Promise<T> {
+export async function nearbyCall<T=void>(client:NearbyClient|null,name:string,params?:Record<string,unknown>):Promise<T> {
   if(!client)throw Error('Сервис друзей пока не подключён.');
   const {data,error}=await client.rpc(name,params);
   if(error){
+    if(error.code==='unauthorized')throw Error('Войдите в аккаунт ещё раз, чтобы открыть друзей.');
+    if(error.code==='42900')throw Error('Слишком много запросов. Попробуйте через минуту.');
     if(error.code==='54000')throw Error('На сегодня достаточно приглашений. Попробуйте завтра.');
     if(name==='nearby_request')throw Error('Код недействителен или приглашение уже недоступно. Попросите друга создать новый код.');
     throw Error('Не удалось выполнить действие. Проверьте соединение и повторите.');
   }
   return data as T;
 }
-export const getNearbyState=(client:SupabaseClient|null)=>nearbyCall<NearbyState>(client,'nearby_state');
+export const getNearbyState=(client:NearbyClient|null)=>nearbyCall<NearbyState>(client,'nearby_state');
 export function activePoint(point:NearbyPoint,now=Date.now()):boolean {
   return typeof point.latitude==='number'&&Number.isFinite(point.latitude)&&Math.abs(point.latitude)<=90&&
     typeof point.longitude==='number'&&Number.isFinite(point.longitude)&&Math.abs(point.longitude)<=180&&

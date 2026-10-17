@@ -1,6 +1,28 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {activePoint,approximateCoordinates,getNearbyState,nearbyCall} from '../src/friends/repository.ts';
+import {createHostNearbyClient} from '../src/friends/hostClient.ts';
+
+test('host transport sends only the current session token to the same-origin API and records explicit consent',async()=>{
+  const auth={auth:{getSession:async()=>({data:{session:{access_token:'synthetic-test-token'}}})}};
+  let count=0;
+  const client=createHostNearbyClient(auth,'/api/friends.php',async(url,init)=>{
+    count++;assert.equal(url,'/api/friends.php');assert.equal(init.headers.Authorization,'Bearer synthetic-test-token');
+    assert.equal(init.cache,'no-store');assert.equal(init.credentials,'omit');
+    assert.deepEqual(JSON.parse(init.body),{name:'nearby_start_sharing',params:{p_consent_version:'FRIENDS-GEO-1.0'}});
+    return {ok:true,json:async()=>({data:'one-shot-token',error:null})};
+  });
+  assert.equal(await nearbyCall(client,'nearby_start_sharing'),'one-shot-token');assert.equal(count,1);
+  const signedOut=createHostNearbyClient({auth:{getSession:async()=>({data:{session:null}})}},'/api/friends.php',()=>{throw Error('No request permitted');});
+  await assert.rejects(nearbyCall(signedOut,'nearby_state'),/Войдите/);
+});
+test('host transport cannot turn an HTTP failure or malformed response into successful private state',async()=>{
+  const auth={auth:{getSession:async()=>({data:{session:{access_token:'synthetic-test-token'}}})}};
+  for(const response of [{ok:false,json:async()=>({data:{friends:[]},error:null})},{ok:true,json:async()=>({})}]){
+    const client=createHostNearbyClient(auth,'/api/friends.php',async()=>response);
+    await assert.rejects(getNearbyState(client),/Не удалось/);
+  }
+});
 
 test('exact GPS coordinates are rounded before entering a network request',()=>{
   assert.deepEqual(approximateCoordinates(58.455678,92.176543),{p_lat:58.46,p_lon:92.18});
