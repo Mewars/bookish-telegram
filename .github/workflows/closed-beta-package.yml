@@ -15,6 +15,11 @@ on:
       - 'tests/closed-beta-config.test.mjs'
       - 'tests/closed-beta-assets.test.mjs'
   workflow_dispatch:
+    inputs:
+      test_publishable_key:
+        description: 'Existing Ryadom-Test sb_publishable_ key only; never enter a secret key'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -55,8 +60,8 @@ jobs:
     env:
       CONTEXT: closed-beta
       VITE_SUPABASE_URL: https://djqhixvlfsbvannoqdjw.supabase.co
-      # Test PROJECT PUBLIC key only; must be configured separately.
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.RYADOM_TEST_SUPABASE_PUBLISHABLE_KEY }}
+      # Existing Test PUBLIC key only. Manual input avoids modifying repository secrets.
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.RYADOM_TEST_SUPABASE_PUBLISHABLE_KEY || inputs.test_publishable_key }}
       VITE_CLASSIFIEDS_ENABLED: 'true'
       VITE_COMMUNITY_ENABLED: 'true'
       VITE_FRIENDS_ENABLED: 'true'
