@@ -8,7 +8,22 @@ with sync_playwright() as p:
     page.add_init_script("localStorage.setItem('ryadom_cookie_consent_v1','necessary')")
     page.route("**/*", lambda route: route.continue_() if route.request.url.startswith("http://127.0.0.1:8188/") else route.abort())
     page.goto("http://127.0.0.1:8188/#/home")
-    trigger = page.locator('.city-name-weather .city-weather-trigger')
+    for width in [320, 360, 390, 768, 1024, 1440]:
+        page.set_viewport_size({"width": width, "height": 900})
+        page.wait_for_timeout(200)
+        header = page.locator('.web-header:visible, .app-header:visible')
+        icon = header.locator('.city-weather-trigger')
+        expect(icon).to_be_visible()
+        assert page.locator('.city-cover .city-weather-trigger').count() == 0
+        box = icon.bounding_box()
+        assert box['x'] >= 0 and box['x'] + box['width'] <= width
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), width
+        icon.click()
+        expect(page.get_by_role("dialog", name="Погода — Енисейск")).to_be_visible()
+        page.keyboard.press('Escape')
+        expect(icon).to_be_focused()
+    page.set_viewport_size({"width":360,"height":740})
+    trigger = page.locator('.header-city-weather .city-weather-trigger')
     weather = page.get_by_role("dialog", name="Погода — Енисейск")
     expect(weather).not_to_be_visible()
     assert trigger.locator('svg').get_attribute('width') == '26'

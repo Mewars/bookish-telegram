@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { CityWeather } from '../weather/CityWeather';
 import type { Item, Section } from '../types';
 import { Card, type CardActions } from './Card';
 import { HomeCarousel } from './HomeCarousel';
@@ -64,7 +63,7 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
       <div className="cover-atmosphere" aria-hidden="true"/>
 
       <div className="city-cover-content">
-        <div className="city-name-weather"><h1 id="city-cover-title">{city}</h1><CityWeather key={city} city={city}/></div>
+        <h1 id="city-cover-title">{city}</h1>
         <p className="cover-tagline">{cityProfile?.tagline || "Открывай город по-новому"}</p>
         <p className="cover-summary">{cityProfile?.summary || "Места, события и полезные услуги города в одном месте."}</p>
 

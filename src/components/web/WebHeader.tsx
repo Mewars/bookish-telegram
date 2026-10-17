@@ -1,3 +1,4 @@
+import { CityWeather } from '../../weather/CityWeather';
 import { MusicButton } from '../../music/MusicPlayer';
 import type { Section } from '../../types';
 import { Icon } from '../Icon';
@@ -16,9 +17,9 @@ interface WebHeaderProps {
 export function WebHeader({ city, section, navigate, favoritesCount, cityPickerOpen, openCityPicker }: WebHeaderProps) {
   return <header className="web-header"><div className="web-header-inner">
     <button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Рядом — на главную"><BrandWordmark decorative/></button>
-    <button className="city-pill" onClick={openCityPicker} aria-label={`Выбрать город: ${city}`} aria-haspopup="dialog" aria-expanded={cityPickerOpen}>
+    <div className="header-city-weather"><button className="city-pill" onClick={openCityPicker} aria-label={`Выбрать город: ${city}`} aria-haspopup="dialog" aria-expanded={cityPickerOpen}>
       <Icon name="pin" size={14}/>{city}<span className="city-chevron" aria-hidden="true"><Icon name="back" size={12}/></span>
-    </button>
+    </button><CityWeather key={city} city={city}/></div>
     <nav className="web-nav" aria-label="Основная навигация">{([
       { id: 'home', label: 'Главная' }, { id: 'events', label: 'Афиша' }, { id: 'places', label: 'Места' }, { id: 'services', label: 'Услуги' },
     ] as const).map(tab => <button key={tab.id} data-section={tab.id} aria-current={section === tab.id ? 'page' : undefined} onClick={() => navigate(tab.id)}>{tab.label}</button>)}</nav>
