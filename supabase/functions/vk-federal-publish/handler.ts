@@ -31,7 +31,7 @@ export function createFederalPublisher(config:Config,upstream:Fetcher=fetch){
    if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{
      'Cache-Control':'no-store','Vary':'Origin','Access-Control-Allow-Origin':allowed??'null',
      'Access-Control-Allow-Methods':'POST, OPTIONS',
-     'Access-Control-Allow-Headers':'authorization, apikey, content-type',
+     'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type',
      'Access-Control-Max-Age':'600',
    }});
    if(request.method!=='POST')return reply(405,{error:'method_not_allowed'},allowed);
