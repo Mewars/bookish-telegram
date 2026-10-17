@@ -46,7 +46,7 @@ function nearby_http(): void {
         if(!is_array($body)||!in_array($body['name']??null,$methods,true)||!is_array($body['params']??[]))throw new NearbyFailure('22023');
         $header=$_SERVER['HTTP_AUTHORIZATION']??$_SERVER['REDIRECT_HTTP_AUTHORIZATION']??'';
         if($header===''&&function_exists('getallheaders'))foreach(getallheaders() as $name=>$value)if(strcasecmp($name,'Authorization')===0)$header=$value;
-        if($header==='')throw new NearbyFailure('unauthorized',401);
+        if($header==='')throw new NearbyFailure('missing_authorization',401);
         $directory=$local?(getenv('RYADOM_FRIENDS_DATA_DIR')?:''):'/home/mewars/.ryadom-friends';
         if($directory===''||is_link($directory)||!is_file($directory.'/config.json'))throw new NearbyFailure('unavailable',503);
         $config=json_decode((string)file_get_contents($directory.'/config.json'),true,8,JSON_THROW_ON_ERROR);

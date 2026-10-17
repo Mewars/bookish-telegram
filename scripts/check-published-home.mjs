@@ -130,6 +130,7 @@ try {
         assert.match(denied.headers.get('cache-control')??'',/no-store/);
         const forged=await fetch(`${base}/api/friends.php`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${'x'.repeat(64)}`},body:JSON.stringify({name:'nearby_state'}),signal:AbortSignal.timeout(15000)});
         assert.equal(forged.status,401,'Server must verify and reject a forged identity through Auth');
+        assert.equal((await forged.json()).error.code,'unauthorized','PHP must receive the Authorization header');
         result.checks.push('Live host storage ready; anonymous private API access denied');
         await page.locator('.home-carousel').first().locator('.home-carousel-arrow--next').click();
         await page.waitForTimeout(600);

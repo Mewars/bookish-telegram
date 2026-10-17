@@ -91,7 +91,11 @@ for role, user in cfg["users"].items():
     with urllib.request.urlopen(req, timeout=15) as response:
         tokens[role] = json.load(response)["access_token"]
 status, denied = api(None, "nearby_state")
-assert status == 401 and denied["code"] in ("42501", "unauthorized")
+assert status == 401 and denied["code"] in (
+    "42501",
+    "unauthorized",
+    "missing_authorization",
+)
 passed("anonymous access to private friends API is denied")
 
 if host_mode:
