@@ -27,6 +27,27 @@ const mock=(roles=['owner'],vkValue={response:{post_id:17}})=>{
  };
  return {calls,upstream};
 };
+test('browser preflight allows the Supabase SDK header before making any VK request',async()=>{
+ const {calls,upstream}=mock();
+ const handler=createFederalPublisher({...config,enabled:false},upstream);
+ const preflight=new Request('https://example.com/functions/v1/vk-federal-publish',{
+  method:'OPTIONS',
+  headers:{
+   Origin:'https://ryadomcity.ru',
+   'Access-Control-Request-Method':'POST',
+   'Access-Control-Request-Headers':'authorization, x-client-info, apikey, content-type',
+  },
+ });
+ const res=await handler(preflight);
+ assert.equal(res.status,204);
+ assert.equal(res.headers.get('access-control-allow-origin'),'https://ryadomcity.ru');
+ assert.equal(res.headers.get('access-control-allow-methods'),'POST, OPTIONS');
+ const allowed=res.headers.get('access-control-allow-headers').split(',').map(x=>x.trim().toLowerCase());
+ for(const key of ['authorization','x-client-info','apikey','content-type']) assert.ok(allowed.includes(key),key);
+ assert.equal(calls.length,0,'preflight must not call Auth or VK');
+ const foreign=new Request(preflight.url,{method:'OPTIONS',headers:{Origin:'https://another.example'}});
+ assert.equal((await handler(foreign)).status,403);
+});
 test('group number supplied by owner maps to negative VK wall ID',()=>{
  assert.equal(FEDERAL_GROUP_ID,242202919);
  assert.equal(FEDERAL_WALL_ID,-242202919);
