@@ -10,7 +10,9 @@ function nearby_authenticated_user(array $config,string $bearer): string {
     if(!is_string($key)||$key===''||(!$local&&!preg_match('/^sb_publishable_[a-zA-Z0-9_-]+$/D',$key)))throw new NearbyFailure('unavailable',503);
     if(!preg_match('/^Bearer ([a-zA-Z0-9_.-]{30,8192})$/D',$bearer,$match))throw new NearbyFailure('unauthorized',401);
     $curl=curl_init($origin.'/auth/v1/user');$body='';
-    curl_setopt_array($curl,[CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$match[1],'apikey: '.$key],CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>8,CURLOPT_PROTOCOLS=>($local?CURLPROTO_HTTP:CURLPROTO_HTTPS),CURLOPT_WRITEFUNCTION=>static function($handle,string $chunk)use(&$body):int{if(strlen($body)+strlen($chunk)>131072)return 0;$body.=$chunk;return strlen($chunk);}]);
+    $protocolOption=defined('CURLOPT_PROTOCOLS_STR')?constant('CURLOPT_PROTOCOLS_STR'):CURLOPT_PROTOCOLS;
+    $protocolValue=defined('CURLOPT_PROTOCOLS_STR')?($local?'http':'https'):($local?CURLPROTO_HTTP:CURLPROTO_HTTPS);
+    curl_setopt_array($curl,[CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$match[1],'apikey: '.$key],CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>8,$protocolOption=>$protocolValue,CURLOPT_WRITEFUNCTION=>static function($handle,string $chunk)use(&$body):int{if(strlen($body)+strlen($chunk)>131072)return 0;$body.=$chunk;return strlen($chunk);}]);
     $ok=curl_exec($curl);$status=(int)curl_getinfo($curl,CURLINFO_RESPONSE_CODE);
     if($status===401||$status===403)throw new NearbyFailure('unauthorized',401);
     if($ok===false||$status!==200)throw new NearbyFailure('unavailable',503);

@@ -11,6 +11,7 @@ umask 077
 private=/home/mewars/.ryadom-friends
 test -d /home/mewars/domains/ryadomcity.ru/public_html
 test ! -L "$private"
+test ! -L "$private/server"
 mkdir -p "$private/server"
 test "$(cd "$private" && pwd -P)" = "$private"
 chmod 700 "$private" "$private/server"
@@ -39,6 +40,7 @@ if ! grep -Fxq "$job" "$cron_tmp"; then
   printf '\n%s\n' "$job" >> "$cron_tmp"
   crontab "$cron_tmp"
 fi
-crontab -l | grep -Fxq "$job"
+crontab -l > "$cron_tmp"
+grep -Fxq "$job" "$cron_tmp"
 echo 'Friends private storage and expiry cleanup are ready.'
 FRIENDS_CRON
