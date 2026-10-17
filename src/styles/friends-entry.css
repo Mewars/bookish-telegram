@@ -1,0 +1,154 @@
+/* Friends nearby: original robot-style entry and an accessible explainer. */
+.web-friends-trigger {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 4px 12px 4px 6px; min-height: 44px; flex-shrink: 0;
+  border: 1px solid #b5dcf7; border-radius: 999px;
+  background: linear-gradient(135deg,#ffffff,#dff5ff); color: #163a55;
+  box-shadow: 0 2px 12px #69c7ff26; font-size: 13px; font-weight: 700;
+}
+.web-friends-trigger svg { flex-shrink: 0; filter: drop-shadow(0 2px 4px #87bfff73); }
+.web-friends-trigger[aria-current=page] { outline: 2px solid #8dc8f5; outline-offset: 2px; }
+.web-friends-trigger:hover { background: #effaff; box-shadow: 0 3px 15px #6ccaff4a; }
+.web-friends-trigger:focus-visible, .header-friends:focus-visible {
+  outline: 3px solid #60bce8; outline-offset: 3px;
+}
+.header-friends {
+  flex-shrink: 0; width: 42px; height: 42px;
+  display: grid; place-items: center;
+  padding: 2px; border-radius: 50%;
+  border: 1px solid #a9d6f4; background: linear-gradient(145deg,#ffffff,#cfecfd);
+  box-shadow: 0 2px 8px #58b5f63d;
+}
+.header-friends svg { width: 34px; height: 34px; }
+.app-shell:has(.city-home) .header-friends { background: #e1f4ffed; border-color: #ffffffa8; }
+@media (min-width:900px) and (max-width:1100px) {
+  .web-friends-trigger { padding-inline: 5px 9px; gap: 3px; font-size: 11px; }
+}
+@media (max-width:599px) {
+  .app-header .header-friends { width: 36px; height: 36px; }
+  .app-header .header-friends svg { width: 31px; height: 31px; }
+}
+@media (max-width:359px) {
+  .app-header .header-friends { width: 32px; height: 32px; padding: 0; }
+  .app-header .header-friends svg { width: 29px; height: 29px; }
+}
+
+/* Native modal enforces focus containment and inert background. */
+.friends-intro-dialog {
+  position: fixed; inset: 0; margin: auto; box-sizing: border-box;
+  width: min(480px, calc(100vw - 28px)); max-height: min(780px, calc(100dvh - 24px));
+  overflow-y: auto; border: 1px solid #e2edf8; border-radius: 26px;
+  padding: 20px 22px 24px; background: #fff; color: #152b3f;
+  box-shadow: 0 20px 75px #071e355c; font: inherit;
+  scrollbar-width: thin;
+}
+.friends-intro-dialog::backdrop { background: #071a2abf; backdrop-filter: blur(5px); }
+.friends-intro-close {
+  position: absolute; right: 17px; top: 16px; z-index: 2;
+  width: 36px; height: 36px; display: grid; place-items: center;
+  border-radius: 12px; background: #eef4f8; color: #2c4255;
+}
+.friends-intro-close:hover { background: #dcecf7; }
+.friends-intro-art {
+  height: 196px; position: relative; margin: 15px 0 18px;
+  border-radius: 22px; overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, #b6ebff 0, #e4f5ff 42%, transparent 72%),
+    linear-gradient(180deg,#eef8ff 0%,#e4f5e9 100%);
+}
+.friends-intro-art::before {
+  content: ''; position: absolute; left: -10%; right: -10%; bottom: -37px; height: 93px;
+  background: repeating-linear-gradient(93deg,#a9d4a657 0 8px, transparent 8px 22px),
+    linear-gradient(180deg,transparent,#c6e5d9);
+  border-radius: 50%;
+}
+.friends-intro-art::after {
+  content: ''; position: absolute; left: 26%; right: 26%; bottom: 14px; height: 17px;
+  border-radius: 50%; background: #5c9acb32; filter: blur(9px);
+}
+.friends-intro-robot {
+  position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  z-index: 1; filter: drop-shadow(0 6px 10px #6ca6ca70);
+}
+.friends-intro-orbit {
+  position: absolute; width: 164px; height: 86px; top: 46px;
+  border: 2px dashed #80bfe6a0; border-radius: 50%;
+}
+.friends-intro-orbit-one { left: 12%; transform: rotate(-17deg); }
+.friends-intro-orbit-two { right: 11%; transform: rotate(17deg); }
+.friends-intro-friend {
+  position: absolute; width: 49px; height: 49px; z-index: 2; border: 3px solid #fff;
+  border-radius: 50%; box-shadow: 0 3px 12px #498ec04d;
+  background: #f5d0a8; overflow: hidden;
+}
+.friends-intro-friend::before {
+  content: ''; position: absolute; left: 13px; top: 9px; width: 20px; height: 21px;
+  border-radius: 50%; background: #f7d3ba; box-shadow: 0 -8px 0 2px #604c65;
+}
+.friends-intro-friend span {
+  position: absolute; bottom: -14px; left: 7px; width: 35px; height: 35px;
+  background: #d87997; border-radius: 45% 45% 0 0;
+}
+.friends-intro-friend::after {
+  content: ''; position: absolute; right: -1px; bottom: 0; width: 10px; height: 10px;
+  border-radius: 50%; background: #20bb70; border: 2px solid #fff;
+}
+.friends-intro-friend-one { left: 12%; top: 52px; }
+.friends-intro-friend-two { right: 11%; top: 32px; background: #b3d8ed; }
+.friends-intro-friend-two::before { box-shadow: 0 -7px 0 2px #5d3d32; }
+.friends-intro-friend-two span { background: #79a8d6; }
+.friends-intro-pin {
+  position: absolute; right: 21%; bottom: 27px; color: #2caf86; z-index: 1;
+}
+.friends-intro-spark { position: absolute; color: #5aaadb; font-size: 22px; }
+.friends-intro-spark-one { left: 28%; top: 18px; }
+.friends-intro-spark-two { right: 22%; top: 91px; }
+.friends-intro-kicker {
+  display: block; text-align: center; color: #4e92b5;
+  font-size: 10px; font-weight: 800; letter-spacing: .12em;
+}
+.friends-intro-dialog h2 {
+  margin: 8px 0 12px; text-align: center; font-size: clamp(25px, 6vw, 32px);
+  line-height: 1.15; color: #0b2137;
+}
+.friends-intro-lead {
+  margin: 0 auto; max-width: 395px; font-size: 14px; line-height: 1.6;
+  text-align: center; color: #53677a;
+}
+.friends-intro-facts {
+  margin: 17px 0; padding: 12px; border-radius: 16px;
+  background: #eff6fc; color: #405b73;
+}
+.friends-intro-facts p { display: flex; align-items: flex-start; gap: 12px; margin: 0; font-size: 12px; line-height: 1.5; }
+.friends-intro-facts p + p { margin-top: 10px; }
+.friends-intro-facts p > span:first-child {
+  flex: 0 0 26px; height: 26px; display: grid; place-items: center;
+  border-radius: 9px; color: #218bbb; font-weight: 800; font-size: 18px; background: #d8ecfb;
+}
+.friends-intro-primary, .friends-intro-secondary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 49px; border-radius: 14px; font-size: 14px; font-weight: 700;
+}
+.friends-intro-primary { background: #23ae55; color: white; }
+.friends-intro-primary:hover { background: #198d42; }
+.friends-intro-secondary { background: #f2f6fa; color: #1a354b; margin-top: 9px; }
+.friends-intro-primary:focus-visible, .friends-intro-secondary:focus-visible, .friends-intro-close:focus-visible {
+  outline: 3px solid #4aace4; outline-offset: 2px;
+}
+@media (max-width:599px) {
+  .friends-intro-dialog {
+    inset: auto 0 0; margin: 0 auto; width: 100%; max-height: calc(100dvh - 12px);
+    border-radius: 24px 24px 0 0; padding: 18px 20px calc(20px + env(safe-area-inset-bottom));
+  }
+  .friends-intro-art { height: 170px; margin-top: 22px; }
+  .friends-intro-robot { width: 143px; height: 143px; }
+}
+@media (max-height:650px) {
+  .friends-intro-dialog { padding-top: 10px; }
+  .friends-intro-art { height: 115px; margin: 6px 0 10px; }
+  .friends-intro-robot { width: 100px; height: 100px; }
+  .friends-intro-facts { margin-block: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .web-friends-trigger, .header-friends, .friends-intro-robot { animation: none; transition: none; }
+}
