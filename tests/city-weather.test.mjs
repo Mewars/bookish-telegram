@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {readCityWeather,weatherDescription} from '../src/weather/forecast.ts';
+import {readCityWeather,weatherDescription,weatherIconKind} from '../src/weather/forecast.ts';
 
 const now=Date.parse('2026-10-17T06:30:00Z');
 const point=(time,temp=3)=>({time,data:{instant:{details:{air_temperature:temp,wind_speed:2}},next_1_hours:{summary:{symbol_code:'rain'},details:{precipitation_amount:0.4}}}});
@@ -38,4 +38,8 @@ test('weather descriptions are human-readable and preserve unsupported symbol un
   assert.equal(weatherDescription('rainandthunder'),'Гроза');
   assert.equal(weatherDescription('clearsky_day'),'Ясно');
   assert.equal(weatherDescription('unknown'),'Прогноз погоды');
+});
+
+test('small weather icon matches rain, snow, sleet, clouds and clear day/night without inventing a condition',()=>{
+  for(const [symbol,kind] of [['rainshowers_day','rain'],['heavysnow_night','snow'],['lightsleet','sleet'],['cloudy','cloud'],['partlycloudy_day','partly'],['clearsky_day','sun'],['clearsky_night','moon'],[null,'unknown'],['unknown','unknown']])assert.equal(weatherIconKind(symbol),kind);
 });
