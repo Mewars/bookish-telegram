@@ -234,3 +234,16 @@
 .vk-federal-composer small {color:var(--muted);font-size:11px;}
 .vk-federal-composer button {justify-self:start;min-height:44px;}
 .vk-federal-composer [role=status] {color:var(--text);}
+
+.admin-requests-panel {display:grid;gap:15px;}
+.admin-request-list {display:grid;gap:12px;}
+.admin-request-item {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:20px;border:1px solid var(--line);border-radius:15px;background:var(--surface);}
+.admin-request-item strong {display:block;font-size:15px;overflow-wrap:anywhere;}
+.admin-request-item small {display:block;color:var(--muted);margin-top:5px;}
+.admin-request-item p {margin:10px 0;overflow-wrap:anywhere;}
+.admin-request-actions {display:flex;flex-direction:column;gap:8px;align-items:stretch;}
+.admin-request-actions button {min-height:40px;}
+.admin-request-reject {grid-column:1/-1;display:grid;gap:10px;}
+.admin-request-reject label {font-weight:700;font-size:12px;}
+.admin-request-reject textarea {width:100%;box-sizing:border-box;min-height:85px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;color:var(--text);background:var(--bg);}
+@media(max-width:730px){.admin-request-item{grid-template-columns:1fr}.admin-request-actions{flex-direction:row;flex-wrap:wrap;}.admin-request-actions button{flex:1;}}
