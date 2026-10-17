@@ -28,14 +28,14 @@ final class NearbyStore {
           PRIMARY KEY(first_id,second_id),CHECK(first_id<second_id),CHECK(requester_id IN(first_id,second_id)));
           CREATE INDEX IF NOT EXISTS friendships_second ON friendships(second_id);
           CREATE TABLE IF NOT EXISTS blocks (
-          blocker_id TEXT REFERENCES profiles(user_id) ON DELETE CASCADE,blocked_id TEXT REFERENCES profiles(user_id) ON DELETE CASCADE,
+          blocker_id TEXT REFERENCES profiles(user_id) ON DELETE CASCADE,blocked_id TEXT NOT NULL,
           PRIMARY KEY(blocker_id,blocked_id),CHECK(blocker_id<>blocked_id));
           CREATE INDEX IF NOT EXISTS blocks_blocked ON blocks(blocked_id);
           CREATE TABLE IF NOT EXISTS locations (
           user_id TEXT PRIMARY KEY REFERENCES profiles(user_id) ON DELETE CASCADE,latitude REAL NOT NULL CHECK(latitude BETWEEN -90 AND 90),
           longitude REAL NOT NULL CHECK(longitude BETWEEN -180 AND 180),updated_at INTEGER NOT NULL,expires_at INTEGER NOT NULL);
           CREATE INDEX IF NOT EXISTS locations_expiry ON locations(expires_at);
-          CREATE TABLE IF NOT EXISTS request_limits(user_id TEXT PRIMARY KEY,started INTEGER NOT NULL,requests INTEGER NOT NULL);');
+          CREATE TABLE IF NOT EXISTS request_limits(user_id TEXT PRIMARY KEY,started INTEGER NOT NULL,requests INTEGER NOT NULL,invite_started INTEGER NOT NULL,invite_requests INTEGER NOT NULL);');
     }
     private function query(string $sql,array $params=[]): PDOStatement {
         $stmt=$this->db->prepare($sql); $stmt->execute($params); return $stmt;
@@ -47,7 +47,7 @@ final class NearbyStore {
         $this->query('DELETE FROM locations WHERE expires_at<=?',[$now]);
         $this->query('UPDATE profiles SET location_token=NULL,token_expires=NULL WHERE token_expires<=?',[$now]);
         $this->query('UPDATE profiles SET invite_code=NULL,invite_expires=NULL WHERE invite_expires<=?',[$now]);
-        $this->query('DELETE FROM request_limits WHERE started<?',[$now-86400]);
+        $this->query('DELETE FROM request_limits WHERE started<? AND invite_started<?',[$now-86400,$now-86400]);
     }
     private static function iso($value): ?string {return $value===null?null:gmdate('Y-m-d\TH:i:s\Z',(int)$value);}
     private static function uuid($value): string {
@@ -69,7 +69,7 @@ final class NearbyStore {
         try {
             $row=$this->query('SELECT * FROM request_limits WHERE user_id=?',[$uid])->fetch();
             if($row&&$row['started']>$now-60&&$row['requests']>=60) throw new NearbyFailure('42900',429);
-            if(!$row||$row['started']<=$now-60) $this->query('INSERT INTO request_limits VALUES(?,?,1) ON CONFLICT(user_id) DO UPDATE SET started=excluded.started,requests=1',[$uid,$now]);
+            if(!$row||$row['started']<=$now-60) $this->query('INSERT INTO request_limits VALUES(?,?,1,?,0) ON CONFLICT(user_id) DO UPDATE SET started=excluded.started,requests=1',[$uid,$now,$now]);
             else $this->query('UPDATE request_limits SET requests=requests+1 WHERE user_id=?',[$uid]);
             $this->db->exec('COMMIT');
         } catch(Throwable $e){$this->db->exec('ROLLBACK');throw $e;}
@@ -94,7 +94,7 @@ final class NearbyStore {
             foreach($friends as &$f){$f['accepted']=(bool)$f['accepted'];$f['incoming']=$f['requester_id']!==$u;unset($f['requester_id']);$f['updated_at']=self::iso($f['updated_at']);$f['expires_at']=self::iso($f['expires_at']);}
             unset($f);
             return ['self'=>['display_name'=>$self['display_name']??'Друг','invite_code'=>$self['invite_code']??null,'invite_expires'=>self::iso($self['invite_expires']??null),'latitude'=>$self['latitude']??null,'longitude'=>$self['longitude']??null,'expires_at'=>self::iso($self['expires_at']??null)],
-              'friends'=>$friends,'blocked'=>$this->query('SELECT b.blocked_id AS id,p.display_name AS name FROM blocks b JOIN profiles p ON p.user_id=b.blocked_id WHERE b.blocker_id=?',[$u])->fetchAll()];
+              'friends'=>$friends,'blocked'=>$this->query('SELECT b.blocked_id AS id,coalesce(p.display_name,\'Пользователь\') AS name FROM blocks b LEFT JOIN profiles p ON p.user_id=b.blocked_id WHERE b.blocker_id=?',[$u])->fetchAll()];
         }
         if($method==='nearby_invite') {
             $name=self::name($p['p_name']??null); $this->profile($u,$now); $code=bin2hex(random_bytes(16));
@@ -108,10 +108,10 @@ final class NearbyStore {
             $this->profile($u,$now);$this->query('UPDATE profiles SET display_name=? WHERE user_id=?',[$name,$u]);
             $a=min($u,$peer);$b=max($u,$peer);
             if($this->query('SELECT 1 FROM friendships WHERE first_id=? AND second_id=?',[$a,$b])->fetchColumn())return null;
-            $profile=$this->query('SELECT requests_started,requests_count FROM profiles WHERE user_id=?',[$u])->fetch();
-            if($profile['requests_started']<=$now-86400)$this->query('UPDATE profiles SET requests_started=?,requests_count=0 WHERE user_id=?',[$now,$u]);
-            elseif($profile['requests_count']>=10)throw new NearbyFailure('54000',429);
-            $this->query('UPDATE profiles SET requests_count=requests_count+1 WHERE user_id=?',[$u]);
+            $profile=$this->query('SELECT invite_started,invite_requests FROM request_limits WHERE user_id=?',[$u])->fetch();
+            if($profile['invite_started']<=$now-86400)$this->query('UPDATE request_limits SET invite_started=?,invite_requests=0 WHERE user_id=?',[$now,$u]);
+            elseif($profile['invite_requests']>=10)throw new NearbyFailure('54000',429);
+            $this->query('UPDATE request_limits SET invite_requests=invite_requests+1 WHERE user_id=?',[$u]);
             $this->query('INSERT INTO friendships VALUES(?,?,?,0,?)',[$a,$b,$u,$now]);return null;
         }
         if($method==='nearby_respond'||$method==='nearby_disconnect') {

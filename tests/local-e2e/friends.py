@@ -363,6 +363,20 @@ with sync_playwright() as p:
     assert status == 403 and denied["code"] == "42501"
     passed("blocking removes the relationship and all location access")
     if host_mode:
+        assert api("seller", "nearby_forget")[0] == 200
+        assert (
+            api("seller", "nearby_invite", {"p_name": "Анна · демонстрация"})[0] == 200
+        )
+        assert (
+            api(
+                "seller",
+                "nearby_request",
+                {"p_code": bob_code, "p_name": "Анна · демонстрация"},
+            )[0]
+            == 403
+        )
+        assert len(api("buyer", "nearby_state")[1]["blocked"]) == 1
+        passed("forgetting and recreating a profile cannot bypass another user block")
         bob.get_by_role("button", name="Удалить данные раздела", exact=True).click()
         expect(
             bob.get_by_text("Данные раздела удалены. Вы невидимы.", exact=True)
