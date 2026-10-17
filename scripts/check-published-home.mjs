@@ -219,6 +219,11 @@ try {
         await page.getByRole('heading', { name: 'Объявления готовятся' }).waitFor();
         result.checks.push('Classified and community betas remain disabled in production');
       }
+      await page.goto(`${base}/#/profile`, { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'Вы не вошли в аккаунт' }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await page.getByRole('button', { name: 'Мои заявки' }).count(), 0,
+        'Anonymous visitors must not see organization application management in their profile');
+      result.checks.push('Guest profile hides organization applications shortcut');
     } catch (error) {
       failed = true;
       result.errors.push(error.stack || String(error));
