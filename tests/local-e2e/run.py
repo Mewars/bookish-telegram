@@ -255,7 +255,7 @@ with sync_playwright() as p:
         "seller",
         "POST",
         "/storage/v1/object/sign/ryadom-classified-photos/" + photos[0]["object_path"],
-        {"expiresIn": 1},
+        {"expiresIn": 3},
     )
     assert status == 200 and signed.get("signedURL")
     signed_path = "/storage/v1" + signed["signedURL"]

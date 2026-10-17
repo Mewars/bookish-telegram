@@ -199,6 +199,10 @@ for _ in range(60):
                 "exec",
                 config["prefix"] + "-db",
                 "pg_isready",
+                # The image's init server accepts Unix sockets only and then
+                # shuts down. TCP readiness waits for the final server instead.
+                "-h",
+                "127.0.0.1",
                 "-U",
                 "postgres",
             ],
