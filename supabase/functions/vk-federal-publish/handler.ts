@@ -35,8 +35,8 @@ export function createFederalPublisher(config:Config,upstream:Fetcher=fetch){
      'Access-Control-Max-Age':'600',
    }});
    if(request.method!=='POST')return reply(405,{error:'method_not_allowed'},allowed);
-   if(!config.enabled||config.vkToken.length<20||!/^https:\/\//.test(config.supabaseUrl)||!config.supabaseKey)
-      return reply(503,{error:'publishing_not_configured'},allowed);
+   if(config.vkToken.length<20||!/^https:\/\//.test(config.supabaseUrl)||!config.supabaseKey)
+      return reply(503,{error:'vk_credentials_not_configured'},allowed);
    const auth=authHeader(request);
    if(!auth)return reply(401,{error:'authentication_required'},allowed);
    if(!request.headers.get('content-type')?.toLowerCase().startsWith('application/json'))
@@ -45,12 +45,19 @@ export function createFederalPublisher(config:Config,upstream:Fetcher=fetch){
    if(raw.length>12000)return reply(413,{error:'payload_too_large'},allowed);
    let value:unknown;
    try{value=JSON.parse(raw);}catch{return reply(400,{error:'invalid_json'},allowed);}
-   if(!object(value)||Object.keys(value).some(k=>!['message','requestId'].includes(k))||
-      typeof value.message!=='string'||!uuid(value.requestId))
-     return reply(400,{error:'invalid_payload'},allowed);
-   const message=value.message.trim();
-   if(message.length<20||message.length>2500||Array.from(message).some(ch=>{const n=ch.charCodeAt(0);return n<32&&n!==9&&n!==10&&n!==13;}))
-     return reply(400,{error:'invalid_message'},allowed);
+   if(!object(value))return reply(400,{error:'invalid_payload'},allowed);
+   const preflight=value.action==='check';
+   let message='';
+   if(preflight){
+     if(Object.keys(value).length!==1)return reply(400,{error:'invalid_payload'},allowed);
+   }else{
+     if(Object.keys(value).some(k=>!['message','requestId'].includes(k))||
+        typeof value.message!=='string'||!uuid(value.requestId))
+       return reply(400,{error:'invalid_payload'},allowed);
+     message=value.message.trim();
+     if(message.length<20||message.length>2500||Array.from(message).some(ch=>{const n=ch.charCodeAt(0);return n<32&&n!==9&&n!==10&&n!==13;}))
+       return reply(400,{error:'invalid_message'},allowed);
+   }
    const common={
       'Authorization':auth,
       'apikey':config.supabaseKey,
@@ -79,6 +86,25 @@ export function createFederalPublisher(config:Config,upstream:Fetcher=fetch){
      if(!Array.isArray(rows)||!rows.some(row=>object(row)&&row.user_id===userId&&row.city==='*'&&row.role==='owner'&&row.active===true))
        return reply(403,{error:'not_authorized'},allowed);
    }catch{return reply(502,{error:'authorization_unavailable'},allowed);}
+   if(preflight){
+     // A read-only VK check. It does not publish, schedule, edit or delete posts.
+     try{
+       const params=new URLSearchParams({access_token:config.vkToken,v:VK_API_VERSION});
+       const response=await upstream('https://api.vk.com/method/groups.getTokenPermissions',{
+         method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Accept':'application/json'},
+         body:params.toString(),redirect:'error',signal:AbortSignal.timeout(10000),
+       });
+       if(!response.ok)return reply(502,{error:'vk_permission_check_failed'},allowed);
+       const result=await response.json() as unknown;
+       if(!object(result)||!object(result.response)||!Array.isArray(result.response.permissions))
+         return reply(502,{error:'vk_permission_check_failed'},allowed);
+       const wallPermission=result.response.permissions.some(item=>object(item)&&item.name==='wall');
+       return reply(200,{ok:true,wallPermission,publishingEnabled:config.enabled},allowed);
+     }catch{
+       return reply(502,{error:'vk_permission_check_failed'},allowed);
+     }
+   }
+   if(!config.enabled)return reply(503,{error:'publishing_not_enabled'},allowed);
    const form=new URLSearchParams({
      owner_id:String(FEDERAL_WALL_ID),from_group:'1',message,
      guid:value.requestId,v:VK_API_VERSION,access_token:config.vkToken,
