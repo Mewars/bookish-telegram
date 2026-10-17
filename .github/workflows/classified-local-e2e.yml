@@ -9,6 +9,9 @@ on:
       - 'src/lib/**'
       - 'src/photos/**'
       - 'src/friends/**'
+      - 'src/analytics/**'
+      - 'src/main.tsx'
+      - 'tests/friends-analytics-browser.py'
       - 'server/**'
       - 'public/api/friends.php'
       - 'src/App.tsx'
@@ -76,6 +79,7 @@ jobs:
           python tests/local-e2e/friends-host.py --workdir "$TEST_WORKDIR"
           VITE_FRIENDS_BACKEND=host npm run build:beta
           FRIENDS_HOST_E2E=1 python tests/local-e2e/friends.py --workdir "$TEST_WORKDIR"
+          python tests/friends-analytics-browser.py
           cp "$TEST_WORKDIR/report.json" "$RUNNER_TEMP/ryadom-local-e2e-report.json"
           cp "$TEST_WORKDIR/friends-report.json" "$RUNNER_TEMP/ryadom-friends-e2e-report.json"
           cp "$TEST_WORKDIR/friends-map.png" "$RUNNER_TEMP/ryadom-friends-map.png"

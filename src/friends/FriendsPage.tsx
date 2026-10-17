@@ -87,7 +87,7 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
   const visible=!!data&&activePoint(data.self,now);
   const friends=data?.friends.filter(friend=>friend.accepted)??[];
   const pending=data?.friends.filter(friend=>!friend.accepted)??[];
-  return <div className="friends-page">
+  return <div className="friends-page ym-disable-keys ym-disable-clicks ym-disable-webvisor">
     <header className="friends-heading"><span className="eyebrow">ТВОИ ЛЮДИ В ГОРОДЕ</span><h1>Друзья рядом</h1><p>Добавляйте знакомых и делитесь приблизительной точкой, когда сами этого хотите.</p></header>
     {!userId?<section className="friends-card"><h2>Здесь только ваши друзья</h2><p>Войдите, чтобы обменяться приглашениями. Геолокация по умолчанию выключена.</p><button onClick={openLogin}>Войти в аккаунт</button></section>:<>
       {notice&&<p className="friends-notice" role="status">{notice}</p>}
