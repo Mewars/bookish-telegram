@@ -11,6 +11,7 @@ with sync_playwright() as p:
     weather = page.get_by_role("region", name="Погода — Енисейск")
     expect(weather.locator(".weather-current strong")).to_be_visible(timeout=20000)
     expect(weather.get_by_role("link", name="MET Norway")).to_be_visible()
+    weather.locator("summary").evaluate("element => element.scrollIntoView({block: 'center', behavior: 'instant'})")
     weather.locator("summary").click()
     assert weather.locator(".weather-hours li").count() >= 2
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
