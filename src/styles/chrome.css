@@ -127,3 +127,6 @@
   .app-header .city-pill {min-width:0;flex-shrink:1;padding-inline:7px;gap:3px;}
   .app-header .city-pill>span:not(.city-chevron) {overflow:hidden;text-overflow:ellipsis;}
 }
+
+.footer-cooperation .vk-link + .vk-link { margin-top: 9px; }
+.footer-cooperation .vk-link:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
