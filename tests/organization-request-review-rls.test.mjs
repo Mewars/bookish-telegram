@@ -26,7 +26,7 @@ test('organization applications: private photographs, city review, atomic publis
    CREATE SCHEMA storage;
    CREATE TABLE storage.buckets(id text PRIMARY KEY,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
    CREATE TABLE storage.objects(bucket_id text NOT NULL,name text NOT NULL,PRIMARY KEY(bucket_id,name));
-   CREATE FUNCTION storage.foldername(p_name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $ SELECT string_to_array(p_name,'/') $;
+   CREATE FUNCTION storage.foldername(p_name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $folder$ SELECT string_to_array(p_name,'/') $folder$;
    ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
    GRANT USAGE ON SCHEMA storage TO authenticated;
    GRANT INSERT,SELECT ON storage.objects TO authenticated;`);
@@ -48,7 +48,8 @@ test('organization applications: private photographs, city review, atomic publis
     await reset('authenticated',outsider);
     assert.equal((await db.query('SELECT id FROM public.organization_applications')).rows.length,0);
   });
-  const photo=`${applicant}/${appId}/66666666-6666-4666-8666-666666666666.webp`;
+  let photo='';
+  photo=`${applicant}/${appId}/66666666-6666-4666-8666-666666666666.webp`;
   await t.test('photo uploads are private and restricted to own pending application',async()=>{
     await reset('authenticated',applicant);
     await db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-org-requests',$1) RETURNING name",[photo]);
