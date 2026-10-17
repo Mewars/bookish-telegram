@@ -54,6 +54,11 @@ with sync_playwright() as p:
     page.wait_for_function("window.__ymCalls.some(call=>call[1]==='init')")
     assert len(sdk_requests) == 1
     page.get_by_role("button", name="Друзья рядом · Открыть карту").click()
+    intro = page.get_by_role("dialog", name="Друзья рядом")
+    expect(intro).to_be_visible()
+    # The explanatory card does not request GPS or enter the private route.
+    assert not page.evaluate("window.__ymCalls.some(call=>call[1]==='destruct')")
+    intro.get_by_role("button", name="Открыть друзей").click()
     expect(page.get_by_role("heading", name="Друзья рядом", exact=True)).to_be_visible()
     page.wait_for_function("window.__ymCalls.some(call=>call[1]==='destruct')")
     calls = page.evaluate("window.__ymCalls")
