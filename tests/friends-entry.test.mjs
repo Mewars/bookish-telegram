@@ -43,7 +43,7 @@ test('explainer dialog opens only from the friends entry, preserves consent and 
   assert.match(modal, /dialog\?\.showModal\(\)/);
   assert.match(modal, /onCancel=\{event => \{ event\.preventDefault\(\); onDismiss\(\); \}\}/);
   assert.match(modal, /previousFocus\.focus\(\{ preventScroll: true \}\)/);
-  assert.match(modal, /друзей.*по личному коду/);
+  assert.match(modal, /Приглашайте знакомых по личному коду/);
   assert.match(modal, /по умолчанию скрыто/);
   assert.match(modal, /на один час/);
   assert.match(modal, /Открыть друзей/);
