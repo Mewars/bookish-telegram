@@ -9,6 +9,12 @@ export function CityWeather({city}:{city:string}) {
   const [state,setState]=useState<{city:string;data:Weather|null;loading:boolean}>({city,data:null,loading:true});
   const [retry,setRetry]=useState(0);
   useEffect(()=>{
+    const refresh=()=>{if(document.visibilityState==='visible')setRetry(value=>value+1);};
+    const interval=window.setInterval(refresh,15*60*1000);
+    document.addEventListener('visibilitychange',refresh);
+    return ()=>{window.clearInterval(interval);document.removeEventListener('visibilitychange',refresh);};
+  },[]);
+  useEffect(()=>{
     const controller=new AbortController();
     let active=true;
     const timeout=window.setTimeout(()=>controller.abort(),12000);
