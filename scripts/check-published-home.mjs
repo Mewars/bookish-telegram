@@ -47,7 +47,26 @@ try {
       result.checks.push('All five quick categories');
 
       const cookies = page.getByRole('button', { name: 'Только необходимые' });
-      if (await cookies.isVisible().catch(() => false)) await cookies.click();
+      if (await cookies.isVisible().catch(() => false)) {
+        const cookieGlyph = page.locator('.cookie-banner .cookie-title .cookie-bite-icon');
+        assert.equal(await cookieGlyph.count(), 1, 'Black bitten cookie mark must appear beside consent title');
+        assert.equal(await cookieGlyph.evaluate(node => getComputedStyle(node).backgroundColor), 'rgba(0, 0, 0, 0)', 'Cookie glyph must have a transparent background');
+        await cookies.click();
+      }
+      const friendsGold = page.getByRole('button', { name: 'Друзья рядом — узнать о разделе' });
+      assert.equal(await friendsGold.count(), 1, 'Friends header shortcut is missing');
+      const friendsSkin = await friendsGold.evaluate(el => ({
+        labelColor: getComputedStyle(el.querySelector('span') ?? el).color,
+        background: getComputedStyle(el).backgroundColor,
+      }));
+      if (scenario.name === 'desktop-1440') {
+        assert.equal(friendsSkin.labelColor, 'rgb(243, 189, 93)', 'Friends label must match Ryadom gold');
+      }
+      assert.match(friendsSkin.background, /^rgba\(/, 'Friends background must be translucent, not a solid white pill');
+      const musicGold = page.getByRole('button', { name: 'Открыть Музыку рядом' });
+      assert.equal(await musicGold.count(), 1, 'Header music shortcut is missing');
+      assert.equal(await musicGold.evaluate(el => getComputedStyle(el).color), 'rgb(243, 189, 93)', 'Music nearby must use Ryadom gold');
+      result.checks.push('Transparent bitten-cookie icon, translucent friends shortcut, Ryadom-gold header accents');
 
       const weatherTrigger = page.locator('.header-city-weather .city-weather-trigger');
       const weather = page.getByRole('dialog', { name: 'Погода — Енисейск' });
