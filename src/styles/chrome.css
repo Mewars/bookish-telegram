@@ -128,5 +128,4 @@
   .app-header .city-pill>span:not(.city-chevron) {overflow:hidden;text-overflow:ellipsis;}
 }
 
-.footer-cooperation .vk-link + .vk-link { margin-top: 9px; }
 .footer-cooperation .vk-link:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
