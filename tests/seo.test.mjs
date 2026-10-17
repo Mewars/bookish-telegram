@@ -7,6 +7,10 @@ import { HOME_METADATA, HOME_URL, pageMetadata } from '../src/seo/metadata.ts';
 test('static homepage and runtime defaults agree, public URLs use the canonical domain', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(html.includes(`<title>${HOME_METADATA.title}</title>`));
+  assert.equal(HOME_METADATA.title,'Рядом');
+  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Рядом');
+  assert.match(html, /property="og:title" content="Рядом"/);
+  assert.match(html, /name="twitter:title" content="Рядом"/);
   assert.ok(html.includes(`name="description" content="${HOME_METADATA.description}"`));
   assert.equal((html.match(/rel="canonical"/g) ?? []).length, 1);
   assert.ok(html.includes(`rel="canonical" href="${HOME_URL}"`));

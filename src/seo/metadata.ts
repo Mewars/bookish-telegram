@@ -2,8 +2,8 @@ import type { Item, Section } from '../types';
 
 export const HOME_URL = 'https://ryadomcity.ru/';
 export const HOME_METADATA = {
-  title: 'Рядом — городской гид по Енисейску: места и достопримечательности',
-  description: 'Рядом — городской гид по Енисейску. Открывайте интересные места, достопримечательности и идеи для прогулок. Узнавайте город по-новому.',
+  title: 'Рядом',
+  description: 'Рядом — городской сервис: организации, места, услуги и события. Открывай город по-новому.',
   canonical: HOME_URL,
 };
 
@@ -39,9 +39,9 @@ export function pageMetadata(section: Section | 'import', id?: string, item?: It
   // The hash router has no independent city URL: keep the canonical homepage
   // for the original Eniseysk index; never claim a new city's page is Eniseysk.
   if (!id && city !== 'Енисейск' && ['home','places','events','services'].includes(section)) {
-    const labels: Partial<Record<Section, string>> = { home: 'Городской гид', places: 'Места и организации', events: 'Афиша', services: 'Услуги' };
+    const labels: Partial<Record<Section, string>> = { home: 'Рядом', places: 'Места и организации', events: 'Афиша', services: 'Услуги' };
     return {
-      title: `${labels[section as Section]} — ${city} | Рядом`,
+      title: section === 'home' ? 'Рядом' : `${labels[section as Section]} — ${city} | Рядом`,
       description: `Рядом — городской справочник ${city}. Выбирайте места, организации, мероприятия и полезные услуги.`,
     };
   }

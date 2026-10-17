@@ -130,8 +130,13 @@
 
 .footer-cooperation .vk-link:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
 
-.footer-cooperation-links { display:flex; align-items:center; flex-wrap:wrap; gap:7px; line-height:1.6; }
+.footer-cooperation-links { display:flex; align-items:center; flex-wrap:wrap; gap:7px; font-size:14px; line-height:1.6; }
+.footer-cooperation-links > a, .footer-cooperation-links > span { font:inherit; line-height:inherit; }
 .footer-cooperation-links a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
 .footer-cooperation-links a:hover { color:var(--primary-ink); }
 .footer-cooperation-links a:focus-visible { outline:2px solid var(--primary); outline-offset:3px; }
 .footer-cooperation-links > span[title] { cursor:default; opacity:.8; }
+
+.footer-social { margin-top:22px; }
+.footer-social h3 { font-size:14px; font-weight:600; line-height:1.6; margin:0 0 10px; }
+.footer-social .vk-link { width:fit-content; font-size:14px; line-height:1.6; }

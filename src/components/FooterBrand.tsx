@@ -14,5 +14,13 @@ export function FooterCooperation({ showLegal = true }: { showLegal?: boolean })
     <a href="#/add-organization">Добавление организации</a>
     <span aria-hidden="true">·</span>
     <span title="Раздел готовится">Платные услуги</span>
-  </div><a className="vk-link" href={FEDERAL_VK_COMMUNITY.url} target="_blank" rel="noopener noreferrer" aria-label="Открыть федеральное сообщество РЯДОМ во ВКонтакте (новая вкладка)"><img src={brandAssets.vk} width="28" height="28" alt=""/>{FEDERAL_VK_COMMUNITY.label}</a>{showLegal && <LegalLinks/>}</div>;
+  </div>
+    <div className="footer-social">
+      <h3>Мы в соцсетях:</h3>
+      <a className="vk-link" href={FEDERAL_VK_COMMUNITY.url} target="_blank" rel="noopener noreferrer" aria-label="РЯДОМ во ВКонтакте (открыть в новой вкладке)">
+        <img src={brandAssets.vk} width="28" height="28" alt=""/>ВКонтакте
+      </a>
+    </div>
+    {showLegal && <LegalLinks/>}
+  </div>;
 }

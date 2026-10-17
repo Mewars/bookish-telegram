@@ -18,6 +18,12 @@ test('single owner-provided federal VK community is linked only from the footer'
   assert.match(footer, /target="_blank" rel="noopener noreferrer"/);
   assert.doesNotMatch(profile, /FEDERAL_VK_COMMUNITY|profile-social-link|Мы во ВКонтакте/);
   assert.equal((footer.match(/className="vk-link"/g)||[]).length,1);
+  assert.match(footer, /<h3>Мы в соцсетях:<\/h3>/);
+  assert.match(footer, /alt=""\/>ВКонтакте/);
+  assert.doesNotMatch(footer, /\{FEDERAL_VK_COMMUNITY\.label\}/);
+  assert.match(footerCss, /\.footer-cooperation-links \{[^}]*font-size:14px/);
+  assert.match(footerCss, /\.footer-cooperation-links > a, \.footer-cooperation-links > span \{ font:inherit/);
+  assert.match(footerCss, /\.footer-social \.vk-link \{[^}]*font-size:14px/);
   assert.doesNotMatch(footerCss, /\.footer-cooperation \.vk-link \+ \.vk-link/);
   assert.doesNotMatch(accountCss, /\.profile-social-link/);
 });
