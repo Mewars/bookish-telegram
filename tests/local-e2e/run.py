@@ -461,6 +461,10 @@ with sync_playwright() as p:
     passed("participant blocking prevents further messages at the server")
     assert not page_errors, "Unexpected JavaScript page errors"
     for context in contexts:
+        # Stop new network traffic, then drain asynchronous route.fetch/fulfill
+        # handlers before context.close disposes their API response objects.
+        context.set_offline(True)
+        context.unroute_all(behavior="wait")
         context.close()
     browser.close()
 (args.workdir / "report.json").write_text(
