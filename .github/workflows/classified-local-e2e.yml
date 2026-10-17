@@ -1,0 +1,79 @@
+name: Classified Local Multi-user E2E
+
+on:
+  pull_request:
+    branches: [mewars]
+    paths:
+      - 'src/classifieds/**'
+      - 'src/auth/**'
+      - 'src/lib/**'
+      - 'src/photos/**'
+      - 'src/App.tsx'
+      - 'supabase/schema.sql'
+      - 'docs/sql/classified*.sql'
+      - 'docs/sql/city-directory-multicity.sql'
+      - 'tests/local-e2e/**'
+      - '.github/workflows/classified-local-e2e.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TEST_WORKDIR: ${{ github.workspace }}/../ryadom-local-e2e
+      CONTEXT: closed-beta
+      VITE_SUPABASE_URL: https://djqhixvlfsbvannoqdjw.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_nonfunctional_placeholder
+      VITE_CLASSIFIEDS_ENABLED: 'true'
+      VITE_COMMUNITY_ENABLED: 'true'
+      VITE_BETA_EMAIL_ONLY: 'true'
+      VITE_VK_ID_ENABLED: 'false'
+      VITE_ADMIN_PANEL_ENABLED: 'false'
+      VITE_CARD_PHOTOS_ENABLED: 'false'
+      VITE_CITY_DIRECTORY_ENABLED: 'false'
+      VITE_ORGANIZATIONS_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - name: Install browser runner
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+      - name: Start disposable real Auth, PostgreSQL, API and Storage
+        run: python tests/local-e2e/stack.py start --workdir "$TEST_WORKDIR"
+      - name: Build guarded beta with nonfunctional public placeholder
+        run: npm run build:beta
+      - name: Exercise real UI and negative API permissions with five synthetic users
+        run: |
+          python tests/local-e2e/gateway.py --workdir "$TEST_WORKDIR" > "$RUNNER_TEMP/local-e2e-gateway.log" 2>&1 &
+          gateway_pid=$!
+          trap 'kill "$gateway_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4180/ > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/local-e2e/run.py --workdir "$TEST_WORKDIR"
+          cp "$TEST_WORKDIR/report.json" "$RUNNER_TEMP/ryadom-local-e2e-report.json"
+      - name: Upload credential-free result
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: classified-local-e2e-report
+          path: ${{ runner.temp }}/ryadom-local-e2e-report.json
+          if-no-files-found: error
+      - name: Remove only owned ephemeral containers
+        if: always()
+        run: python tests/local-e2e/stack.py stop --workdir "$TEST_WORKDIR"

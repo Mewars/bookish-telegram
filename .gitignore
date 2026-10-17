@@ -157,3 +157,6 @@ vite.config.ts.timestamp-*
 *.partial
 *.sql.gz
 Ryadom-Private-Backups/
+
+# Python browser/integration test bytecode
+__pycache__/
