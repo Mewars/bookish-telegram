@@ -44,7 +44,7 @@ try {
       const cookies = page.getByRole('button', { name: 'Только необходимые' });
       if (await cookies.isVisible().catch(() => false)) await cookies.click();
 
-      const weatherTrigger = page.locator('.city-name-weather .city-weather-trigger');
+      const weatherTrigger = page.locator('.header-city-weather .city-weather-trigger');
       const weather = page.getByRole('dialog', { name: 'Погода — Енисейск' });
       assert.equal(await weather.isVisible(), false, 'Weather should be collapsed into the city icon');
       await weatherTrigger.click();
