@@ -56,7 +56,9 @@ test('organization applications: private photographs, city review, atomic publis
     await db.query('UPDATE public.organization_applications SET photo_path=$1 WHERE id=$2',[photo,appId]);
     assert.equal((await db.query('SELECT photo_path FROM public.organization_applications WHERE id=$1',[appId])).rows[0].photo_path,photo);
     await assert.rejects(db.query("UPDATE public.organization_applications SET status='approved' WHERE id=$1",[appId]),/permission denied/);
-    await assert.rejects(db.query("UPDATE public.organization_applications SET photo_path='bad' WHERE id=$1",[appId]),/check constraint|row-level security/);
+    const blocked=await db.query("UPDATE public.organization_applications SET photo_path='bad' WHERE id=$1 RETURNING id",[appId]);
+    assert.equal(blocked.rows.length,0,'RLS must silently block replacing attached photo');
+    assert.equal((await db.query('SELECT photo_path FROM public.organization_applications WHERE id=$1',[appId])).rows[0].photo_path,photo);
     await reset('authenticated',outsider);
     assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-org-requests'")).rows.length,0);
     await assert.rejects(db.query("INSERT INTO storage.objects(bucket_id,name) VALUES ('ryadom-org-requests',$1)",[photo]),/row-level security/);
