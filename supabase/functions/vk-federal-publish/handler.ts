@@ -49,7 +49,7 @@ export function createFederalPublisher(config:Config,upstream:Fetcher=fetch){
       typeof value.message!=='string'||!uuid(value.requestId))
      return reply(400,{error:'invalid_payload'},allowed);
    const message=value.message.trim();
-   if(message.length<20||message.length>2500||/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(message))
+   if(message.length<20||message.length>2500||Array.from(message).some(ch=>{const n=ch.charCodeAt(0);return n<32&&n!==9&&n!==10&&n!==13;}))
      return reply(400,{error:'invalid_message'},allowed);
    const common={
       'Authorization':auth,
