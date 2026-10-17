@@ -459,6 +459,57 @@ with sync_playwright() as p:
     assert status == 403 and denied.get("code") == "42501"
     assert "Conversation blocked" in denied.get("message", "")
     passed("participant blocking prevents further messages at the server")
+
+    # The owner can remove a live listing without broad UPDATE privileges.
+    for role in ["buyer", "outsider", "editor", "foreign_editor", None]:
+        status, denied, _ = api(
+            role,
+            "POST",
+            "/rest/v1/rpc/archive_classified",
+            {"p_listing_id": listing},
+        )
+        assert status >= 400 and denied.get("code") == "42501", (
+            "A non-owner or anonymous request archived someone else's listing"
+        )
+    seller.get_by_role("button", name="Мои объявления", exact=True).click()
+    expect(card.get_by_text("Статус: Опубликовано")).to_be_visible()
+    prompts = []
+    seller.once("dialog", lambda dialog: (prompts.append(dialog.message), dialog.accept()))
+    card.get_by_role("button", name="Снять с публикации").click()
+    assert prompts and "Снять объявление с публикации" in prompts[0]
+    expect(card.get_by_text("Статус: В архиве")).to_be_visible()
+    expect(card.get_by_role("button", name="Снять с публикации")).to_have_count(0)
+
+    status, own_rows, _ = api(
+        "seller", "GET", f"/rest/v1/classifieds?select=id,status&id=eq.{listing}"
+    )
+    assert status == 200 and own_rows[0]["status"] == "archived"
+    for role in [None, "buyer", "outsider"]:
+        status, rows, _ = api(
+            role, "GET", f"/rest/v1/classifieds?select=id,status&id=eq.{listing}"
+        )
+        assert status == 200 and rows == [], "Archived listing leaked to non-owner"
+    for endpoint, payload in [
+        ("/rest/v1/rpc/open_classified_conversation", {"p_listing_id": listing}),
+        (
+            "/rest/v1/rpc/send_classified_message",
+            {"p_conversation_id": thread, "p_body": "После архива"},
+        ),
+    ]:
+        status, denied, _ = api("buyer", "POST", endpoint, payload)
+        assert status == 403 and denied.get("code") == "42501"
+        assert "unavailable" in denied.get("message", "").lower()
+    status, preserved, _ = api(
+        "seller", "GET",
+        f"/rest/v1/classified_messages?select=body&conversation_id=eq.{thread}",
+    )
+    assert status == 200 and any(row["body"] == message for row in preserved)
+    buyer.get_by_role("button", name="Объявления", exact=True).click()
+    expect(public).to_have_count(0)
+    passed(
+        "real owner archive requires confirmation; all other roles denied; "
+        "public listing disappears, new chat stops and existing messages remain private"
+    )
     assert not page_errors, "Unexpected JavaScript page errors"
     for context in contexts:
         # Stop new network traffic, then drain asynchronous route.fetch/fulfill
