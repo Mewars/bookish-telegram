@@ -290,6 +290,7 @@ for filename in [
     "docs/sql/classified-photos-private-v1.sql",
     "docs/sql/classified-unread-receipts-v1.sql",
     "docs/sql/classified-reports-review-v1.sql",
+    "docs/sql/friends-nearby-private-v1.sql",
 ]:
     sql((REPO / filename).read_text())
 config["users"] = {}

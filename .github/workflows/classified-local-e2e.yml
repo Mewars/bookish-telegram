@@ -8,10 +8,12 @@ on:
       - 'src/auth/**'
       - 'src/lib/**'
       - 'src/photos/**'
+      - 'src/friends/**'
       - 'src/App.tsx'
       - 'supabase/schema.sql'
       - 'docs/sql/classified*.sql'
       - 'docs/sql/city-directory-multicity.sql'
+      - 'docs/sql/friends-nearby-private-v1.sql'
       - 'tests/local-e2e/**'
       - '.github/workflows/classified-local-e2e.yml'
       - 'package.json'
@@ -27,11 +29,13 @@ jobs:
     timeout-minutes: 20
     env:
       TEST_WORKDIR: ${{ github.workspace }}/../ryadom-local-e2e
+      ALLOW_PUBLIC_MAP_TILES: '1'
       CONTEXT: closed-beta
       VITE_SUPABASE_URL: https://djqhixvlfsbvannoqdjw.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_only_nonfunctional_placeholder
       VITE_CLASSIFIEDS_ENABLED: 'true'
       VITE_COMMUNITY_ENABLED: 'true'
+      VITE_FRIENDS_ENABLED: 'true'
       VITE_BETA_EMAIL_ONLY: 'true'
       VITE_VK_ID_ENABLED: 'false'
       VITE_ADMIN_PANEL_ENABLED: 'false'
@@ -66,13 +70,19 @@ jobs:
             sleep 1
           done
           python tests/local-e2e/run.py --workdir "$TEST_WORKDIR"
+          python tests/local-e2e/friends.py --workdir "$TEST_WORKDIR"
           cp "$TEST_WORKDIR/report.json" "$RUNNER_TEMP/ryadom-local-e2e-report.json"
+          cp "$TEST_WORKDIR/friends-report.json" "$RUNNER_TEMP/ryadom-friends-e2e-report.json"
+          cp "$TEST_WORKDIR/friends-map.png" "$RUNNER_TEMP/ryadom-friends-map.png"
       - name: Upload credential-free result
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: classified-local-e2e-report
-          path: ${{ runner.temp }}/ryadom-local-e2e-report.json
+          path: |
+            ${{ runner.temp }}/ryadom-local-e2e-report.json
+            ${{ runner.temp }}/ryadom-friends-e2e-report.json
+            ${{ runner.temp }}/ryadom-friends-map.png
           if-no-files-found: error
       - name: Remove only owned ephemeral containers
         if: always()
