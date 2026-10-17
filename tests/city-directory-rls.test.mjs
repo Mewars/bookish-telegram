@@ -14,7 +14,9 @@ test('city-scoped pages do not reuse Eniseysk photos or SEO text', async () => {
   assert.ok(getCityCover('Енисейск')?.src.includes('yeniseysk'));
   assert.equal(getCityCover('Лесосибирск','http://insecure.example/city.webp'), null);
   assert.equal(getCityCover('Лесосибирск','https://example.org/approved.webp')?.src, 'https://example.org/approved.webp');
-  assert.ok(pageMetadata('home',undefined,undefined,'Лесосибирск').title.includes('Лесосибирск'));
+  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Рядом');
+  assert.ok(pageMetadata('home',undefined,undefined,'Лесосибирск').description.includes('Лесосибирск'));
+  assert.ok(!pageMetadata('home',undefined,undefined,'Лесосибирск').description.includes('Енисейск'));
   const home = await readFile('src/components/CityHome.tsx','utf8');
   const app = await readFile('src/App.tsx','utf8');
   const footer = await readFile('src/components/web/WebFooter.tsx','utf8');
