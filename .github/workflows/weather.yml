@@ -11,13 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci && npm run build
       - name: Validate PHP gateway
         run: |
           php -l public/api/weather.php
           php tests/weather-gateway.php
       - name: Exercise HTTP allowlist and method checks
         run: |
-          php -S 127.0.0.1:8188 -t public > /tmp/weather-server.log 2>&1 &
+          php -S 127.0.0.1:8188 -t dist > /tmp/weather-server.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
           for attempt in $(seq 1 20); do
@@ -28,3 +33,13 @@ jobs:
           test "$(curl --silent --request POST --output /dev/null --write-out '%{http_code}' 'http://127.0.0.1:8188/api/weather.php?city=eniseysk')" = 405
           curl --fail --silent --max-time 20 'http://127.0.0.1:8188/api/weather.php?city=eniseysk' > /tmp/weather.json
           php -r 'require "public/api/weather.php"; $data=json_decode(file_get_contents("/tmp/weather.json"),true); if (($data["city"]??null)!=="Енисейск" || !ryadom_valid_weather($data["forecast"]??null)) exit(1); echo "Live city forecast received through PHP gateway\n";'
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+          python tests/weather-browser.py
+      - name: Save real forecast and mobile screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-city-weather-preview
+          path: |
+            /tmp/weather.json
+            weather-mobile.png
