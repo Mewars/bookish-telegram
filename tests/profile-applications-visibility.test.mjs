@@ -27,7 +27,7 @@ test('guest or mismatched session never asks for applications',async()=>{
     await assert.rejects(hasOwnApplications(client,'owner'),/Сессия истекла/);
     assert.equal(calls.length,0);
   }
-  await assert.rejects(hasOwnApplications(null,'owner'),/не настроено/);
+  await assert.rejects(hasOwnApplications(null,'owner'),/не настроен/);
 });
 test('authenticated user sees shortcut only after submitting own application',async()=>{
   for(const [result,expected] of [[[],false],[[{id:'app-1'}],true]]){
