@@ -18,3 +18,11 @@
 .cookie-actions button:first-child { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
 .desktop-web > .cookie-banner { left: 24px; transform: none; width: 440px; }
 @media (max-width:359px) { .cookie-banner { padding: 16px; } }
+
+/* Black bitten-cookie mark. SVG has no backdrop or baked-in square. */
+.cookie-banner .cookie-title { display: flex; align-items: center; gap: 9px; }
+.cookie-banner .cookie-bite-icon { flex: 0 0 auto; color: #080808; background: transparent; }
+:root[data-theme=dark] .cookie-banner .cookie-bite-icon {
+  color: #080808; background: transparent;
+  filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 3px #ffffffc0);
+}

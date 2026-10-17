@@ -295,7 +295,7 @@
     border-color: #ffffff2e;
     backdrop-filter: blur(12px);
   }
-  .app-shell:has(.city-home) .web-header .music-launch { color: #fff8e9; }
+  .app-shell:has(.city-home) .web-header .music-launch { color: #F3BD5D; }
 }
 
 @media (max-width:899px) {
