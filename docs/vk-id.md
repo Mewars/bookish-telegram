@@ -1,6 +1,13 @@
 # VK ID → OAuth2 bridge → Supabase Auth
 
-Код bridge реализован в `supabase/functions/vk-oauth-bridge/`, SQL для его хранилища — `docs/sql/vk-oauth-bridge.sql`. Ничего не развёрнуто и не применено к рабочему Supabase. Флаг `VITE_VK_ID_ENABLED=false` сохранён. Реального VK-входа и Supabase session в живом проекте пока не проверяли.
+Код bridge реализован в `supabase/functions/vk-oauth-bridge/`, SQL его хранилища — `docs/sql/vk-oauth-bridge.sql`.
+
+**Повторная проверка состояния 17.10.2026:**
+- В рабочем Supabase Edge Function `vk-oauth-bridge` имеет статус ACTIVE (версия 4).
+- В рабочей БД существуют `vk_bridge_private.records`, `vk_bridge_private.rate_limits` и две VK RPC (содержимое секретов не читалось).
+- В рабочем GitHub workflow `.github/workflows/sprinthost-deploy.yml` включён `VITE_VK_ID_ENABLED: 'true'`. Следовательно, прежнее утверждение «не развёрнуто / VK выключен» устарело.
+- **Не подтверждено:** реальный VK OAuth переход через gateway, выдача Supabase session, повторный вход, сохранение профиля/избранного и регрессия Yandex ID после выпуска. От статуса ACTIVE нельзя делать вывод, что авторизация пользователя уже успешно работает.
+- Не менять параметры действующего VK ID/Яндекс ID и не переключать OAuth в production на основе одних локальных тестов.
 
 ## Возможность бесплатного размещения
 

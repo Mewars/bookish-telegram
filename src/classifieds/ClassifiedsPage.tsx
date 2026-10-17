@@ -49,6 +49,8 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const [messageDraft,setMessageDraft]=useState('');
   const [composer,setComposer]=useState(false);
   const [editingId,setEditingId]=useState<string|null>(null);
+  const [rejectingId,setRejectingId]=useState<string|null>(null);
+  const [rejectionDraft,setRejectionDraft]=useState('');
   const [draft,setDraft]=useState<Draft>(()=>newDraft(city));
   const [reload,setReload]=useState(0);
   const [busy,setBusy]=useState(false);
@@ -335,6 +337,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
           {tab==='browse'&&entry.status==='completed'&&<small>Сделка завершена</small>}
           {tab==='mine'&&<div className="classifieds-card-actions">
             <small>Статус: {({draft:'Черновик',pending:'На проверке',published:'Опубликовано',rejected:'Отклонено',archived:'В архиве',completed:'Завершено'} as Record<string,string>)[entry.status]}</small>
+            {entry.status==='rejected'&&entry.rejection_reason&&<p className="classifieds-rejection-reason" role="note"><strong>Причина отклонения:</strong> {entry.rejection_reason}</p>}
             {['draft','rejected'].includes(entry.status)&&<button disabled={busy} onClick={()=>editListing(entry)}>Изменить</button>}
             {['draft','rejected'].includes(entry.status)&&<button disabled={busy} onClick={()=>void execute(()=>submitForReview(supabase,entry.id,userId!))}>Отправить на проверку</button>}
             {entry.status==='published'&&<button disabled={busy} onClick={()=>void execute(()=>markComplete(supabase,entry.id))}>Продано / сдано</button>}
@@ -345,7 +348,23 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
           </div>}
           {tab==='moderate'&&entry.author_id!==userId&&<div className="classifieds-card-actions">
             <button disabled={busy} onClick={()=>void execute(()=>moderate(supabase,entry.id,true))}>Опубликовать</button>
-            <button disabled={busy} onClick={()=>void execute(()=>moderate(supabase,entry.id,false))}>Отклонить</button>
+            <button disabled={busy} aria-expanded={rejectingId===entry.id}
+              onClick={()=>{setRejectingId(rejectingId===entry.id?null:entry.id);setRejectionDraft('');}}>
+              Отклонить
+            </button>
+            {rejectingId===entry.id&&<div className="classifieds-rejection-editor">
+              <label htmlFor={`classified-reason-${entry.id}`}>Причина отклонения (10–500 символов)</label>
+              <textarea id={`classified-reason-${entry.id}`} rows={3} maxLength={500}
+                value={rejectionDraft} onChange={event=>setRejectionDraft(event.target.value)}
+                placeholder="Объясните автору, что нужно исправить"/>
+              <div className="classifieds-card-actions">
+                <button disabled={busy||rejectionDraft.trim().length<10}
+                  onClick={()=>void execute(()=>moderate(supabase,entry.id,false,rejectionDraft),()=>{
+                    setRejectingId(null);setRejectionDraft('');
+                  })}>Подтвердить отклонение</button>
+                <button disabled={busy} onClick={()=>{setRejectingId(null);setRejectionDraft('');}}>Отмена</button>
+              </div>
+            </div>}
           </div>}
         </article>)}</div>)}
     {tab==='reports'&&<section className="classifieds-reports">

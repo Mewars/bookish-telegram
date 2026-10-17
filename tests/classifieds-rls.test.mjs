@@ -30,6 +30,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     await db.exec(await readFile('docs/sql/classifieds-editor-privacy-v2.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-reports-review-v1.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-owner-archive-v1.sql','utf8'));
+    await db.exec(await readFile('docs/sql/classified-rejection-reasons-v1.sql','utf8'));
 
     let id,thread;
     await t.test('draft and moderation: no author self-publishing',async()=>{
@@ -48,17 +49,17 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     });
     await t.test('guest, outsider and foreign editor cannot see or publish drafts',async()=>{
       await switchTo('anon');
-      assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,0);
+      assert.equal((await db.query('SELECT id,status FROM public.classifieds')).rows.length,0);
       await assert.rejects(db.query('SELECT * FROM public.classified_messages'),/permission denied/);
       await switchTo('authenticated',stranger);
-      assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,0);
+      assert.equal((await db.query('SELECT id,status FROM public.classifieds')).rows.length,0);
       await assert.rejects(db.query("SELECT public.open_classified_conversation($1)",[id]),/unavailable/);
       await switchTo('authenticated',editor);
       // Editors must not see a resident's unsubmitted draft.
-      assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,1);
+      assert.equal((await db.query('SELECT id,status FROM public.classifieds')).rows.length,1);
       await db.query("SELECT public.review_classified($1,true)",[id]);
       await switchTo('anon');
-      assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,1);
+      assert.equal((await db.query('SELECT id,status FROM public.classifieds')).rows.length,1);
     });
     await t.test('buyer can open and send; outsider cannot read or spoof identities',async()=>{
       await switchTo('authenticated',buyer);
@@ -247,15 +248,33 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[draftId]);
       assert.equal((await db.query("UPDATE public.classifieds SET title='Правка после отправки' WHERE id=$1 RETURNING id",[draftId])).rows.length,0);
       await switchTo('authenticated',editor);
-      await db.query("SELECT public.review_classified($1,false)",[draftId]);
+      await assert.rejects(db.query("SELECT public.review_classified($1,false)",[draftId]),/Rejection reason required/);
+      await assert.rejects(db.query("SELECT public.review_classified_with_reason($1,false,$2)",[draftId,'bad']),/Rejection reason/);
+      await switchTo('authenticated',foreignEditor);
+      await assert.rejects(db.query("SELECT public.review_classified_with_reason($1,false,$2)",[draftId,'Уточните описание товара для публикации.']),/Not authorized/);
       await switchTo('authenticated',seller);
-      assert.equal((await db.query("SELECT status FROM public.classifieds WHERE id=$1",[draftId])).rows[0].status,'rejected');
+      await assert.rejects(db.query("SELECT public.review_classified_with_reason($1,false,$2)",[draftId,'Уточните описание товара для публикации.']),/Not authorized/);
+      await switchTo('authenticated',editor);
+      await db.query("SELECT public.review_classified_with_reason($1,false,$2)",[draftId,'Уточните описание товара для публикации.']);
+      await switchTo('authenticated',seller);
+      const rejection=(await db.query("SELECT status,rejection_reason FROM public.classifieds WHERE id=$1",[draftId])).rows[0];
+      assert.equal(rejection.status,'rejected');
+      assert.equal(rejection.rejection_reason,'Уточните описание товара для публикации.');
+      assert.equal((await db.query("SELECT decision,reason FROM public.classified_moderation_history WHERE listing_id=$1",[draftId])).rows[0].decision,'rejected');
+      await switchTo('authenticated',buyer);
+      assert.equal((await db.query("SELECT id FROM public.classified_moderation_history WHERE listing_id=$1",[draftId])).rows.length,0);
+      await assert.rejects(db.query("UPDATE public.classified_moderation_history SET reason='подмена' WHERE listing_id=$1",[draftId]),/permission denied/);
+      await switchTo('anon');
+      await assert.rejects(db.query("SELECT rejection_reason FROM public.classifieds WHERE id=$1",[draftId]),/permission denied/);
+      await switchTo('authenticated',seller);
       const corrected=(await db.query(
         "UPDATE public.classifieds SET title='Стол после замечаний',description='Исправленное описание письменного стола',status='draft' WHERE id=$1 RETURNING title,status",
         [draftId],
       )).rows[0];
       assert.equal(corrected.title,'Стол после замечаний');
       assert.equal(corrected.status,'draft');
+      assert.equal((await db.query("SELECT rejection_reason FROM public.classifieds WHERE id=$1",[draftId])).rows[0].rejection_reason,null,
+        'Resubmitting must clear active rejection reason, preserving historical event');
       await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[draftId]);
       await switchTo('authenticated',editor);
       await db.query("SELECT public.review_classified($1,true)",[draftId]);

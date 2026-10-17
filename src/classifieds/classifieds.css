@@ -118,3 +118,15 @@
   padding:8px 12px;border-radius:10px;border:1px solid currentColor;
   color:inherit;background:transparent;cursor:pointer;
 }
+
+.classifieds-rejection-reason{width:100%;margin:7px 0;padding:10px 12px;
+  border:1px solid #a44b3547;border-radius:10px;background:#a44b3512;
+  color:var(--text);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.classifieds-rejection-reason strong{font-weight:750}
+.classifieds-rejection-editor{width:100%;display:grid;gap:8px;padding:12px;
+  border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.classifieds-rejection-editor label{font-size:12px;font-weight:750}
+.classifieds-rejection-editor textarea{box-sizing:border-box;min-height:85px;
+  width:100%;resize:vertical;padding:10px;border:1px solid var(--line);
+  border-radius:9px;background:var(--bg);color:var(--text);font:inherit}
+.classifieds-rejection-editor textarea:focus-visible{outline:2px solid var(--primary)}
