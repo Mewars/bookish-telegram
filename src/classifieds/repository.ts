@@ -22,6 +22,7 @@ export interface Draft {
 }
 
 const FIELDS='id,city,author_id,title,description,deal_type,category,district,price_rub,status,created_at,updated_at';
+const PRIVATE_FIELDS='id,city,author_id,title,description,deal_type,category,district,price_rub,status,created_at,updated_at,rejection_reason';
 const THREAD_FIELDS='id,listing_id,buyer_id,seller_id,created_at';
 const MESSAGE_FIELDS='id,conversation_id,sender_id,body,created_at';
 function db(client:SupabaseClient|null):SupabaseClient {
@@ -47,13 +48,13 @@ export async function getPublished(client:SupabaseClient|null,city:string):Promi
   check(error); return (data??[]) as Classified[];
 }
 export async function getMine(client:SupabaseClient|null,userId:string,city:string):Promise<Classified[]> {
-  const {data,error}=await db(client).from('classifieds').select(FIELDS+',rejection_reason')
+  const {data,error}=await db(client).from('classifieds').select(PRIVATE_FIELDS)
     .eq('author_id',userId).eq('city',city)
     .order('created_at',{ascending:false}).limit(100);
   check(error); return (data??[]) as Classified[];
 }
 export async function getPending(client:SupabaseClient|null,city:string):Promise<Classified[]> {
-  const {data,error}=await db(client).from('classifieds').select(FIELDS+',rejection_reason').eq('city',city)
+  const {data,error}=await db(client).from('classifieds').select(PRIVATE_FIELDS).eq('city',city)
     .eq('status','pending').order('created_at',{ascending:true}).limit(100);
   check(error); return (data??[]) as Classified[];
 }
