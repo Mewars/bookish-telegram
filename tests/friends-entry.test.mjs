@@ -36,7 +36,12 @@ test('explainer dialog opens only from the friends entry, preserves consent and 
     read('src/styles/friends-entry.css'),
     read('src/styles.css'),
   ]);
-  assert.match(app, /friendsEnabled \? openFriendsIntro : undefined/);
+  // Header shortcut is the only homepage entry point; no duplicate giant CTA.
+  const cityHome = await read('src/components/CityHome.tsx');
+  assert.doesNotMatch(cityHome, /Друзья рядом · Открыть карту|openFriends/);
+  assert.doesNotMatch(app, /<WebHomePage openFriends=|<HomePage openFriends=/);
+  assert.match(app, /openFriendsIntro=\{openFriendsIntro\}/);
+  assert.match(app, /className="header-friends"/);
   assert.match(app, /friendsIntroOpen && <FriendsIntroDialog/);
   assert.match(app, /navigate\('friends'\)/);
   assert.match(modal, /<dialog ref=\{ref\}/);

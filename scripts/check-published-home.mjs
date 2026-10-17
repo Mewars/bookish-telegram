@@ -174,7 +174,7 @@ try {
       await page.locator('#city-selections .section-heading h2').getByText('Поесть', { exact: true }).waitFor();
       result.checks.push('Food shortcut opens filtered results');
       await page.screenshot({ path: `${folder}/${scenario.name}-food.png`, fullPage: true, animations: 'disabled' });
-      assert.equal(await page.getByRole('button', { name: 'Друзья рядом · Открыть карту' }).count(), 1, 'Live friends entry missing');
+      assert.equal(await page.getByRole('button', { name: 'Друзья рядом · Открыть карту' }).count(), 0, 'Duplicate friends CTA must not appear beneath the homepage hero');
       const friendsShortcut = page.getByRole('button', { name: 'Друзья рядом — узнать о разделе' });
       assert.equal(await friendsShortcut.count(), 1, 'Friends mascot must replace favorites in the header');
       assert.equal(await page.locator('.web-favorites, .header-heart').count(), 0, 'Old header favorites shortcut is still visible');
