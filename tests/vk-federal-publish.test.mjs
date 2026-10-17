@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFile} from 'node:fs/promises';
 import {createFederalPublisher,FEDERAL_WALL_ID,FEDERAL_GROUP_ID} from '../supabase/functions/vk-federal-publish/handler.ts';
+const {Request,Response,URLSearchParams}=globalThis;
 const requestId='d8e6b54a-4f14-4da2-813e-5b6eaa650842';
 const userId='55b902a5-74c1-4a15-bec0-a9f289b03b3d';
 const message='Открываем новый раздел платформы РЯДОМ для городских партнёров.';
@@ -84,7 +85,7 @@ test('VK rejection and network errors return sanitized results, never echo secre
  const denial=await createFederalPublisher(config,upstream)(request());
  assert.equal(denial.status,502);
  assert.doesNotMatch(JSON.stringify(await denial.json()),/PRIVATE|secret|token/);
- const network=async(url,init)=>{
+ const network=async(url)=>{
    if(url.includes('/auth/v1/user'))return Response.json({id:userId});
    if(url.includes('/city_admin_access'))return Response.json([{user_id:userId,city:'*',role:'owner',active:true}]);
    throw Error('PRIVATE-VK-TOKEN');
