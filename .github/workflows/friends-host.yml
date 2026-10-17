@@ -17,6 +17,7 @@ jobs:
           php -l server/friends-core.php
           php -l server/friends-http.php
           php -l server/friends-cleanup.php
+          php -l server/friends-cron.php
           php tests/friends-host.php
           bash -n scripts/install-friends-host.sh
   probe:
