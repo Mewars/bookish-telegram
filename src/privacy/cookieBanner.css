@@ -22,6 +22,7 @@
 /* Black bitten-cookie mark. SVG has no backdrop or baked-in square. */
 .cookie-banner .cookie-title { display: flex; align-items: center; gap: 9px; }
 .cookie-banner .cookie-bite-icon { flex: 0 0 auto; color: #080808; background: transparent; }
-:root[data-theme=dark] .cookie-banner .cookie-bite-icon { color: #080808; filter: drop-shadow(0 0 2px #ffffffa8); }
-:root[data-theme=dark] .cookie-banner .cookie-title { color: var(--text); }
-:root[data-theme=dark] .cookie-banner .cookie-bite-icon { background: #f9eed7; border-radius: 50%; padding: 2px; margin: -2px; }
+:root[data-theme=dark] .cookie-banner .cookie-bite-icon {
+  color: #080808; background: transparent;
+  filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 3px #ffffffc0);
+}
