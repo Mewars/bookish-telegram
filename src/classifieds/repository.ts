@@ -8,7 +8,7 @@ export const dealLabels: Record<DealType,string> = {
 export interface Classified {
   id:string; city:string; author_id:string; title:string; description:string;
   deal_type:DealType; category:string; district:string; price_rub:number|null;
-  status:ListingStatus; created_at:string; updated_at:string;
+  status:ListingStatus; created_at:string; updated_at:string; rejection_reason?:string|null;
 }
 export interface Conversation {
   id:string; listing_id:string; buyer_id:string; seller_id:string; created_at:string;
@@ -47,13 +47,13 @@ export async function getPublished(client:SupabaseClient|null,city:string):Promi
   check(error); return (data??[]) as Classified[];
 }
 export async function getMine(client:SupabaseClient|null,userId:string,city:string):Promise<Classified[]> {
-  const {data,error}=await db(client).from('classifieds').select(FIELDS)
+  const {data,error}=await db(client).from('classifieds').select(FIELDS+',rejection_reason')
     .eq('author_id',userId).eq('city',city)
     .order('created_at',{ascending:false}).limit(100);
   check(error); return (data??[]) as Classified[];
 }
 export async function getPending(client:SupabaseClient|null,city:string):Promise<Classified[]> {
-  const {data,error}=await db(client).from('classifieds').select(FIELDS).eq('city',city)
+  const {data,error}=await db(client).from('classifieds').select(FIELDS+',rejection_reason').eq('city',city)
     .eq('status','pending').order('created_at',{ascending:true}).limit(100);
   check(error); return (data??[]) as Classified[];
 }
@@ -91,8 +91,14 @@ export async function submitForReview(client:SupabaseClient|null,id:string,userI
   check(error);
   if(!data) throw Error('Не удалось отправить объявление на проверку.');
 }
-export async function moderate(client:SupabaseClient|null,id:string,approved:boolean):Promise<void> {
-  const {error}=await db(client).rpc('review_classified',{p_listing_id:id,p_approve:approved});
+export async function moderate(client:SupabaseClient|null,id:string,approved:boolean,reason=''):Promise<void> {
+  const text=reason.trim();
+  if(!approved && (text.length<10 || text.length>500)) {
+    throw Error('Укажите причину отклонения: от 10 до 500 символов.');
+  }
+  const {error}=await db(client).rpc('review_classified_with_reason',{
+    p_listing_id:id,p_approve:approved,p_reason:approved?null:text,
+  });
   check(error);
 }
 export async function markComplete(client:SupabaseClient|null,id:string):Promise<void> {
