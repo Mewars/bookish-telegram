@@ -1,0 +1,30 @@
+name: City Weather Gateway
+on:
+  pull_request:
+    branches: [mewars]
+    paths: ['public/api/weather.php', 'src/weather/**', 'tests/*weather*', '.github/workflows/weather.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  php-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PHP gateway
+        run: |
+          php -l public/api/weather.php
+          php tests/weather-gateway.php
+      - name: Exercise HTTP allowlist and method checks
+        run: |
+          php -S 127.0.0.1:8188 -t public > /tmp/weather-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --silent http://127.0.0.1:8188/api/weather.php > /dev/null; then break; fi
+            sleep 1
+          done
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' 'http://127.0.0.1:8188/api/weather.php?city=https://example.com')" = 400
+          test "$(curl --silent --request POST --output /dev/null --write-out '%{http_code}' 'http://127.0.0.1:8188/api/weather.php?city=eniseysk')" = 405
+          curl --fail --silent --max-time 20 'http://127.0.0.1:8188/api/weather.php?city=eniseysk' > /tmp/weather.json
+          php -r 'require "public/api/weather.php"; $data=json_decode(file_get_contents("/tmp/weather.json"),true); if (($data["city"]??null)!=="Енисейск" || !ryadom_valid_weather($data["forecast"]??null)) exit(1); echo "Live city forecast received through PHP gateway\n";'
