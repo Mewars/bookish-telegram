@@ -119,3 +119,11 @@
 @media(max-width:359px) {
   .app-header .header-profile-button {width:32px;height:32px;}
 }
+
+/* Keep the profile action inside narrow Android headers, including 360px. */
+@media(max-width:389px) {
+  .app-header {padding-inline:16px;gap:6px;}
+  .app-header .brand-logo-pin {--brand-logo-width:108px;flex-shrink:1;min-width:64px;}
+  .app-header .city-pill {min-width:0;flex-shrink:1;padding-inline:7px;gap:3px;}
+  .app-header .city-pill>span:not(.city-chevron) {overflow:hidden;text-overflow:ellipsis;}
+}

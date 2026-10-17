@@ -47,9 +47,11 @@ try {
       const weather = page.locator('.city-weather');
       await weather.locator('.weather-current strong').waitFor({ state: 'visible', timeout: 20000 });
       assert.equal(await weather.getByRole('link', { name: 'MET Norway' }).count(), 1);
+      await weather.locator('summary').evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
       await weather.locator('summary').click();
       assert(await weather.locator('.weather-hours li').count() >= 2, 'City forecast has no next-hour cards');
       await weather.screenshot({ path: `${folder}/${scenario.name}-weather.png`, animations: 'disabled' });
+      await weather.locator('summary').evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
       await weather.locator('summary').click();
       result.checks.push('Live city weather and expandable hourly forecast');
 
