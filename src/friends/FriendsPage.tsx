@@ -95,6 +95,7 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
         <button className="friends-secondary" onClick={()=>void hide()}>{locating?'Отменить и стать невидимым':'Стать невидимым'}</button>
         <small>Точное положение округляется ещё до отправки. Друзья видят область примерно в один километр; публичного поиска людей нет.</small>
       </section>
+      {data&&<FriendsMap key={city} city={city} data={data} now={now}/>}
       <section className="friends-card"><h2>Пригласить знакомого</h2><label>Как вас увидят друзья<input maxLength={40} minLength={2} placeholder="Имя или псевдоним" value={name} onChange={event=>setName(event.target.value)}/></label>
         <button disabled={busy||displayName.length<2||displayName.length>40} onClick={()=>void run(()=>nearbyCall(supabase,'nearby_invite',{p_name:displayName}),'Новый код готов. Предыдущий код больше не действует.')}>Создать личный код</button>
         {data?.self.invite_code&&<div className="friends-invite"><label>Ваш код друга<input aria-label="Ваш код друга" readOnly value={data.self.invite_code} onFocus={event=>event.target.select()}/></label>
@@ -107,7 +108,6 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
       {pending.length>0&&<section className="friends-card"><h2>Приглашения</h2>{pending.map(friend=><article className="friend-row" key={friend.id}><h3>{friend.name}</h3><p>{friend.incoming?'Хочет добавить вас в друзья':'Ожидает подтверждения'}</p>
         {friend.incoming?<><button disabled={busy} onClick={()=>void run(()=>nearbyCall(supabase,'nearby_respond',{p_peer:friend.id,p_accept:true}))}>Принять</button><button className="friends-secondary" disabled={busy} onClick={()=>void run(()=>nearbyCall(supabase,'nearby_respond',{p_peer:friend.id,p_accept:false}))}>Отклонить</button></>:<button className="friends-secondary" disabled={busy} onClick={()=>void run(()=>nearbyCall(supabase,'nearby_disconnect',{p_peer:friend.id,p_block:false}))}>Отменить заявку</button>}
       </article>)}</section>}
-      {data&&<FriendsMap key={city} city={city} data={data} now={now}/>}
       <section className="friends-card"><div className="friends-list-heading"><h2>Мои друзья · {friends.length}</h2><button className="friends-secondary" disabled={busy} onClick={()=>void run(async()=>{})}>Обновить</button></div>
         {!data?<p>Не удалось получить список или он ещё загружается. Нажмите «Обновить».</p>:!friends.length?<p>Пока никого нет. Обменяйтесь кодами с человеком, которого знаете.</p>:friends.map(friend=><article key={friend.id} className="friend-row"><h3>{friend.name}</h3><p>{activePoint(friend,now)?`Делится приблизительной точкой до ${localTime(friend.expires_at!)}`:'Сейчас невидим'}</p>
           <button className="friends-secondary" disabled={busy} onClick={()=>void run(()=>nearbyCall(supabase,'nearby_disconnect',{p_peer:friend.id,p_block:false}))}>Удалить из друзей</button>

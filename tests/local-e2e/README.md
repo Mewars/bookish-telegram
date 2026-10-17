@@ -19,7 +19,8 @@ are stored in mode-0600 files there and never injected as a service key into the
 4. Start `python tests/local-e2e/gateway.py --workdir /tmp/ryadom-e2e-UNIQUE`.
 5. Run `python tests/local-e2e/run.py --workdir /tmp/ryadom-e2e-UNIQUE`.
    For system Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium`.
-6. Stop the gateway and run `python tests/local-e2e/stack.py stop --workdir /tmp/ryadom-e2e-UNIQUE`.
+6. Run `python tests/local-e2e/friends.py --workdir /tmp/ryadom-e2e-UNIQUE` for the separate friends flow.
+7. Stop the gateway and run `python tests/local-e2e/stack.py stop --workdir /tmp/ryadom-e2e-UNIQUE`.
 
 The guarded build retains its exact Ryadom-Test origin. Only the test's Playwright
 router redirects that virtual API origin to the loopback gateway. All other
@@ -45,3 +46,13 @@ The local fixture automatically confirms synthetic emails. It does **not** test
 external email delivery, production OAuth, family beta acceptance, real Russian
 mobile networks, production deployment or legal compliance. The browser gallery
 clock/lifecycle regression remains a separate workflow. No public beta is enabled.
+
+## Friends privacy flow
+
+`friends.py` uses real local Auth/PostgREST, two browser sessions and synthetic GPS.
+It verifies reciprocal invitations, outsider/moderator denial, approximate points,
+explicit map loading, immediate hide, one-shot consent tokens, cancellation of late
+GPS callbacks, nickname XSS safety and blocking. `ALLOW_PUBLIC_MAP_TILES=1` permits
+only public OpenStreetMap tiles after an explicit click; names and individual
+markers are never sent to the tile provider. No cloud writes are performed.
+Only `friends-report.json` and the cropped `friends-map.png` are safe artifacts.

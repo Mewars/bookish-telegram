@@ -39,9 +39,15 @@ export function FriendsMap({city,data,now}:{city:string;data:NearbyState;now:num
       L.circle([point.latitude!,point.longitude!],{radius:700,color:point.self?'#edbc61':'#92dbd0',weight:1,fillOpacity:0.08,interactive:false}).addTo(group);
     }
   },[data,now,center]);
+  const showAll=()=>{
+    const points=[...data.friends.filter(friend=>friend.accepted),data.self].filter(point=>activePoint(point,now));
+    if(points.length)map.current?.fitBounds(L.latLngBounds(points.map(point=>[point.latitude!,point.longitude!] as [number,number])),{padding:[50,50],maxZoom:14});
+    else map.current?.setView(center,13);
+  };
   if(!center)return <p>Карта этого города пока не подключена. Друзья доступны в списке ниже.</p>;
   return <section className="friends-map-card" aria-label="Карта друзей">
     <div ref={element} className="friends-map" aria-label={`Карта города ${city}: приблизительные точки друзей`}/>
+    <button type="button" onClick={showAll}>Показать всех друзей</button>
     <p>Точки приблизительные, с погрешностью около километра. Открытие карты не включает вашу геолокацию.</p>
     {!tiles&&<><button type="button" onClick={()=>{setTileError(false);setTiles(true);}}>Загрузить карту OpenStreetMap</button>
       <small>Подложка загрузится только по нажатию. OpenStreetMap получит ваш IP и запрошенную область карты. Имена и метки друзей ему не отправляются.</small></>}
