@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
-test('single owner-provided federal VK community is linked separately from personal contact', async () => {
+test('single owner-provided federal VK community is linked only from the footer', async () => {
   const [config, footer, profile, footerCss, accountCss] = await Promise.all([
     readFile('src/config/vkCommunity.ts','utf8'),
     readFile('src/components/FooterBrand.tsx','utf8'),
@@ -14,12 +14,12 @@ test('single owner-provided federal VK community is linked separately from perso
   assert.match(config, /Федеральное сообщество «РЯДОМ»/);
   assert.doesNotMatch(config, /vk\.ru\/id[0-9]|group_id|access_token|wall\.post/);
   assert.match(footer, /href=\{FEDERAL_VK_COMMUNITY\.url\}/);
-  assert.match(footer, /href="https:\/\/vk\.ru\/mewarspro"/);
+  assert.doesNotMatch(footer, /vk\.ru\/mewarspro|По вопросам сотрудничества — VK/);
   assert.match(footer, /target="_blank" rel="noopener noreferrer"/);
-  assert.match(profile, /className="profile-row profile-social-link" href=\{FEDERAL_VK_COMMUNITY\.url\}/);
-  assert.match(profile, /aria-label="Федеральная группа РЯДОМ во ВКонтакте/);
-  assert.match(footerCss, /\.footer-cooperation \.vk-link \+ \.vk-link/);
-  assert.match(accountCss, /\.profile-social-link:focus-visible/);
+  assert.doesNotMatch(profile, /FEDERAL_VK_COMMUNITY|profile-social-link|Мы во ВКонтакте/);
+  assert.equal((footer.match(/className="vk-link"/g)||[]).length,1);
+  assert.doesNotMatch(footerCss, /\.footer-cooperation \.vk-link \+ \.vk-link/);
+  assert.doesNotMatch(accountCss, /\.profile-social-link/);
 });
 
 test('city groups and posting are not activated by adding a public link', async () => {
