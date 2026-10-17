@@ -29,6 +29,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     await db.exec(await readFile('docs/sql/classified-unread-receipts-v1.sql','utf8'));
     await db.exec(await readFile('docs/sql/classifieds-editor-privacy-v2.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-reports-review-v1.sql','utf8'));
+    await db.exec(await readFile('docs/sql/classified-owner-archive-v1.sql','utf8'));
 
     let id,thread;
     await t.test('draft and moderation: no author self-publishing',async()=>{
@@ -152,6 +153,37 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await switchTo('authenticated',seller);
       await db.query("SELECT public.complete_classified($1)",[id]);
       assert.equal((await db.query("SELECT status FROM public.classifieds WHERE id=$1",[id])).rows[0].status,'completed');
+    });
+
+    await t.test('only a listing owner may archive a published listing',async()=>{
+      await switchTo('authenticated',seller);
+      const archivedId=(await makeDraft('Енисейск')).rows[0].id;
+      await assert.rejects(db.query('SELECT public.archive_classified($1)',[archivedId]),/unavailable/);
+      await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[archivedId]);
+      await switchTo('authenticated',editor);
+      await db.query('SELECT public.review_classified($1,true)',[archivedId]);
+      await switchTo('authenticated',buyer);
+      const archivedThread=(await db.query('SELECT public.open_classified_conversation($1) AS id',[archivedId])).rows[0].id;
+      await db.query('SELECT public.send_classified_message($1,$2)',[archivedThread,'Первое сообщение']);
+      await assert.rejects(db.query('SELECT public.archive_classified($1)',[archivedId]),/unavailable/);
+      await switchTo('authenticated',owner);
+      await assert.rejects(db.query('SELECT public.archive_classified($1)',[archivedId]),/unavailable/);
+      await switchTo('anon');
+      await assert.rejects(db.query('SELECT public.archive_classified($1)',[archivedId]),/permission denied/);
+      await switchTo('authenticated',seller);
+      await db.query('SELECT public.archive_classified($1)',[archivedId]);
+      assert.equal((await db.query('SELECT status FROM public.classifieds WHERE id=$1',[archivedId])).rows[0].status,'archived');
+      await assert.rejects(db.query('SELECT public.archive_classified($1)',[archivedId]),/unavailable/);
+      await switchTo('anon');
+      assert.equal((await db.query('SELECT id FROM public.classifieds WHERE id=$1',[archivedId])).rows.length,0);
+      await switchTo('authenticated',buyer);
+      assert.equal((await db.query('SELECT id FROM public.classifieds WHERE id=$1',[archivedId])).rows.length,0);
+      await assert.rejects(db.query('SELECT public.open_classified_conversation($1)',[archivedId]),/unavailable/);
+      await assert.rejects(db.query('SELECT public.send_classified_message($1,$2)',[archivedThread,'Позднее сообщение']),/unavailable/);
+      await switchTo('authenticated',seller);
+      await db.query('SELECT public.archive_classified($1)',[id]);
+      assert.equal((await db.query('SELECT status FROM public.classifieds WHERE id=$1',[id])).rows[0].status,'archived',
+        'Owner may also archive a completed listing');
     });
 
     await t.test('report visibility, city moderation, and archived content',async()=>{
