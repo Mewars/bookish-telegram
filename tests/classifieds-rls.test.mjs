@@ -49,17 +49,17 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     });
     await t.test('guest, outsider and foreign editor cannot see or publish drafts',async()=>{
       await switchTo('anon');
-      assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,0);
+      assert.equal((await db.query('SELECT id,status FROM public.classifieds')).rows.length,0);
       await assert.rejects(db.query('SELECT * FROM public.classified_messages'),/permission denied/);
       await switchTo('authenticated',stranger);
-      assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,0);
+      assert.equal((await db.query('SELECT id,status FROM public.classifieds')).rows.length,0);
       await assert.rejects(db.query("SELECT public.open_classified_conversation($1)",[id]),/unavailable/);
       await switchTo('authenticated',editor);
       // Editors must not see a resident's unsubmitted draft.
-      assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,1);
+      assert.equal((await db.query('SELECT id,status FROM public.classifieds')).rows.length,1);
       await db.query("SELECT public.review_classified($1,true)",[id]);
       await switchTo('anon');
-      assert.equal((await db.query('SELECT * FROM public.classifieds')).rows.length,1);
+      assert.equal((await db.query('SELECT id,status FROM public.classifieds')).rows.length,1);
     });
     await t.test('buyer can open and send; outsider cannot read or spoof identities',async()=>{
       await switchTo('authenticated',buyer);
