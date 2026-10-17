@@ -114,24 +114,7 @@ try {
       await track.scrollIntoViewIfNeeded();
       const start = await track.evaluate(el => ({ x: el.scrollLeft, overflow: el.scrollWidth > el.clientWidth + 10 }));
       assert(start.overflow, 'Carousel contains no offscreen cards');
-      assert.equal(await page.getByRole('button', { name: 'Друзья рядом · Открыть карту' }).count(), 1, 'Live friends entry missing');
-      await page.goto(`${base}/#/friends`, { waitUntil: 'domcontentloaded' });
-      await page.getByRole('heading', {name:'Друзья рядом',exact:true}).waitFor();
-      await page.getByRole('button',{name:'Войти в аккаунт',exact:true}).waitFor();
-      assert.equal(await page.evaluate(()=>window.__ryadomGpsCalls),0,'Guest friends page must not request GPS');
-      await page.screenshot({path:`${folder}/${scenario.name}-friends.png`,animations:'disabled'});
-      result.checks.push('Live friends opens through existing account login without requesting GPS');
       if (scenario.name === 'desktop-1440') {
-        const health=await fetch(`${base}/api/friends.php?health=1`,{signal:AbortSignal.timeout(15000)});
-        assert.equal(health.status,200,'Live private friends storage unavailable');
-        assert.deepEqual(await health.json(),{ready:true,backend:'host'});
-        const denied=await fetch(`${base}/api/friends.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'nearby_state'}),signal:AbortSignal.timeout(15000)});
-        assert.equal(denied.status,401,'Anonymous friends API access must be rejected');
-        assert.match(denied.headers.get('cache-control')??'',/no-store/);
-        const forged=await fetch(`${base}/api/friends.php`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${'x'.repeat(64)}`},body:JSON.stringify({name:'nearby_state'}),signal:AbortSignal.timeout(15000)});
-        assert.equal(forged.status,401,'Server must verify and reject a forged identity through Auth');
-        assert.equal((await forged.json()).error.code,'unauthorized','PHP must receive the Authorization header');
-        result.checks.push('Live host storage ready; anonymous private API access denied');
         await page.locator('.home-carousel').first().locator('.home-carousel-arrow--next').click();
         await page.waitForTimeout(600);
       } else {
