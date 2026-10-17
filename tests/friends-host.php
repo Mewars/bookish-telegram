@@ -1,10 +1,16 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/../server/friends-core.php';
+require __DIR__.'/../server/friends-cron.php';
 $dir=sys_get_temp_dir().'/ryadom-friends-test-'.bin2hex(random_bytes(8));mkdir($dir,0700);
 register_shutdown_function(static function()use($dir){foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);});
 function check(bool $ok,string $message):void{if(!$ok)throw new RuntimeException($message);}
 function denied(callable $operation,?string $code=null):void{try{$operation();}catch(NearbyFailure $e){if($code!==null)check($e->errorCode===$code,'Unexpected rejection reason');return;}throw new RuntimeException('Private operation unexpectedly succeeded');}
+$otherJob="MAILTO=owner@example.test\n17 3 * * * /usr/bin/true # an existing owner task\n";
+$withCleanup=nearby_cron_contents($otherJob,'/opt/sph/php85/root/usr/bin/php','/home/mewars/.ryadom-friends');
+check(str_starts_with($withCleanup,rtrim($otherJob,"\n")), 'Existing cron tasks must be preserved');
+check(nearby_cron_contents($withCleanup,'/opt/sph/php85/root/usr/bin/php','/home/mewars/.ryadom-friends')===$withCleanup,'Installing cron twice must be idempotent');
+try{nearby_cron_contents("0 0 * * * /unexpected # RYADOM_FRIENDS_EXPIRE_V1\n",'/usr/bin/php','/home/mewars/.ryadom-friends');throw new Exception('Conflicting marker accepted');}catch(RuntimeException $e){}
 $store=new NearbyStore($dir);$now=1800000000;
 $id=static fn(int $n)=>sprintf('00000000-0000-4000-8000-%012d',$n);
 $a=$id(1);$b=$id(2);$outsider=$id(3);
