@@ -34,13 +34,17 @@ php -r 'require "/home/mewars/.ryadom-friends/server/friends-http.php"; $config=
 echo 'Friends: Auth connectivity checked.'
 php -r 'require "/home/mewars/.ryadom-friends/server/friends-core.php"; new NearbyStore("/home/mewars/.ryadom-friends");'
 echo 'Friends: private SQLite database initialized.'
-php_bin=$(command -v php)
+php_bin=$(php -r 'echo PHP_BINARY;')
 [[ "$php_bin" =~ ^/[A-Za-z0-9_./-]+$ ]]
+echo 'Friends: cron PHP executable resolved.'
 job="*/5 * * * * $php_bin /home/mewars/.ryadom-friends/server/friends-cleanup.php >/dev/null 2>&1 # RYADOM_FRIENDS_EXPIRE_V1"
 cron_tmp=$(mktemp "$private/cron.XXXXXX")
 trap 'rm -f "$cron_tmp" "$cron_tmp.error"' EXIT
 if ! LC_ALL=C crontab -l > "$cron_tmp" 2> "$cron_tmp.error"; then
-  grep -q 'no crontab for' "$cron_tmp.error" || exit 1
+  if ! grep -q 'no crontab for' "$cron_tmp.error"; then
+    echo 'Friends: hosting refused to list the current crontab.' >&2
+    exit 1
+  fi
 fi
 if ! grep -Fxq "$job" "$cron_tmp"; then
   if grep -Fq '# RYADOM_FRIENDS_EXPIRE_V1' "$cron_tmp"; then exit 1; fi
