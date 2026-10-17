@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { readCityAccess } from '../admin/repository';
+import { hasOwnApplications } from '../organizations/repository';
 import { supabase } from '../lib/supabase';
 import { BrandWordmark } from '../components/BrandWordmark';
 import type { Theme } from '../types';
@@ -10,6 +11,8 @@ export function ProfilePage({ theme, setTheme, favoritesCount, openFavorites, ci
  const { state, error, signOut } = useAuth();
  const userId = state.user?.id;
  const hasAdminEntry = Boolean(openAdmin || openPhotoAdmin);
+ const hasApplicationsEntry = Boolean(openApplications);
+ const [applicationUserId, setApplicationUserId] = useState<string | null>(null);
  const [allowedUserId, setAllowedUserId] = useState<string | null>(null);
  useEffect(() => {
   if (!userId || !hasAdminEntry || !supabase) return;
@@ -19,7 +22,18 @@ export function ProfilePage({ theme, setTheme, favoritesCount, openFavorites, ci
   }).catch(() => { if (active) setAllowedUserId(null); });
   return () => { active = false; };
  }, [userId, hasAdminEntry]);
+ useEffect(() => {
+  if (state.status !== 'authenticated' || !userId || !hasApplicationsEntry || !supabase) return;
+  let active = true;
+  hasOwnApplications(supabase, userId)
+    .then(hasApplications => {
+      if (active) setApplicationUserId(hasApplications ? userId : null);
+    })
+    .catch(() => { if (active) setApplicationUserId(null); });
+  return () => { active = false; };
+ }, [state.status, userId, hasApplicationsEntry]);
  const canOpenAdmin = state.status === 'authenticated' && allowedUserId === userId;
+ const canOpenApplications = state.status === 'authenticated' && applicationUserId === userId;
  const profile = state.profile;
  const avatar = profile?.avatar_url;
  const name = state.status === 'authenticated' ? profile?.display_name || 'Ваш профиль' : 'Вы не вошли в аккаунт';
@@ -32,7 +46,7 @@ export function ProfilePage({ theme, setTheme, favoritesCount, openFavorites, ci
  <button className="profile-row" onClick={openFavorites}><span className="row-icon"><Icon name="heart"/></span><span><strong>Избранное</strong><small>Все твои находки в одном месте</small></span><span className="row-count">{favoritesCount}</span><Icon name="arrow" size={19}/></button>
  {openAdmin && canOpenAdmin && <button className="profile-row" onClick={openAdmin}><span className="row-icon"><Icon name="places"/></span><span><strong>Управление городом</strong><small>Организации, фотографии, контакты и публикации</small></span><Icon name="arrow" size={19}/></button>}
  {openPhotoAdmin && !openAdmin && canOpenAdmin && <button className="profile-row" onClick={openPhotoAdmin}><span className="row-icon"><Icon name="places"/></span><span><strong>Фотографии организаций</strong><small>Загрузить настоящие снимки в каталог</small></span><Icon name="arrow" size={19}/></button>}
- {openApplications && <button className="profile-row" onClick={openApplications}><span className="row-icon"><Icon name="pin"/></span><span><strong>Мои заявки</strong><small>Сведения организаций на рассмотрении</small></span><Icon name="arrow" size={19}/></button>}
+ {openApplications && canOpenApplications && <button className="profile-row" onClick={openApplications}><span className="row-icon"><Icon name="pin"/></span><span><strong>Мои заявки</strong><small>Сведения организаций на рассмотрении</small></span><Icon name="arrow" size={19}/></button>}
  {openFriends && <button className="profile-row" onClick={openFriends}><span className="row-icon"><Icon name="pin"/></span><span><strong>Друзья рядом</strong><small>Приглашения и добровольная геолокация на один час</small></span><Icon name="arrow" size={19}/></button>}
  <div className="profile-future">{['Мои отзывы', 'Мои события'].map(title => <button className="profile-row" key={title} disabled><span><strong>{title}</strong></span><span className="row-count">Скоро</span></button>)}</div>
  {allowThemeSelection && <section className="settings-card"><h2>Как тебе удобнее</h2><p>Тема приложения</p><div className="theme-options" role="group" aria-label="Тема приложения">{([{ value: 'system', label: 'Авто', icon: 'profile' }, { value: 'light', label: 'Светлая', icon: 'sun' }, { value: 'dark', label: 'Тёмная', icon: 'moon' }] as const).map(option => <button key={option.value} className={theme === option.value ? 'selected' : ''} aria-pressed={theme === option.value} onClick={() => setTheme(option.value)}><Icon name={option.icon} size={20}/>{option.label}</button>)}</div><small>Авто — тема вашего устройства.</small></section>}
