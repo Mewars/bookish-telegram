@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isSafeWebUrl } from '../organizations/model';
-import type { OrganizationRow } from '../organizations/model';
-import { ORGANIZATION_COLUMNS, withDeadline } from '../organizations/repository';
-import { canManageCity, nextAvailabilityStatus, type AdminDraft, type CityAdminAccess } from './model';
+import type { OrganizationRow,ApplicationRow } from '../organizations/model';
+import { ORGANIZATION_COLUMNS, APPLICATION_COLUMNS, withDeadline } from '../organizations/repository';
+import { canManageCity, nextAvailabilityStatus,validateAdminDraft, type AdminDraft, type CityAdminAccess } from './model';
 import { prepareAdminImage, adminImageExtension } from '../photos/adminImage';
 import { storageAdminPhotoKey } from './storagePaths';
 
@@ -120,4 +120,61 @@ export async function uploadAdminPhoto(client: SupabaseClient, userId: string, a
 export async function removeOrphanedAdminPhoto(client: SupabaseClient, path: string): Promise<void> {
   const { error } = await client.storage.from(BUCKET).remove([path]);
   if (error) throw new Error('Не удалось очистить временно загруженную фотографию.');
+}
+
+/** Reviewers can read only pending requests from their assigned city, enforced by RLS. */
+export async function readPendingAdminApplications(client:SupabaseClient,userId:string,access:CityAdminAccess[]):Promise<ApplicationRow[]>{
+ await requireCurrentUser(client,userId);
+ if(!access.length)throw Error('Нет доступа к заявкам.');
+ const rows:ApplicationRow[]=[];
+ for(let offset=0;offset<5000;offset+=100){
+   const {data,error}=await withDeadline(signal=>client.from('organization_applications')
+     .select(APPLICATION_COLUMNS).eq('status','pending').order('created_at',{ascending:false})
+     .range(offset,offset+99).abortSignal(signal));
+   if(error||!Array.isArray(data))throw Error('Не удалось получить заявки на добавление организаций.');
+   rows.push(...(data as ApplicationRow[]).filter(row=>canManageCity(access,row.city)));
+   if(data.length<100)return rows;
+ }
+ throw Error('Слишком много заявок, требуется постраничная обработка.');
+}
+
+export async function downloadApplicantPhoto(client:SupabaseClient,userId:string,access:CityAdminAccess[],app:ApplicationRow):Promise<File|null>{
+ await requireCurrentUser(client,userId);
+ if(!canManageCity(access,app.city))throw Error('Нет доступа к фотографии этой заявки.');
+ if(!app.photo_path)return null;
+ const prefix=`${app.applicant_id}/${app.id}/`;
+ if(!app.photo_path.startsWith(prefix)||!/\.(jpg|webp)$/.test(app.photo_path))throw Error('Неверный путь фотографии.');
+ const {data,error}=await client.storage.from('ryadom-org-requests').download(app.photo_path);
+ if(error||!data)throw Error('Не удалось прочитать закрытую фотографию заявки.');
+ return new File([data],app.photo_path.endsWith('.jpg')?'request.jpg':'request.webp',
+   {type:app.photo_path.endsWith('.jpg')?'image/jpeg':'image/webp'});
+}
+
+/** Atomic server-side decision: a reviewed draft becomes a published card or remains pending. */
+export async function decideOrganizationApplication(client:SupabaseClient,userId:string,access:CityAdminAccess[],
+ app:ApplicationRow, decision:'approved'|'rejected',draft?:AdminDraft,confirmed=false,reason=''):Promise<OrganizationRow|null>{
+ await requireCurrentUser(client,userId);
+ if(!canManageCity(access,app.city))throw Error('Нет прав на рассмотрение заявки из этого города.');
+ if(app.status!=='pending')throw Error('Эта заявка уже рассмотрена.');
+ if(decision==='rejected'&&reason.trim().length<10)throw Error('Укажите причину отказа (не менее 10 символов).');
+ if(decision==='approved'){
+   if(!draft||draft.city!==app.city||draft.id||draft.status!=='published'||!confirmed)
+     throw Error('Нужно проверить сведения организации, подтвердить публикацию и сохранить.');
+   const errors=validateAdminDraft(draft,confirmed);
+   if(Object.keys(errors).length)throw Error(Object.values(errors)[0]);
+ }
+ const reviewed=draft?{
+   ...draft, title:draft.title.trim(),city:app.city,category:draft.category.trim(),
+   description:draft.description.trim(),status:'published',
+ }:null;
+ const {data,error}=await withDeadline(signal=>client.rpc('review_organization_request',{
+   p_application_id:app.id,p_decision:decision,p_reviewed_fields:decision==='approved'?reviewed:null,
+   p_message:reason.trim()||null,
+ }).abortSignal(signal));
+ if(error||typeof data!=='string')throw Error('Решение не подтверждено сервером. Обновите список заявок перед повтором.');
+ if(decision==='rejected')return null;
+ const {data:organization,error:readError}=await withDeadline(signal=>client.from('organizations')
+   .select(ADMIN_COLUMNS).eq('id',data).abortSignal(signal).single());
+ if(readError||!organization)throw Error('Заявка одобрена, но карточка не загрузилась. Обновите список, не отправляйте решение повторно.');
+ return organization as OrganizationRow;
 }
