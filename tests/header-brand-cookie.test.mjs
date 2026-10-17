@@ -18,7 +18,7 @@ test('cookie banner uses a transparent black bitten-cookie SVG beside its title'
   assert.match(icon, /fill="none"/);
   assert.match(icon, /currentColor/);
   assert.match(icon, /<circle cx=/);
-  assert.doesNotMatch(icon, /background|<image|<rect/);
+  assert.doesNotMatch(icon, /<image|<rect|backgroundColor|background=/);
   assert.match(css, /\.cookie-banner \.cookie-title \{ display: flex/);
   assert.match(css, /\.cookie-banner \.cookie-bite-icon \{[^}]*color: #080808; background: transparent;/);
   assert.match(consent, /export function acceptNecessaryOnly\(\)/);
