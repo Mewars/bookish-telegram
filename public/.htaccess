@@ -1,6 +1,11 @@
 # Release-aware cache policy for the static Ryadom application.
 # The browser must revalidate the HTML entry point; version.json is polled
 # by clients already open. Vite emits fingerprinted JS/CSS assets.
+<IfModule mod_setenvif.c>
+  <Files "friends.php">
+    SetEnvIfNoCase Authorization "^(.+)$" HTTP_AUTHORIZATION=$1
+  </Files>
+</IfModule>
 <IfModule mod_headers.c>
   <FilesMatch "^(index\.html|version\.json)$">
     Header always set Cache-Control "no-store, max-age=0, must-revalidate"

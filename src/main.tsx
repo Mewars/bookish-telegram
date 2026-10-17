@@ -1,21 +1,21 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RootRoute } from './RootRoute';
-import { isOrganizationImportRoute } from './import/route';
+import { isPrivateAnalyticsRoute } from './analytics/privateRoute';
 import { hasAnalyticsConsent, subscribeCookieConsent } from './privacy/cookieConsent';
 import { startYandexMetrikaTracking, stopYandexMetrikaTracking } from './analytics/yandexMetrika';
 import './styles.css';
 import { captureOAuthFailure } from './auth/oauthCallback';
 captureOAuthFailure();
 const syncAnalyticsConsent = () => {
-  if (hasAnalyticsConsent() && !isOrganizationImportRoute()) {
+  if (hasAnalyticsConsent() && !isPrivateAnalyticsRoute()) {
     // Let React close the consent panel before initializing analytics.
-    window.setTimeout(() => { if (hasAnalyticsConsent() && !isOrganizationImportRoute()) startYandexMetrikaTracking(); }, 0);
+    window.setTimeout(() => { if (hasAnalyticsConsent() && !isPrivateAnalyticsRoute()) startYandexMetrikaTracking(); }, 0);
   }
   else stopYandexMetrikaTracking();
 };
 subscribeCookieConsent(syncAnalyticsConsent);
-// Suspend Webvisor before React renders any importer data, including hash navigation.
+// Suspend Webvisor before React renders private data, including hash navigation.
 window.addEventListener('hashchange', syncAnalyticsConsent);
 syncAnalyticsConsent();
 createRoot(document.getElementById('root')!).render(<StrictMode><RootRoute/></StrictMode>);

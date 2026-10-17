@@ -49,7 +49,7 @@ def require_owned(name, config):
 if args.action == "stop":
     if credential_file.exists():
         config = json.loads(credential_file.read_text())
-        for service in ["storage", "rest", "auth", "db"]:
+        for service in ["friends-php", "storage", "rest", "auth", "db"]:
             name = config["prefix"] + "-" + service
             if require_owned(name, config):
                 command("docker", "rm", "-f", name, stdout=subprocess.DEVNULL)

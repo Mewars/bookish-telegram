@@ -5,7 +5,7 @@ redirects that virtual origin here and this gateway supplies only a local ANON
 key. No service key or production credentials enter the browser.
 """
 
-import http.server, json, urllib.request, urllib.error
+import http.server, json, urllib.request, urllib.error, os
 from pathlib import Path
 from urllib.parse import urlsplit, unquote
 import argparse
@@ -35,6 +35,40 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Access-Control-Expose-Headers", "*")
 
     def handle_request(self):
+        if (
+            self.path == "/api/friends.php"
+            and os.environ.get("FRIENDS_LOCAL_PHP_ORIGIN") == "http://127.0.0.1:8187"
+        ):
+            data = (
+                self.rfile.read(int(self.headers.get("Content-Length", "0")))
+                if self.command != "GET"
+                else None
+            )
+            request = urllib.request.Request(
+                "http://127.0.0.1:8187/api/friends.php",
+                data=data,
+                headers={
+                    k: v
+                    for k, v in self.headers.items()
+                    if k.lower() not in ["host", "content-length", "connection"]
+                },
+                method=self.command,
+            )
+            try:
+                response = urllib.request.urlopen(request, timeout=20)
+            except urllib.error.HTTPError as error:
+                response = error
+            self.send_response(response.status)
+            for k, v in response.headers.items():
+                if k.lower() not in [
+                    "transfer-encoding",
+                    "connection",
+                    "content-length",
+                ]:
+                    self.send_header(k, v)
+            self.end_headers()
+            self.wfile.write(response.read())
+            return
         for prefix, port in [
             ("/auth/v1", 19999),
             ("/rest/v1", 13000),

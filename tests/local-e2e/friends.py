@@ -17,6 +17,7 @@ parser.add_argument("--workdir", type=Path, required=True)
 args = parser.parse_args()
 cfg = json.loads((args.workdir / "credentials.json").read_text())
 origin = "http://127.0.0.1:4180"
+host_mode = os.environ.get("FRIENDS_HOST_E2E") == "1"
 tokens = {}
 results = []
 
@@ -43,8 +44,19 @@ sys.excepthook = redact
 
 def api(role, name, data=None):
     req = urllib.request.Request(
-        origin + "/rest/v1/rpc/" + name,
-        data=json.dumps(data or {}).encode(),
+        origin + ("/api/friends.php" if host_mode else "/rest/v1/rpc/" + name),
+        data=json.dumps(
+            {
+                "name": name,
+                "params": (
+                    {**(data or {}), "p_consent_version": "FRIENDS-GEO-1.0"}
+                    if name == "nearby_start_sharing"
+                    else data or {}
+                ),
+            }
+            if host_mode
+            else data or {}
+        ).encode(),
         method="POST",
         headers={
             "Authorization": "Bearer " + tokens.get(role, cfg["anon_key"]),
@@ -57,7 +69,10 @@ def api(role, name, data=None):
     except urllib.error.HTTPError as error:
         response = error
     raw = response.read()
-    return response.status, json.loads(raw) if raw else None
+    body = json.loads(raw) if raw else None
+    if host_mode and body is not None:
+        body = body.get("error") if response.status >= 400 else body.get("data")
+    return response.status, body
 
 
 def passed(description):
@@ -76,8 +91,48 @@ for role, user in cfg["users"].items():
     with urllib.request.urlopen(req, timeout=15) as response:
         tokens[role] = json.load(response)["access_token"]
 status, denied = api(None, "nearby_state")
-assert status == 401 and denied["code"] == "42501"
+assert status == 401 and denied["code"] in (
+    "42501",
+    "unauthorized",
+    "missing_authorization",
+)
 passed("anonymous access to private friends API is denied")
+
+if host_mode:
+    original = tokens["outsider"]
+    parts = original.split(".")
+    parts[2] = ("A" if parts[2][0] != "A" else "B") + parts[2][1:]
+    tokens["outsider"] = ".".join(parts)
+    assert api("outsider", "nearby_state")[0] == 401
+    tokens["outsider"] = original
+    for method, headers, body, expected in [
+        ("GET", {}, None, 405),
+        ("POST", {"Content-Type": "text/plain"}, b"{}", 415),
+        (
+            "POST",
+            {"Content-Type": "application/json", "Origin": "https://untrusted.example"},
+            b'{"name":"nearby_state"}',
+            403,
+        ),
+        ("POST", {"Content-Type": "application/json"}, b" " * 8193, 413),
+    ]:
+        req = urllib.request.Request(
+            origin + "/api/friends.php",
+            method=method,
+            data=body,
+            headers={"Authorization": "Bearer " + original, **headers},
+        )
+        try:
+            response = urllib.request.urlopen(req, timeout=15)
+        except urllib.error.HTTPError as error:
+            response = error
+        assert (
+            response.status == expected
+            and response.headers.get("Cache-Control") == "no-store"
+        )
+    passed(
+        "host gateway rejects forged identity, cross-origin requests, wrong methods/types and oversized bodies"
+    )
 
 with sync_playwright() as p:
     browser = p.chromium.launch(
@@ -117,10 +172,20 @@ with sync_playwright() as p:
           navigator.geolocation.getCurrentPosition=(...args)=>{window.__gpsCalls++;return original(...args)};"""
         )
         page = ctx.new_page()
-        page.on(
-            "dialog",
-            lambda dialog: (script_dialogs.append(dialog.type), dialog.dismiss()),
-        )
+
+        def on_dialog(dialog):
+            if (
+                host_mode
+                and dialog.type == "confirm"
+                and dialog.message
+                == "Удалить все ваши данные раздела «Друзья рядом»? Друзей потребуется добавить заново."
+            ):
+                dialog.accept()
+            else:
+                script_dialogs.append(dialog.type)
+                dialog.dismiss()
+
+        page.on("dialog", on_dialog)
         page.goto(origin + "/#/login")
         page.get_by_label("Электронная почта").fill(cfg["users"][role]["email"])
         page.get_by_label("Пароль", exact=True).fill(cfg["users"][role]["password"])
@@ -161,7 +226,7 @@ with sync_playwright() as p:
     assert (
         status == 403
         and denied["code"] == "42501"
-        and "Request unavailable" in denied["message"]
+        and (host_mode or "Request unavailable" in denied["message"])
     )
     alice.get_by_role("button", name="Обновить", exact=True).click()
     incoming = alice.locator("article").filter(
@@ -219,7 +284,9 @@ with sync_playwright() as p:
             bob.get_by_text("Не удалось загрузить часть карты.", exact=False)
         ).to_be_visible()
     bob.get_by_role("region", name="Карта друзей").screenshot(
-        path=str(args.workdir / "friends-map.png")
+        path=str(
+            args.workdir / ("friends-host-map.png" if host_mode else "friends-map.png")
+        )
     )
     assert tile_requests
     assert all(
@@ -247,7 +314,7 @@ with sync_playwright() as p:
     assert (
         status == 403
         and denied["code"] == "42501"
-        and "Sharing consent expired" in denied["message"]
+        and (host_mode or "Sharing consent expired" in denied["message"])
     )
     passed(
         "hiding removes access immediately and a late/replayed GPS upload cannot restore it"
@@ -299,13 +366,45 @@ with sync_playwright() as p:
     )
     assert status == 403 and denied["code"] == "42501"
     passed("blocking removes the relationship and all location access")
+    if host_mode:
+        assert api("seller", "nearby_forget")[0] == 200
+        assert (
+            api("seller", "nearby_invite", {"p_name": "Анна · демонстрация"})[0] == 200
+        )
+        assert (
+            api(
+                "seller",
+                "nearby_request",
+                {"p_code": bob_code, "p_name": "Анна · демонстрация"},
+            )[0]
+            == 403
+        )
+        assert len(api("buyer", "nearby_state")[1]["blocked"]) == 1
+        passed("forgetting and recreating a profile cannot bypass another user block")
+        bob.get_by_role("button", name="Удалить данные раздела", exact=True).click()
+        expect(
+            bob.get_by_text("Данные раздела удалены. Вы невидимы.", exact=True)
+        ).to_be_visible()
+        own = api("buyer", "nearby_state")[1]
+        assert (
+            own["self"]["latitude"] is None
+            and own["self"]["invite_code"] is None
+            and own["friends"] == []
+            and own["blocked"] == []
+        )
+        expect(bob.locator(".leaflet-tooltip")).to_have_count(0)
+        passed(
+            "deleting section data clears the point, invitations, friendships and blocks without deleting the site account"
+        )
     assert not script_dialogs
     for context in contexts:
         context.set_offline(True)
         context.unroute_all(behavior="wait")
         context.close()
     browser.close()
-(args.workdir / "friends-report.json").write_text(
+(
+    args.workdir / ("friends-host-report.json" if host_mode else "friends-report.json")
+).write_text(
     json.dumps(
         {
             "scope": "local synthetic multi-user friends/GPS E2E; no cloud writes",

@@ -9,6 +9,11 @@ on:
       - 'src/lib/**'
       - 'src/photos/**'
       - 'src/friends/**'
+      - 'src/analytics/**'
+      - 'src/main.tsx'
+      - 'tests/friends-analytics-browser.py'
+      - 'server/**'
+      - 'public/api/friends.php'
       - 'src/App.tsx'
       - 'supabase/schema.sql'
       - 'docs/sql/classified*.sql'
@@ -62,7 +67,7 @@ jobs:
         run: npm run build:beta
       - name: Exercise real UI and negative API permissions with five synthetic users
         run: |
-          python tests/local-e2e/gateway.py --workdir "$TEST_WORKDIR" > "$RUNNER_TEMP/local-e2e-gateway.log" 2>&1 &
+          FRIENDS_LOCAL_PHP_ORIGIN=http://127.0.0.1:8187 python tests/local-e2e/gateway.py --workdir "$TEST_WORKDIR" > "$RUNNER_TEMP/local-e2e-gateway.log" 2>&1 &
           gateway_pid=$!
           trap 'kill "$gateway_pid" 2>/dev/null || true' EXIT
           for attempt in $(seq 1 30); do
@@ -71,9 +76,15 @@ jobs:
           done
           python tests/local-e2e/run.py --workdir "$TEST_WORKDIR"
           python tests/local-e2e/friends.py --workdir "$TEST_WORKDIR"
+          python tests/local-e2e/friends-host.py --workdir "$TEST_WORKDIR"
+          VITE_FRIENDS_BACKEND=host npm run build:beta
+          FRIENDS_HOST_E2E=1 python tests/local-e2e/friends.py --workdir "$TEST_WORKDIR"
+          python tests/friends-analytics-browser.py
           cp "$TEST_WORKDIR/report.json" "$RUNNER_TEMP/ryadom-local-e2e-report.json"
           cp "$TEST_WORKDIR/friends-report.json" "$RUNNER_TEMP/ryadom-friends-e2e-report.json"
           cp "$TEST_WORKDIR/friends-map.png" "$RUNNER_TEMP/ryadom-friends-map.png"
+          cp "$TEST_WORKDIR/friends-host-report.json" "$RUNNER_TEMP/ryadom-friends-host-report.json"
+          cp "$TEST_WORKDIR/friends-host-map.png" "$RUNNER_TEMP/ryadom-friends-host-map.png"
       - name: Upload credential-free result
         if: success()
         uses: actions/upload-artifact@v4
@@ -83,6 +94,8 @@ jobs:
             ${{ runner.temp }}/ryadom-local-e2e-report.json
             ${{ runner.temp }}/ryadom-friends-e2e-report.json
             ${{ runner.temp }}/ryadom-friends-map.png
+            ${{ runner.temp }}/ryadom-friends-host-report.json
+            ${{ runner.temp }}/ryadom-friends-host-map.png
           if-no-files-found: error
       - name: Remove only owned ephemeral containers
         if: always()

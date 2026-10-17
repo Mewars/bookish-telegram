@@ -27,6 +27,8 @@ jobs:
       VITE_CITY_DIRECTORY_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
       VITE_ORGANIZATIONS_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
       VITE_VK_ID_ENABLED: 'true'
+      VITE_FRIENDS_ENABLED: 'true'
+      VITE_FRIENDS_BACKEND: host
       SPRINTHOST_HOST: ${{ secrets.SPRINTHOST_SSH_HOST }}
       SPRINTHOST_USER: ${{ secrets.SPRINTHOST_SSH_USER }}
       SPRINTHOST_SSH_PRIVATE_KEY: ${{ secrets.SPRINTHOST_SSH_PRIVATE_KEY }}
@@ -88,6 +90,8 @@ jobs:
           ssh -i "$HOME/.ssh/ryadom-deploy-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
             "$SPRINTHOST_USER@$SPRINTHOST_HOST" \
             "test -d '$DEPLOY_ROOT' && test -f '$DEPLOY_ROOT/index.html' && test \"\$(cd '$DEPLOY_ROOT' && pwd -P)\" = '$DEPLOY_ROOT'"
+      - name: Prepare private friends API and expiry cleanup
+        run: bash scripts/install-friends-host.sh
       - name: Upload static files before switching HTML
         shell: bash
         run: |

@@ -1,4 +1,4 @@
-/* global process, fetch, AbortSignal, console, document, window, getComputedStyle, innerWidth, innerHeight */
+/* global process, fetch, AbortSignal, console, document, window, getComputedStyle, innerWidth, innerHeight, navigator */
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -32,6 +32,11 @@ try {
     { name: 'android-360', options: { viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 } },
   ]) {
     const context = await browser.newContext({ ...scenario.options, locale: 'ru-RU', timezoneId: 'Asia/Krasnoyarsk' });
+    await context.addInitScript(()=>{
+      window.__ryadomGpsCalls=0;
+      const original=navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
+      navigator.geolocation.getCurrentPosition=(...args)=>{window.__ryadomGpsCalls++;return original(...args);};
+    });
     const page = await context.newPage();
     const result = { viewport: scenario.name, checks: [], errors: [] };
     try {
@@ -109,7 +114,24 @@ try {
       await track.scrollIntoViewIfNeeded();
       const start = await track.evaluate(el => ({ x: el.scrollLeft, overflow: el.scrollWidth > el.clientWidth + 10 }));
       assert(start.overflow, 'Carousel contains no offscreen cards');
+      assert.equal(await page.getByRole('button', { name: 'Друзья рядом · Открыть карту' }).count(), 1, 'Live friends entry missing');
+      await page.goto(`${base}/#/friends`, { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', {name:'Друзья рядом',exact:true}).waitFor();
+      await page.getByRole('button',{name:'Войти в аккаунт',exact:true}).waitFor();
+      assert.equal(await page.evaluate(()=>window.__ryadomGpsCalls),0,'Guest friends page must not request GPS');
+      await page.screenshot({path:`${folder}/${scenario.name}-friends.png`,animations:'disabled'});
+      result.checks.push('Live friends opens through existing account login without requesting GPS');
       if (scenario.name === 'desktop-1440') {
+        const health=await fetch(`${base}/api/friends.php?health=1`,{signal:AbortSignal.timeout(15000)});
+        assert.equal(health.status,200,'Live private friends storage unavailable');
+        assert.deepEqual(await health.json(),{ready:true,backend:'host'});
+        const denied=await fetch(`${base}/api/friends.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'nearby_state'}),signal:AbortSignal.timeout(15000)});
+        assert.equal(denied.status,401,'Anonymous friends API access must be rejected');
+        assert.match(denied.headers.get('cache-control')??'',/no-store/);
+        const forged=await fetch(`${base}/api/friends.php`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${'x'.repeat(64)}`},body:JSON.stringify({name:'nearby_state'}),signal:AbortSignal.timeout(15000)});
+        assert.equal(forged.status,401,'Server must verify and reject a forged identity through Auth');
+        assert.equal((await forged.json()).error.code,'unauthorized','PHP must receive the Authorization header');
+        result.checks.push('Live host storage ready; anonymous private API access denied');
         await page.locator('.home-carousel').first().locator('.home-carousel-arrow--next').click();
         await page.waitForTimeout(600);
       } else {
@@ -150,7 +172,23 @@ try {
       await page.locator('#city-selections .section-heading h2').getByText('Поесть', { exact: true }).waitFor();
       result.checks.push('Food shortcut opens filtered results');
       await page.screenshot({ path: `${folder}/${scenario.name}-food.png`, fullPage: true, animations: 'disabled' });
+      assert.equal(await page.getByRole('button', { name: 'Друзья рядом · Открыть карту' }).count(), 1, 'Live friends entry missing');
+      await page.goto(`${base}/#/friends`, { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', {name:'Друзья рядом',exact:true}).waitFor();
+      await page.getByRole('button',{name:'Войти в аккаунт',exact:true}).waitFor();
+      assert.equal(await page.evaluate(()=>window.__ryadomGpsCalls),0,'Guest friends page must not request GPS');
+      await page.screenshot({path:`${folder}/${scenario.name}-friends.png`,animations:'disabled'});
+      result.checks.push('Live friends opens through existing account login without requesting GPS');
       if (scenario.name === 'desktop-1440') {
+        const health=await fetch(`${base}/api/friends.php?health=1`,{signal:AbortSignal.timeout(15000)});
+        assert.equal(health.status,200,'Live private friends storage unavailable');
+        assert.deepEqual(await health.json(),{ready:true,backend:'host'});
+        const denied=await fetch(`${base}/api/friends.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'nearby_state'}),signal:AbortSignal.timeout(15000)});
+        assert.equal(denied.status,401,'Anonymous friends API access must be rejected');
+        assert.match(denied.headers.get('cache-control')??'',/no-store/);
+        const forged=await fetch(`${base}/api/friends.php`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${'x'.repeat(64)}`},body:JSON.stringify({name:'nearby_state'}),signal:AbortSignal.timeout(15000)});
+        assert.equal(forged.status,401,'Server must verify and reject a forged identity through Auth');
+        result.checks.push('Live host storage ready; anonymous private API access denied');
         await page.goto(`${base}/#/contacts`, { waitUntil: 'domcontentloaded' });
         await page.getByRole('heading', { name: 'Контакты владельца' }).waitFor();
         const vk = page.locator('.legal-document a[href="https://vk.ru/mewarspro"]');
