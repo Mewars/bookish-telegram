@@ -53,7 +53,7 @@ with sync_playwright() as p:
     page.goto("https://ryadomcity.ru/#/home")
     page.wait_for_function("window.__ymCalls.some(call=>call[1]==='init')")
     assert len(sdk_requests) == 1
-    page.get_by_role("button", name="Друзья рядом · Открыть карту").click()
+    page.get_by_role("button", name="Друзья рядом — узнать о разделе").click()
     intro = page.get_by_role("dialog", name="Друзья рядом")
     expect(intro).to_be_visible()
     # The explanatory card does not request GPS or enter the private route.
