@@ -107,7 +107,7 @@ export function createFederalPublisher(config:Config,upstream:Fetcher=fetch){
    if(!config.enabled)return reply(503,{error:'publishing_not_enabled'},allowed);
    const form=new URLSearchParams({
      owner_id:String(FEDERAL_WALL_ID),from_group:'1',message,
-     guid:value.requestId,v:VK_API_VERSION,access_token:config.vkToken,
+     guid:String(value.requestId),v:VK_API_VERSION,access_token:config.vkToken,
    });
    let vk:unknown;
    try{
