@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { acceptAnalytics, acceptNecessaryOnly, closeCookieSettings, getConsentSnapshot, subscribeCookieConsent } from './cookieConsent';
 import './cookieBanner.css';
+import { CookieIcon } from './CookieIcon';
 
 export function CookieBanner() {
   const { consent, settingsOpen } = useSyncExternalStore(subscribeCookieConsent, getConsentSnapshot);
@@ -25,7 +26,7 @@ export function CookieBanner() {
   }, [settingsOpen]);
   if (!visible) return null;
   const content = <section ref={banner} className="cookie-banner" aria-labelledby="cookie-title">
-    <h2 id="cookie-title">{settingsOpen ? 'Настройки cookie' : 'Файлы cookie'}</h2>
+    <h2 id="cookie-title" className="cookie-title"><CookieIcon size={28}/><span>{settingsOpen ? 'Настройки cookie' : 'Файлы cookie'}</span></h2>
     <p>Мы используем необходимые файлы cookie для работы сайта и, с вашего согласия, Яндекс Метрику для анализа посещаемости.</p>
     {settingsOpen && <p className="cookie-current">Аналитика: {consent === 'accepted' ? 'включена' : 'выключена'}</p>}
     <button className="cookie-details-toggle" onClick={() => setDetails(value => !value)} aria-expanded={details} aria-controls="cookie-details">{details ? 'Скрыть подробности' : 'Подробнее'}</button>
