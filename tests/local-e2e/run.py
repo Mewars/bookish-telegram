@@ -336,10 +336,26 @@ with sync_playwright() as p:
     )
     expect(review).to_be_visible()
     review.get_by_role("button", name="Отклонить", exact=True).click()
+    reason_text = "Добавьте подробности состояния товара и реальные фотографии."
+    review.get_by_label("Причина отклонения (10–500 символов)").fill(reason_text)
+    review.get_by_role("button", name="Подтвердить отклонение").click()
     expect(review).to_have_count(0)
     seller.reload()
     seller.get_by_role("button", name="Мои объявления", exact=True).click()
     expect(card.get_by_text("Статус: Отклонено")).to_be_visible()
+    expect(card.get_by_text("Причина отклонения:")).to_be_visible()
+    expect(card.get_by_text(reason_text, exact=False)).to_be_visible()
+    status, moderation, _ = api(
+        "seller", "GET",
+        f"/rest/v1/classified_moderation_history?select=decision,reason&listing_id=eq.{listing}"
+    )
+    assert status == 200 and len(moderation) == 1
+    assert moderation[0]["reason"] == reason_text
+    status, denied_moderation, _ = api(
+        "buyer", "GET",
+        f"/rest/v1/classified_moderation_history?select=id&listing_id=eq.{listing}"
+    )
+    assert status == 200 and denied_moderation == []
     status, hidden, _ = api(
         "buyer", "GET", f"/rest/v1/classifieds?select=id&id=eq.{listing}"
     )
@@ -350,6 +366,7 @@ with sync_playwright() as p:
     )
     seller.get_by_role("button", name="Сохранить исправления").click()
     expect(card.get_by_text("Статус: Черновик")).to_be_visible()
+    expect(card.get_by_text("Причина отклонения:")).to_have_count(0)
     card.get_by_role("button", name="Отправить на проверку", exact=True).click()
     expect(card.get_by_text("Статус: На проверке")).to_be_visible()
     editor.reload()
