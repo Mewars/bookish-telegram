@@ -21,6 +21,7 @@ const mock=(roles=['owner'],vkValue={response:{post_id:17}})=>{
   if(url.includes('/rest/v1/city_admin_access'))return Response.json(roles.map(role=>({
     user_id:userId,city:role==='owner'?'*':'Енисейск',role,active:true
   })));
+  if(url==='https://api.vk.com/method/groups.getTokenPermissions')return Response.json({response:{mask:8192,permissions:[{name:'wall',setting:8192}]}});
   if(url==='https://api.vk.com/method/wall.post')return Response.json(vkValue);
   throw Error('unexpected upstream '+url);
  };
@@ -32,13 +33,42 @@ test('group number supplied by owner maps to negative VK wall ID',()=>{
 });
 test('closed by default, rejects unknown browser origins and unauthenticated POST',async()=>{
  const {calls,upstream}=mock();
- const closed=createFederalPublisher({...config,enabled:false},upstream);
+ const closed=createFederalPublisher({...config,enabled:false,vkToken:''},upstream);
  assert.equal((await closed(request())).status,503);
  assert.equal(calls.length,0);
  const handler=createFederalPublisher(config,upstream);
  assert.equal((await handler(request(undefined,{Origin:'https://malicious.example'}))).status,403);
  assert.equal((await handler(request(undefined,{Authorization:''}))).status,401);
  assert.equal(calls.length,0);
+});
+test('read-only token preflight checks wall permission without publishing or unlocking server',async()=>{
+ const {calls,upstream}=mock();
+ const handler=createFederalPublisher({...config,enabled:false},upstream);
+ const res=await handler(request({action:'check'}));
+ assert.equal(res.status,200);
+ assert.deepEqual(await res.json(),{ok:true,wallPermission:true,publishingEnabled:false});
+ const check=calls.find(call=>call.url==='https://api.vk.com/method/groups.getTokenPermissions');
+ assert.ok(check);
+ assert.equal(check.init.method,'POST');
+ const body=new URLSearchParams(check.init.body);
+ assert.equal(body.get('access_token'),config.vkToken);
+ assert.equal(body.get('v'),'5.199');
+ assert.equal(calls.some(call=>call.url.includes('/wall.post')),false);
+ const send=await handler(request());
+ assert.equal(send.status,503,'posting requires a distinct server-side enable flag');
+ assert.equal(calls.some(call=>call.url.includes('/wall.post')),false);
+});
+test('checking key permissions requires owner JWT and never reveals VK errors',async()=>{
+ const {calls,upstream}=mock(['editor']);
+ const forbidden=await createFederalPublisher(config,upstream)(request({action:'check'}));
+ assert.equal(forbidden.status,403);
+ assert.equal(calls.some(call=>call.url.includes('/groups.getTokenPermissions')),false);
+ const {upstream:base}=mock();
+ const fail=async(url,init)=>url.includes('getTokenPermissions')
+  ? Response.json({error:{error_msg:'secret-token-should-not-leak'}}) : base(url,init);
+ const response=await createFederalPublisher(config,fail)(request({action:'check'}));
+ assert.equal(response.status,502);
+ assert.doesNotMatch(JSON.stringify(await response.json()),/secret-token/);
 });
 test('requires exact global owner; city staff and residents may not publish',async()=>{
  for(const roles of [['editor'],[],['owner','editor'].map(x=>x==='owner'?'city_owner':x)]){
@@ -105,5 +135,7 @@ test('browser interface is hidden unless owner and explicit publishing flag; exi
  assert.match(composer,/functions\.invoke\('vk-federal-publish'/);
  assert.match(composer,/requestId\.current\?\?=/);
  assert.match(configFile,/id: 242202919/);
- assert.doesNotMatch(workflow,/VITE_VK_FEDERAL_POSTING_ENABLED:\s*'true'/);
+ assert.match(workflow,/VITE_VK_FEDERAL_POSTING_ENABLED:\s*'true'/);
+ assert.match(composer,/Проверить подключение ВК \(без публикации\)/);
+ assert.match(composer,/!preflightPassed/);
 });
