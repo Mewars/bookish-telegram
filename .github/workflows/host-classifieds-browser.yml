@@ -1,0 +1,37 @@
+name: Live Host Module Regression
+on:
+  pull_request:
+    branches: [mewars]
+    paths: ['public/classifieds/**', 'scripts/preserve-host-extensions.py', 'tests/host-classified*', 'tests/preserve-host-extensions.py', '.github/workflows/host-classifieds-browser.yml', '.github/workflows/sprinthost-deploy.yml']
+permissions:
+  contents: read
+jobs:
+  host-module:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: node tests/host-classified-drafts.test.mjs
+      - run: python tests/preserve-host-extensions.py
+      - name: Install isolated browser runner
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+      - name: Test real live-host module with synthetic accounts only
+        run: |
+          python -m http.server 4176 --bind 127.0.0.1 --directory public > "$RUNNER_TEMP/host-test.log" 2>&1 &
+          host_pid=$!
+          trap 'kill "$host_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4176/classifieds/ > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/host-classifieds-browser.py

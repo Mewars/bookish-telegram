@@ -91,9 +91,25 @@ jobs:
           set -euo pipefail
           ssh -i "$HOME/.ssh/ryadom-deploy-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
             "$SPRINTHOST_USER@$SPRINTHOST_HOST" \
-            "test -d '$DEPLOY_ROOT' && test -f '$DEPLOY_ROOT/index.html' && test \"\$(cd '$DEPLOY_ROOT' && pwd -P)\" = '$DEPLOY_ROOT'"
-      - name: Prepare private friends API and expiry cleanup
-        run: bash scripts/install-friends-host.sh
+            "test -d '$DEPLOY_ROOT' && test -f '$DEPLOY_ROOT/index.html' && test -f '$DEPLOY_ROOT/classifieds/supabase-client.js' && test \"\$(cd '$DEPLOY_ROOT' && pwd -P)\" = '$DEPLOY_ROOT'"
+      - name: Preserve live extensions and private rollback copy
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$HOME/.ssh/ryadom-deploy-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" "cat '$DEPLOY_ROOT/index.html'" > "$RUNNER_TEMP/ryadom-live-index.html"
+          python3 scripts/preserve-host-extensions.py "$RUNNER_TEMP/ryadom-live-index.html" dist/index.html
+          ssh -i "$HOME/.ssh/ryadom-deploy-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" 'bash -s' <<'BACKUP'
+          set -euo pipefail
+          umask 077
+          backup="/home/mewars/.ryadom-release-backups/${GITHUB_SHA:-release}-$(date +%Y%m%d%H%M%S)"
+          mkdir -p "$backup"
+          cd /home/mewars/domains/ryadomcity.ru/public_html
+          tar -czf "$backup/frontend-before.tar.gz" index.html version.json .htaccess classifieds
+          tar -tzf "$backup/frontend-before.tar.gz" >/dev/null
+          echo 'Private frontend rollback copy verified.'
+          BACKUP
       - name: Upload static files before switching HTML
         shell: bash
         run: |
@@ -103,7 +119,7 @@ jobs:
           # No --delete: preserve the old hashed assets for tabs opened during deployment,
           # and do not touch host-managed folders or the owner's manual ZIP backup.
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" \
-            --exclude='/index.html' --exclude='/version.json' dist/ "$DEST"
+            --exclude='/api/' --exclude='/.htaccess' --exclude='/index.html' --exclude='/version.json' dist/ "$DEST"
           # Last, atomically switch to the new HTML entry point and publish its version.
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/index.html "$DEST"
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/version.json "$DEST"
