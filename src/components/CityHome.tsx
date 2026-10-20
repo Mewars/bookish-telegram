@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Item, Section } from '../types';
 import { Card, type CardActions } from './Card';
 import { HomeCarousel } from './HomeCarousel';
@@ -10,6 +10,7 @@ import { MediaImage } from './MediaImage';
 import { getCityCover } from '../data/cityCover';
 import type { DirectoryCity } from '../data/cities';
 import { matches } from '../utils/search';
+import { hashParts, readCatalogFilters, rememberHomeSearch } from '../navigation/catalogRoute';
 
 // The second hero-image layer is opt-in only. The cover itself always remains.
 // Keep the lower sections on their solid dark background by default.
@@ -26,7 +27,13 @@ function homeShortcuts(today: number): { label: string; icon: IconName; matches:
 }
 
 export function CityHome({ city, cityProfile, items, navigate, ...actions }: CardActions & { city: string; cityProfile?: DirectoryCity; items: Item[]; navigate: (section: Section) => void }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(()=>readCatalogFilters(window.location.hash).query);
+  useEffect(()=>{
+    const sync=()=>{if(hashParts(window.location.hash).section==='home')setQuery(readCatalogFilters(window.location.hash).query);};
+    window.addEventListener('hashchange',sync);
+    return ()=>window.removeEventListener('hashchange',sync);
+  },[]);
+  useEffect(()=>{rememberHomeSearch(city,query);},[city,query]);
   const cover = getCityCover(city, cityProfile?.cover_url);
   const discoveries = homeShortcuts(weekdayInCity(new Date()));
   const [discovery, setDiscovery] = useState<string | null>(null);

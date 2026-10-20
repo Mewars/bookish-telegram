@@ -8,7 +8,7 @@ const file = name => readFile(new URL(`../${name}`, import.meta.url), 'utf8');
 test('detail links always use the actual item catalogue section, not home', async () => {
   const app = await file('src/App.tsx');
   assert.match(app, /const open = \(entry: Item\) => navigate\(entry\.kind, entry\.id\)/);
-  assert.match(app, /goBack=\{\(\) => navigate\(item\.kind\)\}/);
+  assert.match(app, /goBack=\{\(\) => returnToCatalog\(item\.kind, city\)\}/);
   assert.doesNotMatch(app, /const open = \(entry: Item\) => navigate\(section, entry\.id\)/);
 });
 

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import {
   createDraft,dealLabels,getBlockedClassifiedUsers,getConversations,getMessages,getOlderMessages,getMine,getOpenClassifiedReports,getPending,
   getClassifiedUnreadCounts,markClassifiedMessagesRead,
-  getPublished,markComplete,archiveClassified,mayReview,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
+  getPublished,markComplete,archiveClassified,getClassifiedReviewAccess,beginClassifiedRevision,moderate,openConversation,reviewClassifiedReport,sendMessage,setClassifiedUserBlock,
   submitForReview,updateClassifiedDraft,validateDraft,CLASSIFIED_MESSAGE_PAGE_SIZE,
 } from './repository';
 import type { ChatMessage,Classified,ClassifiedReport,Conversation,DealType,Draft } from './repository';
@@ -65,11 +65,12 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const historyGeneration=useRef(0);
   const [notice,setNotice]=useState('');
   const [canReview,setCanReview]=useState(false);
+  const [canReviewOwn,setCanReviewOwn]=useState(false);
   useEffect(()=>{
     let active=true;
-    const permission=userId?mayReview(supabase,city):Promise.resolve(false);
-    permission.then(value=>{if(active)setCanReview(value);})
-      .catch(()=>{if(active)setCanReview(false);});
+    const permission=userId?getClassifiedReviewAccess(supabase,city,userId):Promise.resolve({canReview:false,canReviewOwn:false});
+    permission.then(value=>{if(active){setCanReview(value.canReview);setCanReviewOwn(value.canReviewOwn);}})
+      .catch(()=>{if(active){setCanReview(false);setCanReviewOwn(false);}});
     return ()=>{active=false;};
   },[city,userId]);
   const viewKey=[tab,city,userId??'',canReview,reload].join('|');
@@ -339,6 +340,13 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
             <small>Статус: {({draft:'Черновик',pending:'На проверке',published:'Опубликовано',rejected:'Отклонено',archived:'В архиве',completed:'Завершено'} as Record<string,string>)[entry.status]}</small>
             {entry.status==='rejected'&&entry.rejection_reason&&<p className="classifieds-rejection-reason" role="note"><strong>Причина отклонения:</strong> {entry.rejection_reason}</p>}
             {['draft','rejected'].includes(entry.status)&&<button disabled={busy} onClick={()=>editListing(entry)}>Изменить</button>}
+            {entry.status==='published'&&entry.author_id===userId&&<button disabled={busy} onClick={()=>{
+              if(!window.confirm('Снять объявление в черновик для редактирования? После правок отправьте его на повторную проверку.'))return;
+              void execute(()=>beginClassifiedRevision(supabase,entry.id),()=>{
+                editListing({...entry,status:'draft'});
+                setNotice('Объявление снято с публикации. После правок отправьте его на проверку.');
+              });
+            }}>Снять и изменить</button>}
             {['draft','rejected'].includes(entry.status)&&<button disabled={busy} onClick={()=>void execute(()=>submitForReview(supabase,entry.id,userId!))}>Отправить на проверку</button>}
             {entry.status==='published'&&<button disabled={busy} onClick={()=>void execute(()=>markComplete(supabase,entry.id))}>Продано / сдано</button>}
             {['published','completed'].includes(entry.status)&&<button disabled={busy} onClick={()=>{
@@ -346,7 +354,7 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
               void execute(()=>archiveClassified(supabase,entry.id),()=>setNotice('Объявление снято с публикации.'));
             }}>Снять с публикации</button>}
           </div>}
-          {tab==='moderate'&&entry.author_id!==userId&&<div className="classifieds-card-actions">
+          {tab==='moderate'&&canReview&&(entry.author_id!==userId||canReviewOwn)&&<div className="classifieds-card-actions">
             <button disabled={busy} onClick={()=>void execute(()=>moderate(supabase,entry.id,true))}>Опубликовать</button>
             <button disabled={busy} aria-expanded={rejectingId===entry.id}
               onClick={()=>{setRejectingId(rejectingId===entry.id?null:entry.id);setRejectionDraft('');}}>

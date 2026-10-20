@@ -22,7 +22,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS; CREATE SCHEMA auth; CREATE TABLE auth.users(id uuid PRIMARY KEY);");
     await db.query("INSERT INTO auth.users(id) VALUES ($1),($2),($3),($4),($5),($6)",[seller,buyer,stranger,editor,owner,foreignEditor]);
     await db.exec("CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$; GRANT USAGE ON SCHEMA auth,public TO anon,authenticated,service_role; GRANT EXECUTE ON FUNCTION auth.uid() TO anon,authenticated;");
-    await db.exec("CREATE TABLE public.city_directory(name text PRIMARY KEY,active boolean NOT NULL DEFAULT true); INSERT INTO public.city_directory(name) VALUES ('Енисейск'),('Лесосибирск'); GRANT SELECT ON public.city_directory TO anon,authenticated;");
+    await db.exec("CREATE TABLE public.city_directory(name text PRIMARY KEY,active boolean NOT NULL DEFAULT true); INSERT INTO public.city_directory(name) VALUES ('Енисейск'),('Лесосибирск'),('Город будущего'); GRANT SELECT ON public.city_directory TO anon,authenticated;");
     await db.exec("CREATE TABLE public.city_admin_access(user_id uuid REFERENCES auth.users(id),city text,role text,active boolean NOT NULL DEFAULT true,PRIMARY KEY(user_id,city)); GRANT SELECT ON public.city_admin_access TO authenticated;");
     await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'*','owner'),($2,'Енисейск','editor'),($3,'Лесосибирск','editor')",[owner,editor,foreignEditor]);
     await db.exec(await readFile('docs/sql/classifieds-private-messaging-v1.sql','utf8'));
@@ -31,6 +31,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
     await db.exec(await readFile('docs/sql/classified-reports-review-v1.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-owner-archive-v1.sql','utf8'));
     await db.exec(await readFile('docs/sql/classified-rejection-reasons-v1.sql','utf8'));
+    await db.exec(await readFile('docs/sql/classified-revision-v1.sql','utf8'));
 
     let id,thread;
     await t.test('draft and moderation: no author self-publishing',async()=>{
@@ -231,7 +232,7 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await switchTo('authenticated',buyer);
       assert.equal((await db.query("SELECT state FROM public.classified_reports WHERE id=$1",[complaint])).rows[0].state,'action_taken');
     });
-    await t.test('author may correct rejected drafts, but cannot edit pending or published listings',async()=>{
+    await t.test('author may correct rejected drafts, but cannot directly edit pending or published listings',async()=>{
       await switchTo('authenticated',seller);
       const draftId=(await makeDraft('Енисейск')).rows[0].id;
       const first=(await db.query(
@@ -280,6 +281,61 @@ test('classifieds enforce ownership, moderation, and private messaging in Postgr
       await db.query("SELECT public.review_classified($1,true)",[draftId]);
       await switchTo('authenticated',seller);
       assert.equal((await db.query("UPDATE public.classifieds SET title='Обход после публикации' WHERE id=$1 RETURNING id",[draftId])).rows.length,0);
+
+      await switchTo('anon');
+      await assert.rejects(db.query('SELECT public.begin_classified_revision($1)',[draftId]),/permission denied/);
+      for(const user of [buyer,editor,foreignEditor,owner]) {
+        await switchTo('authenticated',user);
+        await assert.rejects(db.query('SELECT public.begin_classified_revision($1)',[draftId]),/unavailable/);
+      }
+      await switchTo('authenticated',seller);
+      await db.query('SELECT public.begin_classified_revision($1)',[draftId]);
+      assert.equal((await db.query('SELECT status FROM public.classifieds WHERE id=$1',[draftId])).rows[0].status,'draft');
+      await assert.rejects(db.query('SELECT public.begin_classified_revision($1)',[draftId]),/unavailable/);
+      await assert.rejects(db.query("UPDATE public.classifieds SET status='published' WHERE id=$1",[draftId]),/row-level security/);
+      await switchTo('anon');
+      assert.equal((await db.query('SELECT id FROM public.classifieds WHERE id=$1',[draftId])).rows.length,0);
+      await switchTo('authenticated',editor);
+      assert.equal((await db.query('SELECT id FROM public.classifieds WHERE id=$1',[draftId])).rows.length,0,'Revision draft is private to author');
+      await switchTo('authenticated',seller);
+      await db.query("UPDATE public.classifieds SET title='Повторная редакция стола',status='pending' WHERE id=$1",[draftId]);
+      await assert.rejects(db.query('SELECT public.begin_classified_revision($1)',[draftId]),/unavailable/);
+      await assert.rejects(db.query('SELECT public.review_classified($1,true)',[draftId]),/Not authorized/);
+      await switchTo('authenticated',foreignEditor);
+      await assert.rejects(db.query('SELECT public.review_classified($1,true)',[draftId]),/Not authorized/);
+      await switchTo('authenticated',editor);
+      await db.query('SELECT public.review_classified($1,true)',[draftId]);
+      await switchTo('anon');
+      assert.equal((await db.query('SELECT title FROM public.classifieds WHERE id=$1',[draftId])).rows[0].title,'Повторная редакция стола');
+    });
+    await t.test('global owner can submit, review and revise their own listing in any city; city editor cannot self-approve',async()=>{
+      for(const city of ['Енисейск','Лесосибирск','Город будущего']) {
+        await switchTo('authenticated',owner);
+        const listing=(await makeDraft(city)).rows[0].id;
+        await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[listing]);
+        await db.query('SELECT public.review_classified($1,true)',[listing]);
+        await db.query('SELECT public.begin_classified_revision($1)',[listing]);
+        await db.query("UPDATE public.classifieds SET title='Исправление владельца',status='pending' WHERE id=$1",[listing]);
+        await db.query('SELECT public.review_classified_with_reason($1,false,$2)',[listing,'Нужно уточнить описание перед публикацией.']);
+        await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[listing]);
+        await db.query('SELECT public.review_classified($1,true)',[listing]);
+        assert.equal((await db.query('SELECT count(*)::int AS n FROM public.classified_moderation_history WHERE listing_id=$1',[listing])).rows[0].n,3);
+        // Revoking the owner role immediately removes self-approval rights.
+        await db.query('SELECT public.begin_classified_revision($1)',[listing]);
+        await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[listing]);
+        await switchTo('postgres');
+        await db.query('UPDATE public.city_admin_access SET active=false WHERE user_id=$1',[owner]);
+        await switchTo('authenticated',owner);
+        await assert.rejects(db.query('SELECT public.review_classified($1,true)',[listing]),/Not authorized/);
+        await switchTo('postgres');
+        await db.query('UPDATE public.city_admin_access SET active=true WHERE user_id=$1',[owner]);
+      }
+      await switchTo('authenticated',editor);
+      const own=(await makeDraft('Енисейск')).rows[0].id;
+      await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[own]);
+      await assert.rejects(db.query('SELECT public.review_classified($1,true)',[own]),/Not authorized/);
+      await switchTo('authenticated',owner);
+      await db.query('SELECT public.review_classified($1,true)',[own]);
     });
   } finally {await db.close();}
 });
