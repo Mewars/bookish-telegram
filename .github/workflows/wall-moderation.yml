@@ -2,24 +2,39 @@ name: Wall Resident Moderation
 on:
   pull_request:
     branches: [mewars]
-    paths: ['host-public/wall/**', 'src/community/**', 'docs/sql/community-review-reasons-v1.sql', 'tests/community-review*', '.github/workflows/wall-moderation.yml']
+    paths: ['host-public/wall/**', 'src/community/**', 'docs/sql/community-review-reasons-v1.sql', 'tests/community-review*', 'tests/host-wall*', '.github/workflows/wall-moderation.yml']
 permissions:
   contents: read
 jobs:
   wall:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Read current public wall module
-        shell: python
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - name: Validate standalone module and private reason permissions
         run: |
-          import urllib.request, json, re
-          root='https://ryadomcity.ru'
-          html=urllib.request.urlopen(root+'/wall/',timeout=30).read().decode()
-          print('RYADOM_PUBLIC_SOURCE '+json.dumps({'path':'index.html','content':html},ensure_ascii=False))
-          for src in re.findall(r'<script[^>]+src=["\']([^"\']+)',html):
-              url=__import__('urllib.parse',fromlist=['urljoin']).urljoin(root+'/wall/',src)
-              if not url.startswith(root+'/wall/') or 'supabase-client' in url: continue
-              code=urllib.request.urlopen(url,timeout=30).read().decode()
-              print('RYADOM_PUBLIC_SOURCE '+json.dumps({'path':url.split('/wall/')[1].split('?')[0],'content':code},ensure_ascii=False))
+          node --check host-public/wall/app.js
+          node --test tests/host-wall-moderation.test.mjs
+          node --test tests/community-review-reasons.test.mjs
+      - name: Install isolated browser runner
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+      - name: Test actual wall module with synthetic accounts
+        run: |
+          python -m http.server 4176 --bind 127.0.0.1 --directory host-public > "$RUNNER_TEMP/wall-test.log" 2>&1 &
+          host_pid=$!
+          trap 'kill "$host_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4176/wall/ > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/host-wall-browser.py

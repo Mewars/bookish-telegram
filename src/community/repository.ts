@@ -4,7 +4,7 @@ export type CommunityPostType = 'post'|'question'|'news';
 export type CommunityPostStatus = 'draft'|'pending'|'published'|'rejected'|'archived';
 export interface CommunityPost {
   id:string;city:string;author_id:string;post_type:CommunityPostType;
-  title:string;body:string;status:CommunityPostStatus;created_at:string;updated_at:string;
+  title:string;body:string;status:CommunityPostStatus;created_at:string;updated_at:string;review_reason?:string;
 }
 export interface CommunityComment {
   id:string;post_id:string;author_id:string;body:string;
@@ -46,7 +46,17 @@ export async function publishedPosts(client:SupabaseClient|null,city:string):Pro
 export async function myCommunityPosts(client:SupabaseClient|null,userId:string,city:string):Promise<CommunityPost[]>{
   const {data,error}=await clientOrThrow(client).from('community_posts').select(postFields)
     .eq('city',city).eq('author_id',userId).order('created_at',{ascending:false}).limit(100);
-  ensure(error);return (data??[]) as CommunityPost[];
+  ensure(error);
+  const rows=(data??[]) as CommunityPost[];
+  const ids=rows.filter(post=>post.status==='rejected').map(post=>post.id);
+  if(ids.length){
+    const reasons=await clientOrThrow(client).from('community_post_review_reasons')
+      .select('post_id,reason,reviewed_at').in('post_id',ids);
+    ensure(reasons.error);
+    const byId=new Map((reasons.data??[]).map((item:{post_id:string;reason:string})=>[item.post_id,item.reason]));
+    for(const post of rows)post.review_reason=byId.get(post.id);
+  }
+  return rows;
 }
 export async function pendingCommunityPosts(client:SupabaseClient|null,city:string):Promise<CommunityPost[]>{
   const {data,error}=await clientOrThrow(client).from('community_posts').select(postFields)
@@ -87,8 +97,10 @@ export async function submitCommunityPost(client:SupabaseClient|null,id:string,a
   ensure(error);
   if(!data)throw Error('Публикацию не удалось отправить на модерацию.');
 }
-export async function reviewCommunityPost(client:SupabaseClient|null,id:string,approve:boolean):Promise<void>{
-  const {error}=await clientOrThrow(client).rpc('review_community_post',{p_id:id,p_approve:approve});
+export async function reviewCommunityPost(client:SupabaseClient|null,id:string,approve:boolean,reason?:string):Promise<void>{
+  const cleaned=reason?.trim()??'';
+  if(!approve&&(cleaned.length<3||cleaned.length>1000))throw Error('Укажите причину отказа: от 3 до 1000 символов.');
+  const {error}=await clientOrThrow(client).rpc('review_community_post_with_reason',{p_id:id,p_approve:approve,p_reason:approve?null:cleaned});
   ensure(error);
 }
 export async function publishCityNews(client:SupabaseClient|null,city:string,title:string,body:string):Promise<void>{

@@ -61,6 +61,8 @@ jobs:
         run: npm run build
       - name: Include verified standalone host modules
         run: cp -R host-public/. dist/
+      - name: Require private wall-review schema before publishing
+        run: node scripts/check-wall-review-schema.mjs
       - name: Check release version and site entry point
         shell: bash
         run: |
@@ -93,7 +95,7 @@ jobs:
           set -euo pipefail
           ssh -i "$HOME/.ssh/ryadom-deploy-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
             "$SPRINTHOST_USER@$SPRINTHOST_HOST" \
-            "test -d '$DEPLOY_ROOT' && test -f '$DEPLOY_ROOT/index.html' && test -f '$DEPLOY_ROOT/classifieds/supabase-client.js' && test \"\$(cd '$DEPLOY_ROOT' && pwd -P)\" = '$DEPLOY_ROOT'"
+            "test -d '$DEPLOY_ROOT' && test -f '$DEPLOY_ROOT/index.html' && test -f '$DEPLOY_ROOT/classifieds/supabase-client.js' && test -f '$DEPLOY_ROOT/wall/supabase-client.js' && test \"\$(cd '$DEPLOY_ROOT' && pwd -P)\" = '$DEPLOY_ROOT'"
       - name: Preserve live extensions and private rollback copy
         shell: bash
         run: |
@@ -108,7 +110,7 @@ jobs:
           backup="/home/mewars/.ryadom-release-backups/${GITHUB_SHA:-release}-$(date +%Y%m%d%H%M%S)"
           mkdir -p "$backup"
           cd /home/mewars/domains/ryadomcity.ru/public_html
-          tar -czf "$backup/frontend-before.tar.gz" index.html version.json .htaccess classifieds
+          tar -czf "$backup/frontend-before.tar.gz" index.html version.json .htaccess classifieds wall
           tar -tzf "$backup/frontend-before.tar.gz" >/dev/null
           echo 'Private frontend rollback copy verified.'
           BACKUP
@@ -121,7 +123,8 @@ jobs:
           # No --delete: preserve the old hashed assets for tabs opened during deployment,
           # and do not touch host-managed folders or the owner's manual ZIP backup.
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" \
-            --exclude='/api/' --exclude='/.htaccess' --exclude='/index.html' --exclude='/version.json' dist/ "$DEST"
+            --exclude='/api/' --exclude='/.htaccess' --exclude='/index.html' --exclude='/version.json' --exclude='/wall/index.html' dist/ "$DEST"
+          rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/wall/index.html "$DEST/wall/"
           # Last, atomically switch to the new HTML entry point and publish its version.
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/index.html "$DEST"
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/version.json "$DEST"
