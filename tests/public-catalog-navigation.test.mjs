@@ -91,5 +91,12 @@ test('filter edits replace the current list history entry; opening and returning
     assert.equal(hashParts(globalThis.window.location.hash).id,'id');
     returnToCatalog('places','Енисейск');
     assert.equal(globalThis.window.location.hash,list);
+    navigateToRoute('login',undefined,'Енисейск');
+    assert.equal(globalThis.window.location.hash,'#/login');
+    const writes=replaced.length;
+    ensureRouteCity('Енисейск');
+    assert.equal(replaced.length,writes,'Login/OAuth fragment must not be rewritten');
+    navigateToRoute('profile',undefined,'Енисейск');
+    assert.equal(globalThis.window.location.hash,'#/profile');
   }finally{globalThis.window=original;globalThis.HashChangeEvent=oldEvent;}
 });

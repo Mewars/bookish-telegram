@@ -15,9 +15,10 @@ export function getRoute() {
 // so App's route-change scroll effect was not triggered. Explicitly return to
 // the top whenever Home is requested, including while already on Home.
 export function navigateToRoute(section: Section, id?: string, city='') {
+ const publicCity=city && (section==='home'||isCatalogSection(section));
  const nextHash = id && isCatalogSection(section)
   ? detailHash(section,id,city,window.location.hash)
-  : `#/${section}${city?'?'+new URLSearchParams({city}).toString():''}`;
+  : `#/${section}${publicCity?'?'+new URLSearchParams({city}).toString():''}`;
  if (section === 'home' || window.location.hash === nextHash) {
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
  }
@@ -36,6 +37,9 @@ export function updateCatalogFilters(kind:'places'|'events'|'services',city:stri
 }
 export function ensureRouteCity(city:string) {
  const hash=window.location.hash || '#/home';
+ const {section}=hashParts(hash);
+ // Login/OAuth and other private fragments retain their existing contract.
+ if(section!=='home'&&!isCatalogSection(section))return;
  const [path,search='']=hash.split('?');
  const params=new URLSearchParams(search);
  if(params.get('city')===city)return;
