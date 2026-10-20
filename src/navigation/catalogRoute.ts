@@ -39,6 +39,16 @@ export function catalogHash(kind:Kind,city:string,filters:CatalogFilters=emptyCa
   if(kind==='events'&&filters.when!=='Все даты')params.set('when',filters.when);
   return '#/'+kind+(params.size?'?'+params.toString():'');
 }
+function homeSearchHash(city:string,query:string):string {
+  return '#/home?'+new URLSearchParams({city,q:query}).toString();
+}
+export function rememberHomeSearch(city:string,query:string):void {
+  if(hashParts(window.location.hash).section!=='home')return;
+  const params=hashParts(window.location.hash).params;
+  params.set('city',city);
+  if(query)params.set('q',query.slice(0,200));else params.delete('q');
+  window.history.replaceState(window.history.state,'','#/home?'+params.toString());
+}
 // Only a same-city public list may be a return destination. URLs, nested
 // return parameters, detail pages, admin and profile routes are never used.
 export function safeCatalogReturn(hash:string,kind:Kind,city:string):string {
@@ -46,14 +56,18 @@ export function safeCatalogReturn(hash:string,kind:Kind,city:string):string {
   const candidate=current.params.get('return');
   if(candidate?.startsWith('#/')) {
     const target=hashParts(candidate);
-    if(target.valid && !target.id && isCatalogSection(target.section) && routeCity(candidate)===city)
-      return catalogHash(target.section,city,readCatalogFilters(candidate));
+    if(target.valid && !target.id && routeCity(candidate)===city) {
+      if(isCatalogSection(target.section))return catalogHash(target.section,city,readCatalogFilters(candidate));
+      if(target.section==='home'&&readCatalogFilters(candidate).query)
+        return homeSearchHash(city,readCatalogFilters(candidate).query);
+    }
   }
   return catalogHash(kind,city);
 }
 export function detailHash(kind:Kind,id:string,city:string,fromHash:string):string {
   const origin=hashParts(fromHash);
-  const back=origin.valid && !origin.id && isCatalogSection(origin.section)
+  const homeQuery=origin.section==='home'?readCatalogFilters(fromHash).query:'';
+  const back=origin.valid && !origin.id && homeQuery?homeSearchHash(city,homeQuery):origin.valid && !origin.id && isCatalogSection(origin.section)
     ? catalogHash(origin.section,city,readCatalogFilters(fromHash))
     : safeCatalogReturn(fromHash,kind,city);
   const params=new URLSearchParams();

@@ -78,6 +78,14 @@ with sync_playwright() as p:
         page.goto(origin + '/#/admin/' + quote(card_id, safe=''))
         expect(page.locator('.app-shell')).to_have_attribute('data-section', 'home')
         expect(page.locator('.guide-detail')).to_have_count(0)
+        # The deployed category panel searches Home; that list must also restore.
+        page.goto(origin + '/#/home?' + urlencode({'city':'Енисейск','q':'музей'}))
+        expect(search).to_have_value('музей')
+        page.locator('.card-open').first.click()
+        expect(page.locator('.guide-detail')).to_be_visible()
+        page.locator('.detail-breadcrumb .back-link').click()
+        expect(search).to_have_value('музей')
+        expect(page.locator('.app-shell')).to_have_attribute('data-section','home')
         assert not errors, errors
         print(f'PASS {width}px: filters/subcategory, Back/Forward, Escape, reload, cities, direct and unsafe links')
         context.close()

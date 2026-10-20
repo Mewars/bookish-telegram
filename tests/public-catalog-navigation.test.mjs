@@ -41,6 +41,14 @@ test('direct detail opens and cards opened outside a catalog use the item catalo
     assert.equal(safeCatalogReturn('#/'+kind+'/id',kind,'Енисейск'),catalogHash(kind,'Енисейск'));
   }
 });
+test('live category-panel searches on Home also retain their query through card and related card',()=>{
+  const params=new URLSearchParams({city:'Енисейск',q:'кафе'});
+  const home='#/home?'+params;
+  const card=detailHash('places','id','Енисейск',home);
+  assert.equal(safeCatalogReturn(card,'places','Енисейск'),home);
+  const related=detailHash('places','other','Енисейск',card);
+  assert.equal(safeCatalogReturn(related,'places','Енисейск'),home);
+});
 
 test('filter normalization and matching preserve category, subcategory and date without invented taxonomy',()=>{
   const today={kind:'events',category:'Культура / Выставки',dateOffset:0};
