@@ -58,10 +58,14 @@ export async function getPending(client:SupabaseClient|null,city:string):Promise
     .eq('status','pending').order('created_at',{ascending:true}).limit(100);
   check(error); return (data??[]) as Classified[];
 }
-export async function mayReview(client:SupabaseClient|null,city:string):Promise<boolean> {
-  const {data,error}=await db(client).from('city_admin_access').select('city,role,active').eq('active',true);
+export async function getClassifiedReviewAccess(client:SupabaseClient|null,city:string,userId:string) {
+  const {data,error}=await db(client).from('city_admin_access')
+    .select('user_id,city,role,active').eq('user_id',userId).eq('active',true);
   check(error);
-  return (data??[]).some((item:{city:string;role:string})=>item.city===city || (item.city==='*'&&item.role==='owner'));
+  const rows=(data??[]).filter(item=>item.user_id===userId && item.active);
+  const canReviewOwn=rows.some(item=>item.city==='*' && item.role==='owner');
+  const canReview=canReviewOwn || rows.some(item=>item.city===city && ['editor','owner'].includes(item.role));
+  return {canReview,canReviewOwn};
 }
 export async function createDraft(client:SupabaseClient|null,d:Draft):Promise<void> {
   const err=validateDraft(d);
@@ -91,6 +95,12 @@ export async function submitForReview(client:SupabaseClient|null,id:string,userI
     .select('id').maybeSingle();
   check(error);
   if(!data) throw Error('Не удалось отправить объявление на проверку.');
+}
+// Only this server operation may withdraw a published listing for correction.
+// It does not change content or allow the author to publish the new revision.
+export async function beginClassifiedRevision(client:SupabaseClient|null,id:string):Promise<void> {
+  const {error}=await db(client).rpc('begin_classified_revision',{p_listing_id:id});
+  if(error)throw Error('Не удалось снять объявление для редактирования. Обновите список и проверьте, что это ваше опубликованное объявление.');
 }
 export async function moderate(client:SupabaseClient|null,id:string,approved:boolean,reason=''):Promise<void> {
   const text=reason.trim();

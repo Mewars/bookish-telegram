@@ -51,6 +51,8 @@ jobs:
           VITE_CITY_DIRECTORY_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
           VITE_ORGANIZATIONS_ENABLED: ${{ vars.RYADOM_CMS_SAFETY_OFF == 'true' && 'false' || 'true' }}
           VITE_VK_ID_ENABLED: 'true'
+      - name: Include standalone host modules
+        run: cp -R host-public/. dist/
       - name: Package dist contents without a wrapper folder
         working-directory: dist
         run: zip -r ../sprinthost-site.zip .

@@ -34,7 +34,7 @@ test('classified gallery RLS: slots, private drafts, public approvals',async t=>
    ].join(';\n')+';');
    for(const id of users)await db.query('INSERT INTO auth.users(id) VALUES ($1)',[id]);
    await db.query("INSERT INTO public.city_admin_access(user_id,city,role) VALUES ($1,'Енисейск','editor'),($2,'Лесосибирск','editor')",[editor,foreignEditor]);
-   for(const file of ['classifieds-private-messaging-v1.sql','classifieds-editor-privacy-v2.sql','classified-photos-private-v1.sql','classified-reports-review-v1.sql'])
+   for(const file of ['classifieds-private-messaging-v1.sql','classifieds-editor-privacy-v2.sql','classified-photos-private-v1.sql','classified-reports-review-v1.sql','classified-rejection-reasons-v1.sql','classified-revision-v1.sql'])
      await db.exec(await readFile('docs/sql/'+file,'utf8'));
    const bucket=(await db.query("SELECT public,file_size_limit,allowed_mime_types FROM storage.buckets WHERE id='ryadom-classified-photos'")).rows[0];
    assert.equal(bucket.public,false);assert.equal(bucket.file_size_limit,2097152);
@@ -80,6 +80,22 @@ test('classified gallery RLS: slots, private drafts, public approvals',async t=>
      await act('authenticated',seller);
      assert.equal((await db.query('DELETE FROM public.classified_photos WHERE listing_id=$1 RETURNING id',[listing])).rows.length,0);
      assert.equal((await db.query('DELETE FROM storage.objects WHERE name=$1 RETURNING name',[path])).rows.length,0);
+   });
+   await t.test('withdrawal for revision hides existing photos until a fresh approval',async()=>{
+     await act('authenticated',seller);
+     await db.query('SELECT public.begin_classified_revision($1)',[listing]);
+     assert.equal((await db.query('SELECT * FROM public.classified_photos')).rows.length,1,'Author retains album');
+     for(const [role,user] of [['anon',''],['authenticated',outsider],['authenticated',editor],['authenticated',foreignEditor]]) {
+       await act(role,user);
+       assert.equal((await db.query('SELECT * FROM public.classified_photos')).rows.length,0);
+       assert.equal((await db.query('SELECT * FROM storage.objects')).rows.length,0);
+     }
+     await act('authenticated',seller);
+     await db.query("UPDATE public.classifieds SET status='pending' WHERE id=$1",[listing]);
+     await act('authenticated',editor);
+     await db.query('SELECT public.review_classified($1,true)',[listing]);
+     await act('anon');
+     assert.equal((await db.query('SELECT * FROM storage.objects')).rows.length,1);
    });
    await t.test('city report withdraws public photo access without deleting the owner album',async()=>{
      // Synthetic accounts and storage metadata only; no real photos or signed URLs.
