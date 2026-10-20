@@ -59,6 +59,8 @@ jobs:
           case "$VITE_SUPABASE_PUBLISHABLE_KEY" in sb_publishable_*) ;; *) echo "::error::Expected public Supabase key"; exit 1;; esac
       - name: Build verified release
         run: npm run build
+      - name: Include verified standalone host modules
+        run: cp -R host-public/. dist/
       - name: Check release version and site entry point
         shell: bash
         run: |

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {saveOwnedDraft,submitOwnedDraft} from '../public/classifieds/drafts.js';
+import {saveOwnedDraft,submitOwnedDraft} from '../host-public/classifieds/drafts.js';
 
 const draft={city:'Енисейск',author_id:'spoof',status:'published',title:'Исправленный стол',
   description:'Полное описание тестового стола',deal_type:'sell',category:'Для дома',district:'Центр',price_rub:100};
