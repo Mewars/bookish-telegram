@@ -3,13 +3,21 @@
 CREATE TABLE public.community_post_review_reasons (
   post_id uuid PRIMARY KEY REFERENCES public.community_posts(id) ON DELETE CASCADE,
   reason text NOT NULL CHECK (char_length(btrim(reason)) BETWEEN 3 AND 1000),
-  reviewed_by uuid NOT NULL REFERENCES auth.users(id),
+  reviewed_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   reviewed_at timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE public.community_post_review_reasons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.community_post_review_reasons FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON public.community_post_review_reasons FROM PUBLIC,anon,authenticated;
 GRANT SELECT(post_id,reason,reviewed_at) ON public.community_post_review_reasons TO authenticated;
+-- Test and older installations also need staff visibility of rejected parents.
+CREATE POLICY community_posts_review_reason_staff_read ON public.community_posts
+FOR SELECT TO authenticated USING (
+ status='rejected' AND EXISTS (
+  SELECT 1 FROM public.city_admin_access a WHERE a.user_id=(SELECT auth.uid()) AND a.active
+   AND a.role IN ('owner','editor') AND (a.city=community_posts.city OR (a.city='*' AND a.role='owner'))
+ )
+);
 CREATE POLICY community_review_reason_author_or_staff ON public.community_post_review_reasons
 FOR SELECT TO authenticated USING (
   EXISTS (SELECT 1 FROM public.community_posts p

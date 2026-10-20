@@ -1,3 +1,5 @@
+import process from 'node:process';
+const {fetch,URL,AbortSignal,console}=globalThis;
 // Only a release that includes /wall/ needs this additive backend migration.
 // Use an anonymous request: the private reason table must exist AND deny access.
 const url=process.env.VITE_SUPABASE_URL;

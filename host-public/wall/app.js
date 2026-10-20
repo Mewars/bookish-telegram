@@ -72,13 +72,13 @@ function draftKey(editId=null){
 function readDraft(key){
  try{const raw=localStorage.getItem(key);if(!raw)return null;
   const obj=JSON.parse(raw);return obj&&typeof obj==='object'&&typeof obj.title==='string'&&typeof obj.body==='string'?obj:null;
- }catch(_){return null}
+ }catch{return null}
 }
 function writeDraft(key,obj){
  try{localStorage.setItem(key,JSON.stringify({...obj,savedAt:Date.now()}));return true}
- catch(_){return false}
+ catch{return false}
 }
-function removeDraft(key){try{localStorage.removeItem(key)}catch(_){}}
+function removeDraft(key){try{localStorage.removeItem(key)}catch{}}
 // Убираем только парные маркеры Markdown; обычные * в цифрах и формулах сохраняем.
 function cleanMarkdownPaste(value){
  return String(value).replace(/\r\n?/g,'\n')
@@ -107,7 +107,7 @@ function badge(v){return el('span','badge '+v,[STATUS[v]||v])}
 async function render(){ui.content.replaceChildren(el('div','empty',['Загружаем…']));if(s.view==='feed')return renderFeed();if(s.view==='write')return renderComposer();if(s.view==='mine')return renderMine();if(s.view==='admin')return renderAdmin()}
 async function postsQuery(moderation=false){let q=sb.from('community_posts').select('id,city,author_id,title,body,post_type,status,created_at,pinned_at');if(!moderation)q=q.eq('status','published');else if(s.adminMode==='pending')q=q.eq('status','pending');else if(s.adminMode==='published')q=q.eq('status','published');else q=q.in('status',['archived','rejected']);q=q.eq('city',s.city).order('created_at',{ascending:false}).limit(60);const r=await q;if(r.error)throw r.error;const arr=r.data||[];return moderation?arr:arr.sort((a,b)=>Number(Boolean(b.pinned_at))-Number(Boolean(a.pinned_at))||Date.parse(b.created_at)-Date.parse(a.created_at))}
 async function getPhotos(postIds){const m=new Map();if(!postIds.length)return m;const {data,error}=await sb.from('community_post_photos').select('post_id,slot,object_path').in('post_id',postIds).order('slot',{ascending:true});if(error)throw error;for(const ph of data||[]){const a=m.get(ph.post_id)||[];a.push(ph);m.set(ph.post_id,a)}return m}
-async function getLikes(ids){const m=new Map();if(!ids.length)return m;try{const data=await rpc('community_like_summary',{p_ids:ids.slice(0,50)});for(const item of data||[])m.set(item.post_id,item);}catch(_){/* Reactions are not essential to reading */}return m}
+async function getLikes(ids){const m=new Map();if(!ids.length)return m;try{const data=await rpc('community_like_summary',{p_ids:ids.slice(0,50)});for(const item of data||[])m.set(item.post_id,item);}catch{/* Reactions are not essential to reading */}return m}
 async function getVideos(postIds){const m=new Map();if(!postIds.length)return m;
  const {data,error}=await sb.from('community_post_videos').select('post_id,object_path,format').in('post_id',postIds);
  if(error)throw error;for(const v of data||[])m.set(v.post_id,v);return m;
@@ -268,7 +268,7 @@ function postShareActions(card,post){
  }
  menu.append(btn('Скопировать ссылку',async()=>{
   try{await navigator.clipboard.writeText(link);flash('Ссылка на запись скопирована.')}
-  catch(_){const text=window.prompt('Скопируйте ссылку на запись:',link);void text}
+  catch{const text=window.prompt('Скопируйте ссылку на запись:',link);void text}
  },'btn small ghost'));
  const actions=card.querySelector('.post-actions');if(actions)actions.after(menu);else card.append(menu);
 }
@@ -333,7 +333,7 @@ async function makePost(post,photos=[],likes=null,scope='feed',video=null,author
    if(error){
     let detail=error.message;
     try {const reason=await error.context?.json?.();if(reason?.error)detail=reason.error}
-    catch(_){/* Тело ошибки бывает недоступно */}
+    catch{/* Тело ошибки бывает недоступно */}
     throw Error(detail||'Ошибка удаления записи');
    }
    if(!data?.deleted)throw Error(data?.error||'Запись не была удалена');
@@ -478,7 +478,7 @@ async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(
    removeDraft(key);s.draftSave=null;
    if(existing){goto('mine');flash('Запись и вложения сохранены. Теперь нажмите «Отправить» в разделе «Мои записи».');}
    else {await rpc('community_submit_post',{p_post_id:postId});goto('mine');flash('Запись отправлена на модерацию.');}
-  }catch(e){throw e}finally{submit.disabled=false}
+  }finally{submit.disabled=false}
  })});section.append(form);ui.content.replaceChildren(section)}
 async function renderMine(){if(!s.user){ui.content.replaceChildren(panel(heading('Мои записи'),info('Войдите на основном сайте, чтобы видеть предложенные записи.')));return}
  const {data,error}=await sb.from('community_posts').select('id,city,author_id,title,body,post_type,status,created_at,pinned_at').eq('author_id',s.user.id).eq('city',s.city).order('created_at',{ascending:false}).limit(60);if(error)throw error;const posts=data||[];const reasons=await loadReviewReasons(sb,posts);for(const post of posts)post.review_reason=reasons.get(post.id);const [photos,videos,authors]=await Promise.all([

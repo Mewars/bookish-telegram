@@ -67,7 +67,8 @@ test('wall rejection reasons stay private and resident submissions require moder
       await switchTo('authenticated',resident);
       await db.query("UPDATE public.community_posts SET title='Уточнённый вопрос жителей',body='Подробный текст для повторной проверки',status='draft' WHERE id=$1",[postId]);
       await db.query('SELECT public.community_submit_post($1)',[postId]);
-      await assert.rejects(db.query("UPDATE public.community_posts SET status='published' WHERE id=$1",[postId]),/row-level security/);
+      assert.equal((await db.query("UPDATE public.community_posts SET status='published' WHERE id=$1 RETURNING id",[postId])).rows.length,0);
+      assert.equal((await db.query('SELECT status FROM public.community_posts WHERE id=$1',[postId])).rows[0].status,'pending');
       await switchTo('authenticated',owner);
       await db.query('SELECT public.review_community_post_with_reason($1,true,NULL)',[postId]);
       assert.equal((await reasonRows()).rows.length,0);
