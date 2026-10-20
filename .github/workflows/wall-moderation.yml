@@ -1,0 +1,25 @@
+name: Wall Resident Moderation
+on:
+  pull_request:
+    branches: [mewars]
+    paths: ['host-public/wall/**', 'src/community/**', 'docs/sql/community-review-reasons-v1.sql', 'tests/community-review*', '.github/workflows/wall-moderation.yml']
+permissions:
+  contents: read
+jobs:
+  wall:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read current public wall module
+        shell: python
+        run: |
+          import urllib.request, json, re
+          root='https://ryadomcity.ru'
+          html=urllib.request.urlopen(root+'/wall/',timeout=30).read().decode()
+          print('RYADOM_PUBLIC_SOURCE '+json.dumps({'path':'index.html','content':html},ensure_ascii=False))
+          for src in re.findall(r'<script[^>]+src=["\']([^"\']+)',html):
+              url=__import__('urllib.parse',fromlist=['urljoin']).urljoin(root+'/wall/',src)
+              if not url.startswith(root+'/wall/') or 'supabase-client' in url: continue
+              code=urllib.request.urlopen(url,timeout=30).read().decode()
+              print('RYADOM_PUBLIC_SOURCE '+json.dumps({'path':url.split('/wall/')[1].split('?')[0],'content':code},ensure_ascii=False))
