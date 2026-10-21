@@ -12,7 +12,12 @@ with sync_playwright() as p:
   context=browser.new_context(viewport={'width':width,'height':900})
   def route(request):
    url=request.request.url
-   if '/wall/supabase-client.js' in url:request.fulfill(status=200,content_type='text/javascript',body=SDK)
+   if url.startswith(ORIGIN+'/host-public/'):
+    # These extensions are static native modules on Sprinthost. Bypass Vite's
+    # source transform, which rejects their absolute public-directory imports.
+    path=Path(urlparse(url).path.lstrip('/'))
+    request.fulfill(status=200,content_type='text/css' if path.suffix=='.css' else 'text/javascript',body=path.read_text())
+   elif '/wall/supabase-client.js' in url:request.fulfill(status=200,content_type='text/javascript',body=SDK)
    elif '/tests/photo-valid.png' in url:request.fulfill(status=200,content_type='image/png',body=PNG)
    elif '/tests/photo-broken.png' in url:request.fulfill(status=404,body='missing')
    elif url.startswith(ORIGIN+'/'):request.continue_()
