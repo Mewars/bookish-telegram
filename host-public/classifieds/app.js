@@ -93,7 +93,7 @@ function card(ad, photos,scope){const wrap=elem('article','card');const main=ele
   const pinned=listingPins.has(ad.id);
   const control=btn(pinned?'📌 Открепить':'📌 Закрепить',()=>act(async()=>{
    control.disabled=true;
-   try{await rpc('owner_pin_classified',{p_id:ad.id,p_pin:!pinned});await feed();}
+   try{await rpc('owner_pin_classified',{p_id:ad.id,p_pin:!pinned});await render();}
    finally{control.disabled=false;}
   }),'btn small secondary');
   control.setAttribute('aria-label',(pinned?'Открепить объявление: ':'Закрепить объявление: ')+ad.title);
@@ -293,5 +293,7 @@ async function moderation(){
  }
  pad(wrapper);
 }
-async function render(){await authRefresh();ui.tabs.querySelectorAll('button[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===state.view));if(['mine','new','inbox','chat'].includes(state.view)&&!state.user)return pad(empty('Требуется вход в аккаунт','Нажмите «Войти / зарегистрироваться» вверху страницы.'));switch(state.view){case'feed':return feed();case'mine':return mine();case'new':return compose();case'detail':return detail();case'inbox':return inbox();case'chat':return chat();case'moderation':return moderation();default:return feed()}}
-ui.city.onchange=()=>{state.city=ui.city.value;localStorage.setItem('ryadom.classified.city',state.city);goto('feed')};ui.tabs.addEventListener('click',e=>{const b=e.target.closest('button[data-view]');if(b)goto(b.dataset.view)});sb.auth.onAuthStateChange(()=>{setTimeout(()=>{void authRefresh()},0)});void (async()=>{await loadCities();await render()})().catch(e=>{pad(empty('Не удалось загрузить объявления','Попробуйте обновить страницу.'));show(errorText(e),true)});
+let renderQueue=Promise.resolve();
+function render(){const view=state.view;const next=renderQueue.catch(()=>{}).then(()=>renderCurrent(view));renderQueue=next;return next;}
+async function renderCurrent(view){if(view!==state.view)return;await authRefresh();if(view!==state.view)return;ui.tabs.querySelectorAll('button[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===state.view));if(['mine','new','inbox','chat'].includes(state.view)&&!state.user)return pad(empty('Требуется вход в аккаунт','Нажмите «Войти / зарегистрироваться» вверху страницы.'));switch(state.view){case'feed':return feed();case'mine':return mine();case'new':return compose();case'detail':return detail();case'inbox':return inbox();case'chat':return chat();case'moderation':return moderation();default:return feed()}}
+ui.city.onchange=()=>{state.city=ui.city.value;localStorage.setItem('ryadom.classified.city',state.city);goto('feed')};ui.tabs.addEventListener('click',e=>{const b=e.target.closest('button[data-view]');if(b)goto(b.dataset.view)});sb.auth.onAuthStateChange(()=>{setTimeout(()=>{void authRefresh()},0)});ui.tabs.querySelectorAll('button[data-view]').forEach(button=>button.disabled=true);void (async()=>{await loadCities();await render()})().finally(()=>{ui.tabs.querySelectorAll('button[data-view]').forEach(button=>button.disabled=false)}).catch(e=>{pad(empty('Не удалось загрузить объявления','Попробуйте обновить страницу.'));show(errorText(e),true)});
