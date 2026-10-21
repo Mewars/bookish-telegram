@@ -43,8 +43,10 @@ try {
       const response = await page.goto(`${base}/#/home`, { waitUntil: 'domcontentloaded', timeout: 45000 });
       assert(response?.ok(), `Home HTTP status: ${response?.status()}`);
       await page.locator('.city-home').waitFor({ state: 'visible', timeout: 45000 });
-      assert.equal((await page.locator('.quick-discovery button').allTextContents()).map(x => x.trim()).join('|'), 'Сегодня|Поесть|Культура|Магазины|Услуги');
-      result.checks.push('All five quick categories');
+      const categoriesLauncher=page.getByRole('button',{name:'Все категории',exact:true});
+      await categoriesLauncher.waitFor({state:'visible'});
+      assert.equal(await categoriesLauncher.count(),1,'Expected one live category launcher');
+      result.checks.push('Live shared category launcher');
 
       const cookies = page.getByRole('button', { name: 'Только необходимые' });
       if (await cookies.isVisible().catch(() => false)) {
@@ -168,9 +170,16 @@ try {
       await page.waitForTimeout(100);
       await page.screenshot({ path: `${folder}/${scenario.name}-home.png`, fullPage: true, animations: 'disabled' });
 
-      await page.locator('.quick-discovery button').filter({ hasText: 'Поесть' }).click();
-      await page.locator('#city-selections .section-heading h2').getByText('Поесть', { exact: true }).waitFor();
-      result.checks.push('Food shortcut opens filtered results');
+      await categoriesLauncher.click();
+      await page.getByRole('button',{name:'Раздел «Где поесть», открыть подразделы',exact:true}).click();
+      await page.getByRole('button',{name:/^Кафе и кофейни/}).click();
+      await page.getByRole('heading',{name:'Места',exact:true}).waitFor();
+      const cafeFilter=page.getByRole('group',{name:'Подкатегории',exact:true})
+        .getByRole('button',{name:'Кафе и кофейни',exact:true});
+      assert.equal(await cafeFilter.getAttribute('aria-pressed'),'true');
+      assert(new URL(page.url()).hash.includes('subcategory='),'Category selection did not update the public URL');
+      assert(await page.locator('main .card').count()>0,'Food category contains no public cards');
+      result.checks.push('Shared live directory opens a precise public food subcategory');
       await page.screenshot({ path: `${folder}/${scenario.name}-food.png`, fullPage: true, animations: 'disabled' });
       assert.equal(await page.getByRole('button', { name: 'Друзья рядом · Открыть карту' }).count(), 0, 'Duplicate friends CTA must not appear beneath the homepage hero');
       const friendsShortcut = page.getByRole('button', { name: 'Друзья рядом — узнать о разделе' });

@@ -1,6 +1,9 @@
 name: Published Home Browser QA
 
 on:
+  pull_request:
+    branches: [mewars]
+    paths: ['scripts/check-published-home.mjs', '.github/workflows/published-home-qa.yml']
   workflow_run:
     workflows: ["Deploy Ryadom to Sprinthost"]
     branches: [mewars]
@@ -11,14 +14,14 @@ permissions:
 
 jobs:
   live-home-check:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'mewars' }}
+    if: ${{ github.event_name == 'pull_request' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'mewars') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Check out deployed revision
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -31,6 +34,8 @@ jobs:
       - name: Audit real production homepage (desktop and mobile)
         run: node scripts/check-published-home.mjs
         env:
+          # PRs audit current public UI without changing it; after deployment,
+          # additionally require the exact release SHA that triggered this run.
           RYADOM_EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
       - name: Upload screenshots and report
         if: always()
