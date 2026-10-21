@@ -25,3 +25,5 @@
 @media(max-width:720px){.listing-search-controls select{max-width:none;width:100%}}
 
 .card-rejection-reason{margin:10px 0 0;color:#ffcfba;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+
+.listing-pin-badge {display:inline-flex;align-items:center;margin-bottom:9px;padding:5px 9px;border-radius:12px;background:#ffd166;color:#142230;font-size:12px;font-weight:800;}

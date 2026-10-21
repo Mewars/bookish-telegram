@@ -867,6 +867,7 @@ const parentPatterns={
 };
 export function matchesParent(item,parent){
  if(parent.name==='Где поесть')return isFoodCategory(item.category);
+ if(normalizeCategory(categoryParts(item).category)===normalizeCategory(parent.catalogCategory||parent.name))return true;
  return !!parentPatterns[parent.name]?.test(normalizeCategory(item.category));
 }
 export function matchesLeaf(item,leaf,parent){

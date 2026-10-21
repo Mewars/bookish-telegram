@@ -1,3 +1,4 @@
+import {readCityPins,sortPinnedClassifieds} from './pins.js?v=20261021pins1';
 import {createPhotoPlaceholder} from '/catalog/photoFallback.js?v=20261021catalog1';
 import { c as createClient } from './supabase-client.js';
 import { saveOwnedDraft, submitOwnedDraft } from './drafts.js?v=20261020a';
@@ -85,8 +86,20 @@ async function cover(node,p){
  img.onerror=()=>{const fallback=elem('div','card-img');fallback.append(createPhotoPlaceholder());img.replaceWith(fallback)};
  img.src=src;node.replaceWith(img);
 }
+let listingPins=new Map(),pinningAvailable=false;
 function labelStatus(status){return elem('span','status '+status,[STATUSES[status]||status])}
-function card(ad, photos,scope){const wrap=elem('article','card');const main=elem('button','card-link');main.type='button';main.onclick=()=>goto('detail',{ad:ad.id});const visual=elem('div','card-img');main.append(visual);void cover(visual,photos?.[0]);const body=elem('div','card-main');body.append(h2(ad.title),elem('div','price',[listingPrice(ad.price_rub,ad.deal_type)]),elem('p','card-meta',[(DEAL_TYPES[ad.deal_type]||'Объявление')+' · '+ad.city]),labelStatus(ad.status));main.append(body);wrap.append(main);if(scope==='mine'){
+function card(ad, photos,scope){const wrap=elem('article','card');const main=elem('button','card-link');main.type='button';main.onclick=()=>goto('detail',{ad:ad.id});const visual=elem('div','card-img');main.append(visual);void cover(visual,photos?.[0]);const body=elem('div','card-main');if(listingPins.has(ad.id)&&ad.status==='published')body.append(elem('span','listing-pin-badge',['📌 Закреплено']));body.append(h2(ad.title),elem('div','price',[listingPrice(ad.price_rub,ad.deal_type)]),elem('p','card-meta',[(DEAL_TYPES[ad.deal_type]||'Объявление')+' · '+ad.city]),labelStatus(ad.status));main.append(body);wrap.append(main);
+ if(scope==='feed'&&state.isOwner&&pinningAvailable&&ad.status==='published'){
+  const pinned=listingPins.has(ad.id);
+  const control=btn(pinned?'📌 Открепить':'📌 Закрепить',()=>act(async()=>{
+   control.disabled=true;
+   try{await rpc('owner_pin_classified',{p_id:ad.id,p_pin:!pinned});await feed();}
+   finally{control.disabled=false;}
+  }),'btn small secondary');
+  control.setAttribute('aria-label',(pinned?'Открепить объявление: ':'Закрепить объявление: ')+ad.title);
+  control.setAttribute('aria-pressed',String(pinned));wrap.append(elem('div','card-actions',[control]));
+ }
+ if(scope==='mine'){
  if(ad.status==='rejected'&&ad.rejection_reason)body.append(elem('p','card-rejection-reason',['Причина отклонения: '+ad.rejection_reason]));
  const actions=elem('div','card-actions');if(ad.status==='published')actions.append(btn('Снять и изменить',()=>act(async()=>{if(!window.confirm('Снять объявление в черновик для правок и повторной проверки?'))return;await rpc('begin_classified_revision',{p_listing_id:ad.id});goto('new',{edit:ad.id})}),'btn small secondary'));if(['draft','rejected'].includes(ad.status))actions.append(btn('Редактировать',()=>goto('new',{edit:ad.id}),'btn small secondary'));if(['published','completed'].includes(ad.status))actions.append(btn('В архив',()=>act(async()=>{await rpc('archive_classified',{p_listing_id:ad.id});goto('mine')}),'btn small secondary'));if(ad.status==='published')actions.append(btn('Завершено',()=>act(async()=>{await rpc('complete_classified',{p_listing_id:ad.id});goto('mine')}),'btn small'));if(actions.childNodes.length)wrap.append(actions)}
  if(scope==='feed'&&ad.status==='published'&&ad.author_id!==state.user?.id){
@@ -110,10 +123,18 @@ async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(erro
 async function act(fn){try{await fn()}catch(e){show(errorText(e),true)}}
 async function gridCards(items,scope){const gallery=await fetchPhotos(items.map(x=>x.id));const grid=elem('div','grid');for(const ad of items)grid.append(card(ad,gallery.get(ad.id),scope));pad(grid)}
 function empty(title,explain){const x=elem('div','empty',[h2(title),note(explain)]);return x}
-async function feed(){loadMark();const {data,error}=await sb.from('classifieds').select('id,city,title,deal_type,category,description,district,price_rub,status,created_at,author_id').eq('city',state.city).in('status',['published','completed']).order('created_at',{ascending:false}).limit(100);if(error)throw error;const pane=elem('div','panel');const search=elem('input');search.placeholder='Поиск по объявлениям';search.value=state.filter;search.setAttribute('aria-label','Поиск по объявлениям');search.addEventListener('input',()=>{state.filter=search.value;draw()});const filter=elem('select','type-filter');filter.setAttribute('aria-label','Фильтр по типу объявления');
+async function feed(){loadMark();const pinResult=await readCityPins(sb,state.city);listingPins=pinResult.pins;pinningAvailable=pinResult.available;const {data,error}=await sb.from('classifieds').select('id,city,title,deal_type,category,description,district,price_rub,status,created_at,author_id').eq('city',state.city).in('status',['published','completed']).order('created_at',{ascending:false}).limit(100);if(error)throw error;
+const feedRows=[...(data||[])];
+const missing=[...listingPins.keys()].filter(id=>!feedRows.some(row=>row.id===id));
+for(let offset=0;offset<missing.length;offset+=100){
+ const {data:extra,error:failed}=await sb.from('classifieds').select('id,city,title,deal_type,category,description,district,price_rub,status,created_at,author_id').in('id',missing.slice(offset,offset+100)).eq('city',state.city).eq('status','published');
+ if(failed)throw failed;feedRows.push(...(extra||[]));
+}
+const ordered=sortPinnedClassifieds(feedRows,listingPins);
+const pane=elem('div','panel');const search=elem('input');search.placeholder='Поиск по объявлениям';search.value=state.filter;search.setAttribute('aria-label','Поиск по объявлениям');search.addEventListener('input',()=>{state.filter=search.value;draw()});const filter=elem('select','type-filter');filter.setAttribute('aria-label','Фильтр по типу объявления');
 for(const [value,label] of [['','Все типы объявлений'],...Object.entries(DEAL_TYPES)]){const opt=elem('option','',[label]);opt.value=value;filter.append(opt)}
 filter.addEventListener('change',()=>void draw());
-const filters=elem('div','listing-search-controls',[search,filter]);pane.append(filters);const list=elem('div');pad(elem('div','',[pane,list]));async function draw(){const q=state.filter.trim().toLocaleLowerCase('ru');const rows=(data||[]).filter(v=>(!filter.value||v.deal_type===filter.value)&&(!q||[v.title,v.description,v.category,v.district,DEAL_TYPES[v.deal_type]].some(x=>String(x||'').toLocaleLowerCase('ru').includes(q))));if(!rows.length){list.replaceChildren(empty('Пока нет объявлений','Станьте первым, кто опубликует объявление в этом городе.'));return}const pics=await fetchPhotos(rows.map(x=>x.id));const gallery=elem('div','grid');for(const ad of rows)gallery.append(card(ad,pics.get(ad.id),'feed'));list.replaceChildren(gallery)}await draw()}
+const filters=elem('div','listing-search-controls',[search,filter]);pane.append(filters);const list=elem('div');pad(elem('div','',[pane,list]));async function draw(){const q=state.filter.trim().toLocaleLowerCase('ru');const rows=ordered.filter(v=>(!filter.value||v.deal_type===filter.value)&&(!q||[v.title,v.description,v.category,v.district,DEAL_TYPES[v.deal_type]].some(x=>String(x||'').toLocaleLowerCase('ru').includes(q))));if(!rows.length){list.replaceChildren(empty('Пока нет объявлений','Станьте первым, кто опубликует объявление в этом городе.'));return}const pics=await fetchPhotos(rows.map(x=>x.id));const gallery=elem('div','grid');for(const ad of rows)gallery.append(card(ad,pics.get(ad.id),'feed'));list.replaceChildren(gallery)}await draw()}
 async function mine(){if(!requireAuth()){pad(empty('Войдите в аккаунт','После входа сможете публиковать объявления и отслеживать их статус.'));return}loadMark();const {data,error}=await sb.from('classifieds').select('id,city,title,deal_type,category,description,price_rub,status,created_at,rejection_reason,author_id').eq('author_id',state.user.id).order('created_at',{ascending:false}).limit(100);if(error)throw error;if(!data?.length){pad(empty('У вас пока нет объявлений','Нажмите «Подать объявление», чтобы создать первое.'));return}await gridCards(data,'mine')}
 function field(label,name,placeholder='',type='text',value=''){const lab=elem('label','field',[label]);const el=document.createElement(type==='textarea'?'textarea':type==='select'?'select':'input');el.name=name;if(type==='select'){for(const option of placeholder){const op=document.createElement('option');op.value=Array.isArray(option)?option[0]:option;op.textContent=Array.isArray(option)?option[1]:option;el.append(op)}}else if(type==='textarea'){el.placeholder=placeholder;el.maxLength=4000}else{el.placeholder=placeholder;el.type=type;el.maxLength=160}el.value=String(value??'');el.autocomplete='off';lab.append(el);return lab}
 function entry(form,name){return form.elements.namedItem(name)?.value?.trim()||''}

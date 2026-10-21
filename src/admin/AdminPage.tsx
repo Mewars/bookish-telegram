@@ -17,6 +17,7 @@ import {
 import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto, removeOrphanedAdminPhoto, changeAdminOrganizationAvailability, downloadApplicantPhoto, decideOrganizationApplication } from './repository';
 import { directoryCategories, categoryForOrganization, type DirectoryCategoryId } from './directoryCategories';
 import './admin.css';
+import {requestCategory} from '../../public/catalog/requestCategories.js';
 
 export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCities, refreshCities, goHome, openLogin }: { enabled: boolean; cityDirectoryEnabled: boolean; cities: readonly DirectoryCity[]; refreshCities: () => void; goHome: () => void; openLogin: () => void }) {
   const { state } = useAuth();
@@ -88,7 +89,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     if(!userId||!supabase||!access||!canManageCity(access,app.city))return;
     setApplicationOrigin(app);setMessage('');chooseFile(null);setConfirmed(false);
     setDraft({
-      ...newAdminDraft(app.city), title:app.title,category:app.category,
+      ...newAdminDraft(app.city), title:app.title,category:app.category,kind:requestCategory(app.category)?.kind??'places',
       description:app.description,address:app.address,phone:app.phone,hours:app.hours,
       website:app.website,vk_url:app.vk_url,source_url:app.website||app.vk_url,
       status:'published',

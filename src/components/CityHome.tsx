@@ -27,6 +27,18 @@ function homeShortcuts(today: number): { label: string; icon: IconName; matches:
 }
 
 export function CityHome({ city, cityProfile, items, navigate, ...actions }: CardActions & { city: string; cityProfile?: DirectoryCity; items: Item[]; navigate: (section: Section) => void }) {
+  useEffect(()=>{
+    const cover=document.querySelector<HTMLElement>('.city-home > .city-cover');
+    if(!cover)return;
+    const size=()=>{
+      const top=cover.getBoundingClientRect().top+window.scrollY;
+      cover.style.setProperty('--home-cover-height',`${Math.max(420,window.innerHeight-Math.max(0,top))}px`);
+    };
+    size();window.addEventListener('resize',size);
+    const observer=new ResizeObserver(size);
+    const header=document.querySelector('.web-header,.app-header');if(header)observer.observe(header);
+    return ()=>{window.removeEventListener('resize',size);observer.disconnect();};
+  },[]);
   const [query, setQuery] = useState(()=>readCatalogFilters(window.location.hash).query);
   useEffect(()=>{
     const sync=()=>{if(hashParts(window.location.hash).section==='home')setQuery(readCatalogFilters(window.location.hash).query);};
@@ -94,7 +106,7 @@ export function CityHome({ city, cityProfile, items, navigate, ...actions }: Car
             {option.label}
           </button>)}
         </div>
-
+        <a className="home-add-organization" href="#/add-organization"><Icon name="shop" size={18}/>Добавить организацию</a>
       </div>
 
     </section>

@@ -8,6 +8,7 @@ import type { ApplicationDraft, ApplicationErrors, ApplicationRow } from './mode
 import { readApplications, submitApplication, attachApplicationPhoto } from './repository';
 import {validPhotoFile} from '../photos/adminImage';
 import './organizations.css';
+import {requestCategoryGroups} from '../../public/catalog/requestCategories.js';
 
 export function OrganizationsPage({ enabled, mode, city, goBack, openLogin, openApplications }: {
   enabled: boolean; mode: 'add' | 'list'; city: string; goBack: () => void; openLogin: () => void; openApplications: () => void;
@@ -59,7 +60,10 @@ function ApplicationForm({ userId, city, openApplications }: { userId: string; c
     <p>Указывайте сведения организации, которые можно опубликовать. Не отправляйте документы, пароли или чужие личные контакты. Поля со знаком * обязательны.</p>
     <fieldset disabled={busy}>{applicationFields.map(([key, label, limit, required]) => <div className={`organization-field ${['description', 'source_note'].includes(key) ? 'organization-wide' : ''}`} key={key}>
       <label htmlFor={`organization-${key}`}>{label}{required ? ' *' : ''}</label>
-      {['description', 'source_note', 'hours'].includes(key) ? <textarea id={`organization-${key}`} name={key} maxLength={limit} required={required} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: event.target.value })} aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `error-${key}` : undefined} rows={key === 'description' ? 5 : 3}/> : <input id={`organization-${key}`} name={key} maxLength={limit} required={required} type={key === 'phone' ? 'tel' : ['website', 'vk_url'].includes(key) ? 'url' : 'text'} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: event.target.value })} aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `error-${key}` : undefined} placeholder={['website', 'vk_url'].includes(key) ? 'https://' : undefined}/>}
+      {key==='category' ? <select id="organization-category" name="category" required value={draft.category} onChange={event=>setDraft({...draft,category:event.target.value})} aria-invalid={!!errors.category} aria-describedby={errors.category?'error-category':undefined}>
+        <option value="">Выберите категорию и подкатегорию</option>
+        {requestCategoryGroups.map(group=><optgroup key={group.label} label={group.label}>{group.options.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</optgroup>)}
+      </select> : ['description', 'source_note', 'hours'].includes(key) ? <textarea id={`organization-${key}`} name={key} maxLength={limit} required={required} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: event.target.value })} aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `error-${key}` : undefined} rows={key === 'description' ? 5 : 3}/> : <input id={`organization-${key}`} name={key} maxLength={limit} required={required} type={key === 'phone' ? 'tel' : ['website', 'vk_url'].includes(key) ? 'url' : 'text'} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: event.target.value })} aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `error-${key}` : undefined} placeholder={['website', 'vk_url'].includes(key) ? 'https://' : undefined}/>}
       {errors[key] && <small id={`error-${key}`} className="organization-error">{errors[key]}</small>}
       {key === 'source_note' && <small>Укажите ссылку или объясните, откуда получены сведения. Источник заявки не публикуется автоматически.</small>}
     </div>)}

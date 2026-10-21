@@ -190,6 +190,18 @@ with sync_playwright() as p:
   assert records(None,table,title)[0]['status']=='published'
   guest.goto(origin+'/host/'+module+'/')
   expect(guest.get_by_role('heading',name=title,exact=True)).to_be_visible()
+  if module=='classifieds':
+   for role in ['seller','editor','foreign_editor']:
+    rpc(role,'owner_pin_classified',{'p_id':first_id,'p_pin':True},403)
+   owner.goto(origin+'/host/classifieds/')
+   owner.get_by_role('button',name='Закрепить объявление: '+title,exact=True).click()
+   expect(owner.get_by_role('button',name='Открепить объявление: '+title,exact=True)).to_be_visible()
+   guest.reload()
+   expect(guest.locator('article').filter(has=guest.get_by_role('heading',name=title,exact=True)).locator('.listing-pin-badge')).to_be_visible()
+   expect(guest.get_by_role('button',name='Открепить объявление: '+title,exact=True)).to_have_count(0)
+   owner.get_by_role('button',name='Открепить объявление: '+title,exact=True).click()
+   expect(owner.get_by_role('button',name='Закрепить объявление: '+title,exact=True)).to_be_visible()
+   passed('owner-only published classified pin/unpin through real UI and RPC; guest badge; residents and city staff denied')
   guest.locator('#city').select_option('Лесосибирск')
   expect(guest.get_by_role('heading',name=title,exact=True)).to_have_count(0)
   passed(module+f': upload and submit retries keep one ID and {expected_photo_count} photos; draft/pending private; resident and foreign staff denied; rejection reason; correction; owner approval; public feed separated by city')
