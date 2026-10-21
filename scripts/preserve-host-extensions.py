@@ -34,10 +34,10 @@ class Extensions(HTMLParser):
         if tag == 'script' and url.path == '/ui/site-shell.js':
             attrs['src'] = '/ui/site-shell.js?v=20261021music2'
         if tag == 'script' and url.path in ('/categories/panel.js','/admin/catalog.js'):
-            attrs['src'] = url.path+'?v=20261021requests1'
+            attrs['src'] = url.path+'?v=20261021requests2'
             attrs['type'] = 'module'
         if tag == 'link' and url.path == '/admin/catalog.css':
-            attrs['href'] = '/admin/catalog.css?v=20261021requests1'
+            attrs['href'] = '/admin/catalog.css?v=20261021requests2'
         # Preserve only browser loading attributes, never event-handler code.
         keep = ('src', 'type', 'defer', 'async', 'crossorigin') if tag == 'script' else ('href', 'rel', 'type', 'sizes', 'crossorigin')
         safe = ' '.join(name if attrs[name] is None else name+'="'+escape(attrs[name], quote=True)+'"'

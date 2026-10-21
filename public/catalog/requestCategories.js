@@ -9,7 +9,7 @@ export const requestCategoryGroups=catalogGroups.flatMap(group=>group.items).fil
    const parts=[...path,branch.name];
    if(branch.subs?.length){visit(branch.subs,parts);continue;}
    const value=branch.foodKey?savedFoodCategory(branch.foodKey):[parent.catalogCategory||parent.name,...parts].join(' / ');
-   options.push({label:parts.join(' / '),value,kind:serviceParents.has(parent.name)?'services':'places'});
+   options.push({label:parts.join(' / '),value,term:branch.term||branch.name,kind:serviceParents.has(parent.name)?'services':'places'});
   }
  };
  visit(parent.subs||[]);
