@@ -177,7 +177,7 @@ try {
       const cafeFilter=page.getByRole('group',{name:'Подкатегории',exact:true})
         .getByRole('button',{name:'Кафе и кофейни',exact:true});
       assert.equal(await cafeFilter.getAttribute('aria-pressed'),'true');
-      assert(new URL(page.url()).hash.includes('subcategory='),'Category selection did not update the public URL');
+      assert(page.url().includes('#/places?')&&page.url().includes('subcategory='),'Category selection did not update the public URL');
       assert(await page.locator('main .card').count()>0,'Food category contains no public cards');
       result.checks.push('Shared live directory opens a precise public food subcategory');
       await page.screenshot({ path: `${folder}/${scenario.name}-food.png`, fullPage: true, animations: 'disabled' });
