@@ -1,3 +1,4 @@
+import { isLegacyIllustration } from '../components/mediaSource';
 import type { Item } from '../types';
 import { placeMapLinks } from '../maps/placeMapLinks';
 import { PlaceMap } from '../components/places/PlaceMap';
@@ -72,7 +73,7 @@ export function DetailPage({
         <span className="eyebrow">{item.city} · {item.category}</span>
         <h1>{item.title}</h1>
       </div>
-      {(item.photoIllustrative || item.image.split(/[?#]/)[0].endsWith('.svg') || item.photoCredit) && <p className="illustration-caption">{item.photoIllustrative ? 'Тематическая фотография, не снимок этой организации.' : item.image.split(/[?#]/)[0].endsWith('.svg') ? 'Иллюстрация, не фотография организации.' : 'Фото реального объекта.'} {item.photoCredit && (item.photoSourceUrl ? <a href={item.photoSourceUrl} target="_blank" rel="noopener noreferrer">{item.photoCredit}</a> : item.photoCredit)} {item.photoLicenseUrl && <a href={item.photoLicenseUrl} target="_blank" rel="noopener noreferrer">Лицензия</a>}</p>}
+      {(!isLegacyIllustration(item.image) && (item.photoIllustrative || item.photoCredit)) && <p className="illustration-caption">{item.photoIllustrative ? 'Тематическая фотография, не снимок этой организации.' : item.image.split(/[?#]/)[0].endsWith('.svg') ? 'Иллюстрация, не фотография организации.' : 'Фото реального объекта.'} {item.photoCredit && (item.photoSourceUrl ? <a href={item.photoSourceUrl} target="_blank" rel="noopener noreferrer">{item.photoCredit}</a> : item.photoCredit)} {item.photoLicenseUrl && <a href={item.photoLicenseUrl} target="_blank" rel="noopener noreferrer">Лицензия</a>}</p>}
     </div>
 
     <nav className="detail-quick-tabs" aria-label="Разделы карточки">

@@ -1,3 +1,4 @@
+import { categoryParts, foodSubcategories } from '../../public/catalog/taxonomy.js';
 import type { Item, Kind } from '../types';
 import { categories, sectionTitles } from '../data/catalog';
 import { Card, type CardActions } from '../components/Card';
@@ -14,8 +15,8 @@ export function CatalogPage({ kind, city, filters, onFiltersChange, items: cityI
  const subtitles: Record<Kind,string>={events:`Подтверждённые события города ${city}.`,places:`Места и организации города ${city}.`,services:`Полезные организации и услуги города ${city}.`};
  const hasPublishedItems = cityItems.some(item => item.kind === kind);
  const items = cityItems.filter(item => item.kind === kind && matchesCatalogFilters(item,filters) && matches(item,query));
- const availableCategories = hasPublishedItems ? [...new Set([...categories[kind], ...cityItems.filter(item => item.kind === kind).map(item => item.category.split(' / ')[0])])] : ['Все'];
- const subcategories=[...new Set(cityItems.filter(item=>item.kind===kind && (category==='Все'||item.category.split(' / ')[0]===category)).map(item=>item.category.split(' / ').slice(1).join(' / ')).filter(Boolean))];
+ const availableCategories = hasPublishedItems ? [...new Set([...categories[kind], ...cityItems.filter(item => item.kind === kind).map(item => categoryParts(item).category)])] : ['Все'];
+ const subcategories=category==='Кафе'?foodSubcategories.map(sub=>sub.name):[...new Set(cityItems.filter(item=>item.kind===kind && (category==='Все'||categoryParts(item).category===category)).map(item=>categoryParts(item).subcategory).filter(Boolean))];
  const reset = () => onFiltersChange({...emptyCatalogFilters});
  return <><div className="page-heading"><span className="eyebrow">ОТКРЫВАЙ · СОХРАНЯЙ · ПРОБУЙ</span><h1>{sectionTitles[kind]}</h1><p>{subtitles[kind]}</p>{addOrganization && <button className="primary-button organization-catalog-action" onClick={addOrganization}>Добавить организацию</button>}</div>{kind === 'places' && catalogStatus === 'loading' && <p className="organization-catalog-status" role="status">Обновляем каталог. Местные карточки уже доступны.</p>}{kind === 'places' && catalogStatus === 'fallback' && <div className="organization-catalog-status" role="status">Сервис организаций недоступен. Показан сохранённый каталог.<button className="back-link" onClick={retryCatalog}>Повторить</button></div>}<Search value={query} onChange={setQuery} placeholder={`Поиск: ${kind === 'events' ? 'название, событие, площадка' : kind === 'places' ? 'место, категория, адрес' : 'услуга, мастер, категория'}`}/><div className="filter-scroll" role="group" aria-label="Категории">{availableCategories.map(name => <button key={name} className={`chip ${name === category ? 'selected' : ''}`} aria-pressed={name === category} onClick={() => setCategory(name)}>{name}</button>)}</div>
  {subcategories.length>0 && <div className="filter-scroll" role="group" aria-label="Подкатегории">{['Все',...subcategories].map(name=><button key={name} className={`chip ${name===subcategory?'selected':''}`} aria-pressed={name===subcategory} onClick={()=>change({subcategory:name})}>{name}</button>)}</div>}

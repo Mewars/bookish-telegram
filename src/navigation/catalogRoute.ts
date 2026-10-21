@@ -1,3 +1,4 @@
+import { categoryParts } from '../../public/catalog/taxonomy.js';
 import type { Item, Kind } from '../types';
 
 export interface CatalogFilters {
@@ -76,8 +77,8 @@ export function detailHash(kind:Kind,id:string,city:string,fromHash:string):stri
   return '#/'+kind+'/'+encodeURIComponent(id)+'?'+params.toString();
 }
 export function matchesCatalogFilters(item:Item,filters:CatalogFilters):boolean {
-  const [category,...rest]=item.category.split(' / ');
+  const {category,subcategory}=categoryParts(item);
   return (filters.category==='Все'||category===filters.category) &&
-    (filters.subcategory==='Все'||rest.join(' / ')===filters.subcategory) &&
+    (filters.subcategory==='Все'||subcategory===filters.subcategory) &&
     (item.kind!=='events'||filters.when==='Все даты'||item.dateOffset===(filters.when==='Сегодня'?0:1));
 }

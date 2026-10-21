@@ -842,3 +842,23 @@ html:root[data-a11y-motion=reduce] .city-home .home-carousel-arrow {transition:n
   .city-home .home-carousel-stage .home-carousel-arrow--next {right:3px;}
   .city-home .home-carousel-stage .home-carousel-arrow svg {width:25px;height:25px;}
 }
+
+/* Compact the existing cover without changing its image or the mobile composition. */
+@media (min-width:900px) {
+  .city-home>.city-cover {height:clamp(490px,38vw,610px);}
+  .city-cover-content {top:105px;}
+  .city-cover-content h1 {font-size:clamp(98px,10.3vw,168px);}
+  .cover-tagline {font-size:clamp(30px,2.8vw,46px);}
+}
+@media (min-width:600px) and (max-width:899px) {
+  .city-home>.city-cover {height:560px;}
+  .city-cover-content {top:100px;}
+}
+@media (max-width:599px) {
+  .city-home>.city-cover {margin-bottom:18px;}
+  .city-cover .city-cover-content {padding-bottom:16px;margin-top:-10px;}
+  .city-cover .cover-summary {margin-top:8px;line-height:1.4;}
+  .city-cover .cover-tagline {margin-top:8px;font-size:clamp(23px,6.2vw,30px);}
+  .city-cover .cover-search {margin-top:12px;}
+  .city-cover .quick-discovery {margin-top:10px;}
+}

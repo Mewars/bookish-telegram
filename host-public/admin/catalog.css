@@ -1,0 +1,33 @@
+/* Новые категории в CMS РЯДОМ: независимая навигация, оригинальная сетка доступна по запросу. */
+.admin-cms-categories:not(.ryadm-show-legacy):has(.ryadm-interface) .admin-cms-tiles{display:none!important}
+.ryadm-interface{color:#162a36;font:15px/1.45 system-ui,-apple-system,'Segoe UI',sans-serif;margin:22px 0 6px;clear:both}
+.ryadm-interface *{box-sizing:border-box}
+.ryadm-interface .ryadm-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ryadm-interface .ryadm-note{font-size:13px;color:#5f7083;line-height:1.5;margin:9px 0}
+.ryadm-switch,.ryadm-back{padding:8px 12px;border:1px solid #c9d3df;background:#f5f8fb;border-radius:10px;color:#243e52;cursor:pointer;font:700 13px system-ui}
+.ryadm-controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ryadm-controls .ryadm-search{flex:1 1 250px;border:1px solid #c3d2dc;border-radius:11px;background:#fff;color:#12303e;min-height:42px;padding:10px 12px;font:14px system-ui;max-width:100%}
+.ryadm-title{font:800 21px system-ui;color:#162a36;margin:15px 0 7px}
+.ryadm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:15px 0}
+.ryadm-card{text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px 15px;border:1px solid #cbd7e0;border-radius:14px;background:#f6f9fb;color:#142d3b;min-height:88px;cursor:pointer}
+.ryadm-card:hover,.ryadm-card:focus-visible{background:#fff7e4;border-color:#dfa742;outline:none}
+.ryadm-card strong{font:800 15px/1.35 system-ui}.ryadm-card small{font:12px/1.35 system-ui;color:#637587}
+.ryadm-all{display:inline-block;padding:10px 14px;margin:8px 0 14px;background:#ffd166;color:#10202b;text-decoration:none;border:1px solid #e2ab3c;border-radius:11px;font:750 14px system-ui;cursor:pointer}
+.ryadm-results{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+.ryadm-result{display:flex;gap:10px;justify-content:space-between;align-items:center;background:white;border:1px solid #d9e1e9;border-radius:12px;padding:12px}
+.ryadm-result strong,.ryadm-result small{display:block}.ryadm-result strong{font-size:15px}.ryadm-result small{color:#647589;line-height:1.5;margin-top:4px;font-size:12px}
+.ryadm-primary{background:#ffd166;border:1px solid #e1b04d;border-radius:10px;color:#15232e;font:750 13px system-ui;padding:10px 13px;cursor:pointer}
+.ryadm-result-actions{display:flex;gap:7px}.ryadm-back[hidden]{display:none!important}
+.ryadm-edit-overlay{position:fixed;inset:0;background:#04111cd9;z-index:2147483200;display:grid;place-items:center;padding:15px}
+.ryadm-edit-panel{max-height:min(85dvh,800px);overflow:auto;width:min(560px,100%);padding:22px;border:1px solid #6b8495;border-radius:18px;background:#fff;color:#152d3a}
+.ryadm-edit-panel h3{font-size:20px;margin:0 0 14px}.ryadm-field{display:flex;flex-direction:column;gap:6px;margin:11px 0;font-weight:750;font-size:13px}
+.ryadm-field input,.ryadm-field textarea{font:15px system-ui;border:1px solid #b9cad6;background:#fff;color:#152d3a;border-radius:10px;padding:11px 12px;width:100%}
+.ryadm-field textarea{min-height:130px}.ryadm-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:15px}
+.ryadm-actions button{padding:10px 15px;border-radius:10px;border:1px solid #bed0db;cursor:pointer}
+@media(max-width:580px){.ryadm-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.ryadm-card{padding:10px;min-height:75px}.ryadm-card strong{font-size:13px}.ryadm-result{align-items:flex-start;flex-direction:column}.ryadm-result-actions{width:100%}.ryadm-title{font-size:19px}}
+
+.ryadm-city{padding:10px;border:1px solid #c3d2dc;border-radius:10px;background:white;color:#1b3444;font:14px system-ui;max-width:180px}
+.ryadm-controls {flex-wrap:wrap;}
+.ryadm-card small {line-height:1.5;white-space:normal;}
+.ryadm-toolbar {gap:12px;flex-wrap:wrap;}
+.ryadm-edit-panel select {width:100%;padding:10px;border:1px solid #ccd7e0;border-radius:8px;background:white;color:#17314a;}
