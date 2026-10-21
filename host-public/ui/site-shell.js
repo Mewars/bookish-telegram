@@ -47,28 +47,13 @@
       z-index:20001!important}
     .ryadom-shell-overlay{position:fixed;inset:0;z-index:99990;background:#071622;
       display:flex;flex-direction:column;color:#fff8e9}
-    .ryadom-shell-bar{flex:none;display:flex;gap:10px;align-items:center;
-      min-height:54px;padding:8px 16px;background:#0d2634;
-      border-bottom:1px solid #36566a;font:600 14px system-ui}
-    .ryadom-shell-bar button{cursor:pointer;min-height:36px;border:1px solid #61808f;
-      background:#163747;color:#fff8e9;padding:7px 14px;border-radius:12px;font:inherit}
-    .ryadom-shell-bar button:hover{background:#244b5f}
-    .ryadom-shell-bar .ryadom-shell-back{background:#ffd166;border-color:#ffd166;color:#061b2a}
-    .ryadom-shell-music{margin-left:auto;display:flex;align-items:center;gap:6px;min-width:0}
-    .ryadom-shell-music button{min-width:36px;padding:6px 8px}
-    .ryadom-shell-music input{width:72px;min-width:0;accent-color:#ffd166}
-    .ryadom-shell-music [hidden]{display:none!important}
-    .ryadom-shell-bar button:focus-visible{outline:3px solid #ffd166;outline-offset:3px}
     .ryadom-shell-iframe{flex:1;width:100%;min-height:0;border:0;background:#071622}
     @media(max-width:899px){
       #root .app-header .ryadom-notif-trigger.ryadom-bell-header{min-width:32px;
         width:32px;height:32px;padding:3px;font-size:16px}
       #root .app-header .ryadom-notif-trigger.ryadom-bell-header .ryadom-notif-count{
         min-width:15px;padding:1px 3px;font-size:9px}
-      .ryadom-shell-bar{gap:6px;padding:6px 9px}
-      .ryadom-shell-bar button{padding:6px 9px;font-size:12px}
-      .ryadom-shell-music{gap:4px}
-      .ryadom-shell-music input{width:54px}
+
     }
     @media(max-width:520px){
       #root .app-header {gap:6px!important;padding-left:10px!important;padding-right:10px!important}
@@ -78,28 +63,6 @@
   document.head.append(css);
 
   let overlay=null, frame=null, beforeScroll='', beforeFocus=null;
-  let musicState=null, musicControls=null;
-  const musicCommand=(action,extra={})=>window.dispatchEvent(new CustomEvent('ryadom:music-command',{detail:{action,...extra}}));
-  function syncMusicControls(){
-    if(!musicControls)return;
-    const {toggle,mute,volume}=musicControls;
-    const status=musicState?.status||'idle';
-    const available=status!=='idle'&&(musicState?.isOpen||status==='playing'||status==='loading');
-    toggle.hidden=mute.hidden=volume.hidden=!available;
-    const label=status==='loading'?'Отменить подключение радио':musicState?.isPlaying?'Приостановить Музыку рядом':'Включить Музыку рядом';
-    toggle.textContent=status==='loading'?'…':musicState?.isPlaying?'❚❚':'▶';
-    toggle.setAttribute('aria-label',label);toggle.title=label;
-    mute.textContent=musicState?.isMuted?'🔇':'♪';
-    mute.setAttribute('aria-label',musicState?.isMuted?'Включить звук':'Отключить звук');
-    mute.setAttribute('aria-pressed',String(Boolean(musicState?.isMuted)));
-    volume.value=String(Math.round((musicState?.volume??0.6)*100));
-    volume.setAttribute('aria-valuetext',volume.value+'%');
-  }
-  window.addEventListener('ryadom:music-state',event=>{
-    if(!event.detail||typeof event.detail!=='object')return;
-    musicState=event.detail;syncMusicControls();
-  });
-  musicCommand('request-state');
   const bellSelector='button.ryadom-notif-trigger';
   const updateBellPopover = () => {
     const button=document.querySelector(`${bellSelector}.ryadom-bell-header`);
@@ -164,6 +127,7 @@
       const style=doc.createElement('style');
       style.textContent='.ryadom-notif-trigger,.ryadom-notif-popover,.ryadom-push-consent{display:none!important}';
       doc.head.append(style);
+      doc.addEventListener('keydown',onEscape,true);
       doc.addEventListener('click',event=>{
         const a=event.target instanceof doc.defaultView.Element?event.target.closest('a[href]'):null;
         if(!a||event.defaultPrevented||event.button!==0||event.ctrlKey||event.shiftKey||event.altKey||event.metaKey||a.target==='_blank'||a.hasAttribute('download'))return;
@@ -179,7 +143,7 @@
   }
   function closeSection(){
     if(!overlay) return;
-    overlay.remove();overlay=null;frame=null;musicControls=null;
+    overlay.remove();overlay=null;frame=null;
     document.body.style.overflow=beforeScroll;
     document.removeEventListener('keydown',onEscape,true);
     if(beforeFocus instanceof HTMLElement && beforeFocus.isConnected)beforeFocus.focus({preventScroll:true});
@@ -194,31 +158,13 @@
     overlay=document.createElement('section');overlay.className='ryadom-shell-overlay';
     overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
     overlay.setAttribute('aria-label','Городской раздел РЯДОМ');
-    const bar=document.createElement('div');bar.className='ryadom-shell-bar';
-    const close=document.createElement('button');close.type='button';
-    close.className='ryadom-shell-back';close.textContent='← На главную';
-    close.onclick=closeSection;
-    const controls=document.createElement('div');controls.className='ryadom-shell-music';
-    controls.setAttribute('role','group');controls.setAttribute('aria-label','Музыка рядом');
-    const toggle=document.createElement('button');toggle.type='button';toggle.hidden=true;
-    toggle.className='ryadom-shell-music-toggle';toggle.onclick=()=>musicCommand('toggle');
-    const mute=document.createElement('button');mute.type='button';mute.hidden=true;
-    mute.onclick=()=>musicCommand('toggle-mute');
-    const volume=document.createElement('input');volume.type='range';volume.min='0';volume.max='100';volume.hidden=true;
-    volume.setAttribute('aria-label','Громкость музыки');
-    volume.oninput=()=>musicCommand('set-volume',{value:Number(volume.value)/100});
-    const open=document.createElement('button');open.type='button';open.textContent='♫';
-    open.setAttribute('aria-label','Открыть Музыку рядом');open.title='Настройки музыки';
-    open.onclick=()=>{closeSection();musicCommand('open-player')};
-    controls.append(toggle,mute,volume,open);bar.append(close,controls);
-    musicControls={toggle,mute,volume};syncMusicControls();musicCommand('request-state');
     frame=document.createElement('iframe');frame.className='ryadom-shell-iframe';
     frame.title='Раздел РЯДОМ';frame.src=framePath(dest);
     frame.addEventListener('load',injectFrameSupport);
-    overlay.append(bar,frame);
+    overlay.append(frame);
     document.body.append(overlay);document.body.style.overflow='hidden';
     document.addEventListener('keydown',onEscape,true);
-    close.focus();
+    frame.focus();
     return true;
   }
   // Capture BEFORE the existing notification widget's donate-only handler.
