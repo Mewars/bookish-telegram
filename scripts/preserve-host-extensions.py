@@ -31,6 +31,8 @@ class Extensions(HTMLParser):
         if url.path in self.paths:
             return
         self.paths.add(url.path)
+        if tag == 'script' and url.path == '/ui/site-shell.js':
+            attrs['src'] = '/ui/site-shell.js?v=20261021music1'
         # Preserve only browser loading attributes, never event-handler code.
         keep = ('src', 'type', 'defer', 'async', 'crossorigin') if tag == 'script' else ('href', 'rel', 'type', 'sizes', 'crossorigin')
         safe = ' '.join(name if attrs[name] is None else name+'="'+escape(attrs[name], quote=True)+'"'

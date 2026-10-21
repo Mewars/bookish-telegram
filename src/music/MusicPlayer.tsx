@@ -5,7 +5,7 @@ import './music.css';
 
 export function MusicButton() {
   const music = useMusic();
-  return <button className="music-launch" onClick={music.openPlayer} aria-label="Открыть Музыку рядом" aria-controls="music-player" aria-expanded={music.isOpen}><Icon name="music" size={18}/><span>Музыка рядом</span>{music.isPlaying && <span className="music-live" aria-hidden="true"/>}<span className="music-state-label" aria-hidden="true">{music.isPlaying ? 'Играет' : 'Выключена'}</span></button>;
+  return <button className="music-launch" onClick={music.openPlayer} aria-label="Открыть Музыку рядом" aria-controls="music-player" aria-expanded={music.isOpen}><Icon name="music" size={18}/><span>Музыка рядом</span>{music.isPlaying && <span className="music-live" aria-hidden="true"/>}<span className="music-state-label" aria-hidden="true">{music.status === 'loading' ? 'Подключение' : music.isPlaying ? 'Играет' : music.status === 'paused' ? 'Пауза' : music.status === 'error' ? 'Недоступна' : 'Выключена'}</span></button>;
 }
 export function MusicPlayer() {
   const music = useMusic();
@@ -26,6 +26,6 @@ export function MusicPlayer() {
     <button className="music-play" onClick={music.toggle} aria-label={active ? 'Приостановить Музыку рядом' : 'Включить Музыку рядом'}><Icon name={active ? 'pause' : 'play'}/></button>
     <div className="music-settings" id="music-settings"><button onClick={music.toggleMute} aria-label={music.isMuted ? 'Включить звук' : 'Отключить звук'} aria-pressed={music.isMuted}><Icon name={music.isMuted ? 'muted' : 'volume'}/></button><label className="music-volume">Громкость<input type="range" min="0" max="100" value={Math.round(music.volume * 100)} aria-label="Громкость музыки" aria-valuetext={`${Math.round(music.volume * 100)}%`} onChange={event => music.setVolume(Number(event.target.value) / 100)}/></label><span className="music-percent">{Math.round(music.volume * 100)}%</span></div>
     <button className="music-close" onClick={music.closePlayer} aria-label="Скрыть плеер, сохранив воспроизведение"><Icon name="close" size={18}/></button>
-    <div className="music-status" role="status" aria-live="polite">{music.status === 'loading' ? 'Подключаем эфир…' : music.error ? <>{music.error} <button onClick={() => void music.play()}>Повторить</button></> : music.isPlaying ? 'В прямом эфире' : 'Нажмите Play, чтобы включить эфир'}</div>
+    {(music.status === 'loading' || music.error) && <div className="music-status" role="status" aria-live="polite">{music.status === 'loading' ? 'Подключаем эфир…' : music.error ? <>{music.error} <button onClick={() => void music.play()}>Повторить</button></> : null}</div>}
   </section>;
 }
