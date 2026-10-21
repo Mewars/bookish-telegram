@@ -118,8 +118,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(response.read())
                 return
-        path = (root / unquote(urlsplit(self.path).path).lstrip("/")).resolve()
-        if not path.is_relative_to(root):
+        relative = unquote(urlsplit(self.path).path)
+        allowed_root = root
+        if relative.startswith('/host/'):
+            allowed_root = (Path(__file__).resolve().parents[2] / 'host-public').resolve()
+            path = (allowed_root / relative.removeprefix('/host/')).resolve()
+            if relative in ['/host/wall/supabase-client.js', '/host/classifieds/supabase-client.js']:
+                allowed_root = args.workdir.resolve()
+                path = allowed_root / 'host-supabase-client.js'
+        else:
+            path = (root / relative.lstrip('/')).resolve()
+        if not path.is_relative_to(allowed_root):
             self.send_error(403)
             return
         if path.is_dir():

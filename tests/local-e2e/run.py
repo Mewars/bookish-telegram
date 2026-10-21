@@ -85,7 +85,7 @@ for role, user in cfg["users"].items():
     )
     assert status == 200, "Real Auth API sign-in failed: " + role
     tokens[role] = data["access_token"]
-passed("five independent synthetic users authenticate against real local Auth")
+passed("six independent synthetic users authenticate against real local Auth")
 
 
 def png(color):
