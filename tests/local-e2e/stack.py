@@ -292,11 +292,20 @@ for filename in [
     "docs/sql/classified-reports-review-v1.sql",
     "docs/sql/classified-owner-archive-v1.sql",
     "docs/sql/classified-rejection-reasons-v1.sql",
+    "docs/sql/classified-revision-v1.sql",
+    "tests/local-e2e/host-schema/classifieds_expand_deal_types_20261018_v1.sql",
+    "docs/sql/community-feed-v1.sql",
+    "docs/sql/community-post-archive-v1.sql",
+    "tests/local-e2e/host-schema/community_wall_city_pin_settings_v1.sql",
+    "tests/local-e2e/host-schema/community_wall_photos_likes_v1.sql",
+    "tests/local-e2e/host-schema/wall_raster_formats_and_video_v1.sql",
+    "tests/local-e2e/host-schema/wall_author_retract_pending_v1.sql",
+    "docs/sql/community-review-reasons-v1.sql",
     "docs/sql/friends-nearby-private-v1.sql",
 ]:
     sql((REPO / filename).read_text())
 config["users"] = {}
-for role in ["seller", "buyer", "outsider", "editor", "foreign_editor"]:
+for role in ["seller", "buyer", "outsider", "editor", "foreign_editor", "owner"]:
     user = {
         "email": role + "@ryadom-e2e.invalid",
         "password": secrets.token_urlsafe(24),
@@ -319,10 +328,10 @@ values = ",".join(
 )
 sql(
     "INSERT INTO public.city_admin_access(user_id,city,role) VALUES "
-    + values
+    + values + f",('{config['users']['owner']['id']}','*','owner')"
     + "; NOTIFY pgrst,'reload schema';"
 )
 credential_file.write_text(json.dumps(config))
 print(
-    "Local-only Auth/PostgREST/Storage ready; five synthetic users created via Auth API. No cloud project accessed."
+    "Local-only Auth/PostgREST/Storage ready; six synthetic users created via Auth API. No cloud project accessed."
 )

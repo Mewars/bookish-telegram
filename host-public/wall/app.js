@@ -446,19 +446,20 @@ async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(
  if(!existing)form.append(el('p','draft-help field full',[
   'Текст сохранится при выходе со страницы и после обновления. Фотографии нужно выбрать повторно. При вставке текста символы **жирного** и *курсива* автоматически убираются.'
  ]));
+ let savedPostId=existing?.id||null;const uploadedPhotos=new Set();let uploadedVideo=null;
  const buttons=el('div','btnrow');const submit=btn(existing?'Сохранить изменения':'Отправить запись',()=>{});submit.type='submit';buttons.append(submit,btn('Отмена',()=>goto(existing?'mine':'feed'),'btn secondary'));form.append(el('div','field full',[buttons]));form.addEventListener('submit',ev=>{ev.preventDefault();void act(async()=>{
   if(!authRequired())return;submit.disabled=true;
   try{
    const uploads=[...files.files],videoFile=videoInput.files?.[0]||null;
    if(uploads.length>4)throw Error('К одной записи можно прикрепить не более четырёх фотографий.');
-   const photos=uploads.map(f=>({f,type:fileType(f,PHOTO_TYPES)}));
+   const photos=uploads.filter(f=>!uploadedPhotos.has(f)).map(f=>({f,type:fileType(f,PHOTO_TYPES)}));
    for(const item of photos){if(!item.type)throw Error('Неподдерживаемый формат фотографии: '+item.f.name);
     if(item.f.size>10485760)throw Error('Фотография превышает 10 МБ: '+item.f.name);}
    const videoType=videoFile?fileType(videoFile,VIDEO_TYPES):null;
    if(videoFile&&(!videoType||videoFile.size>52428800))throw Error('Видео должно быть MP4, WebM или MOV размером до 50 МБ.');
    let postId;
-   if(existing){await saveWallDraft(sb,existing.id,s.user.id,cleanMarkdownPaste(title.value.trim()),cleanMarkdownPaste(body.value.trim()));postId=existing.id;
-   }else{postId=await rpc('create_community_post',{p_city:s.city,p_type:typ.value,p_title:cleanMarkdownPaste(title.value.trim()),p_body:cleanMarkdownPaste(body.value.trim())});}
+   if(savedPostId){await saveWallDraft(sb,savedPostId,s.user.id,cleanMarkdownPaste(title.value.trim()),cleanMarkdownPaste(body.value.trim()));postId=savedPostId;
+   }else{postId=await rpc('create_community_post',{p_city:s.city,p_type:typ.value,p_title:cleanMarkdownPaste(title.value.trim()),p_body:cleanMarkdownPaste(body.value.trim())});savedPostId=postId;}
    if(photos.length){const current=await getPhotos([postId]);const taken=new Set((current.get(postId)||[]).map(p=>p.slot));
     const free=[0,1,2,3].filter(x=>!taken.has(x));
     if(photos.length>free.length)throw Error('В записи можно хранить до четырёх фотографий. Уже добавлено: '+taken.size);
@@ -466,14 +467,14 @@ async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(
      const {f,type}=photos[i],recordId=crypto.randomUUID();
      const {data:ph,error}=await sb.from('community_post_photos').insert({id:recordId,post_id:postId,slot:free[i],format:type.format}).select('object_path').single();if(error)throw error;
      const put=await sb.storage.from('ryadom-wall-photos').upload(ph.object_path,f,{contentType:type.mime,upsert:false});
-     if(put.error){await sb.from('community_post_photos').delete().eq('id',recordId);throw put.error;}
+     if(put.error){await sb.from('community_post_photos').delete().eq('id',recordId);throw put.error;}uploadedPhotos.add(f);
     }
    }
-   if(videoFile){const current=await getVideos([postId]);if(current.has(postId))throw Error('У записи уже есть видео. Второе добавить нельзя.');
+   if(videoFile&&uploadedVideo!==videoFile){const current=await getVideos([postId]);if(current.has(postId))throw Error('У записи уже есть видео. Второе добавить нельзя.');
     const recordId=crypto.randomUUID();
     const {data:v,error}=await sb.from('community_post_videos').insert({id:recordId,post_id:postId,format:videoType.format}).select('object_path').single();if(error)throw error;
     const put=await sb.storage.from('ryadom-wall-videos').upload(v.object_path,videoFile,{contentType:videoType.mime,upsert:false});
-    if(put.error){await sb.from('community_post_videos').delete().eq('id',recordId);throw put.error;}
+    if(put.error){await sb.from('community_post_videos').delete().eq('id',recordId);throw put.error;}uploadedVideo=videoFile;
    }
    removeDraft(key);s.draftSave=null;
    if(existing){goto('mine');flash('Запись и вложения сохранены. Теперь нажмите «Отправить» в разделе «Мои записи».');}
