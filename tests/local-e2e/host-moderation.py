@@ -94,6 +94,15 @@ with sync_playwright() as p:
   resident.locator('input[type="file"]').first.set_input_files([
    {'name':'first.webp','mimeType':'image/webp','buffer':photo},
    {'name':'second.webp','mimeType':'image/webp','buffer':photo}])
+  expected_photo_count=2
+  if module=='classifieds':
+   resident.locator('input[type="file"]').first.set_input_files([
+    {'name':f'extra-{i}.webp','mimeType':'image/webp','buffer':photo} for i in range(8)])
+   expect(resident.locator('.photo-count')).to_contain_text('Фото: 10 из 10')
+   resident.locator('input[type="file"]').first.set_input_files({'name':'eleventh.webp','mimeType':'image/webp','buffer':photo})
+   expect(resident.locator('#alert')).to_contain_text('Максимум 10 фотографий')
+   expect(resident.locator('.photo-count')).to_contain_text('Фото: 10 из 10')
+   expected_photo_count=10
   uploads={'count':0}
   storage_pattern='**/storage/v1/object/'+('ryadom-classified-photos' if module=='classifieds' else 'ryadom-wall-photos')+'/**'
   def fail_second_upload(request):
@@ -131,7 +140,7 @@ with sync_playwright() as p:
   photo_table='classified_photos' if module=='classifieds' else 'community_post_photos'
   photo_key='listing_id' if module=='classifieds' else 'post_id'
   code,photos=api('seller','GET',f'/rest/v1/{photo_table}?select=id,object_path&{photo_key}=eq.{first_id}')
-  assert code==200 and len(photos)==2,(module,code,photos)
+  assert code==200 and len(photos)==expected_photo_count,(module,code,photos)
   # Real server permissions: hidden from guests, other residents, foreign staff.
   for role in [None,'buyer','foreign_editor']:
    assert records(role,table,title)==[],(module,role)
@@ -183,7 +192,7 @@ with sync_playwright() as p:
   expect(guest.get_by_role('heading',name=title,exact=True)).to_be_visible()
   guest.locator('#city').select_option('Лесосибирск')
   expect(guest.get_by_role('heading',name=title,exact=True)).to_have_count(0)
-  passed(module+': upload and submit retries keep one ID and two photos; draft/pending private; resident and foreign staff denied; rejection reason; correction; owner approval; public feed separated by city')
+  passed(module+f': upload and submit retries keep one ID and {expected_photo_count} photos; draft/pending private; resident and foreign staff denied; rejection reason; correction; owner approval; public feed separated by city')
  # Server role matrix in a future city, with genuine local Auth JWTs.
  # Fixture-only setup uses psql in stack.py, never a browser service key.
  future_city='Новый город проверки'

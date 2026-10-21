@@ -29,6 +29,9 @@ with sync_playwright() as p:
   page.add_init_script(FAKE_AUDIO)
   page.goto(ORIGIN+'/#/home')
   page.locator('.city-home').wait_for()
+  # Production bundles inline the legacy SVGs: none may remain as card photos.
+  assert page.locator('.card-image img[src^="data:image/svg"]').count()==0
+  expect(page.locator('.card-image .photo-placeholder').first).to_be_visible()
   cookies=page.get_by_role('button',name='Только необходимые',exact=True)
   if cookies.is_visible():cookies.click()
   page.add_script_tag(path='host-public/ui/site-shell.js')
@@ -50,24 +53,22 @@ with sync_playwright() as p:
   expect(dialog).to_be_visible()
   expect(dialog.get_by_text('Плеер остаётся активным',exact=False)).to_have_count(0)
   expect(dialog.get_by_role('button',name='Открыть плеер',exact=True)).to_have_count(0)
-  expect(dialog.get_by_role('button',name='Приостановить Музыку рядом',exact=True)).to_be_visible()
-  size=dialog.locator('.ryadom-shell-bar').evaluate('(el)=>({scroll:el.scrollWidth,width:el.clientWidth})')
-  assert size['scroll']<=size['width']+2,size
-  volume=dialog.get_by_role('slider',name='Громкость музыки')
-  volume.press('Home');volume.press('ArrowRight')
-  assert page.evaluate('window.__testAudio[0].volume')==0.01
-  dialog.get_by_role('button',name='Отключить звук',exact=True).click()
-  assert page.evaluate('window.__testAudio[0].muted') is True
-  dialog.get_by_role('button',name='Приостановить Музыку рядом',exact=True).click()
-  assert page.evaluate('window.__testAudio[0].paused') is True
-  # While paused and the root widget is hidden, only the small music launcher remains.
-  expect(dialog.get_by_role('slider',name='Громкость музыки')).to_have_count(0)
-  dialog.get_by_role('button',name='Открыть Музыку рядом',exact=True).click()
+  expect(dialog.locator('.ryadom-shell-bar')).to_have_count(0)
+  expect(dialog.locator('.ryadom-shell-music')).to_have_count(0)
+  expect(dialog.get_by_role('button')).to_have_count(0)
+  assert page.evaluate('window.__testAudio[0].paused') is False
+  page.frame_locator('.ryadom-shell-iframe').get_by_role('link',name='Главная',exact=True).click()
   expect(dialog).to_have_count(0)
+  page.get_by_role('button',name='Открыть Музыку рядом',exact=True).click()
   expect(page.locator('#music-player')).to_be_visible()
   expect(page.get_by_role('slider',name='Громкость музыки')).to_have_count(0)
   page.get_by_role('button',name='Раскрыть настройки музыки',exact=True).click()
-  expect(page.get_by_role('slider',name='Громкость музыки')).to_have_value('1')
+  volume=page.get_by_role('slider',name='Громкость музыки')
+  volume.press('Home');volume.press('ArrowRight')
+  assert page.evaluate('window.__testAudio[0].volume')==0.01
+  page.get_by_role('button',name='Отключить звук',exact=True).click()
+  assert page.evaluate('window.__testAudio[0].muted') is True
+  page.get_by_role('button',name='Приостановить Музыку рядом',exact=True).click()
   assert page.evaluate('window.__testAudio[0].paused') is True
   page.get_by_role('button',name='Включить Музыку рядом',exact=True).click()
   page.evaluate("window.__testAudio[0].dispatchEvent(new Event('playing'))")
@@ -78,8 +79,9 @@ with sync_playwright() as p:
   assert page.evaluate('window.__testAudio.length')==1
   assert page.evaluate('window.__testAudio[0].paused') is False
   page.evaluate("window.__testAudio[0].dispatchEvent(new Event('error'))")
-  expect(dialog.get_by_role('button',name='Приостановить Музыку рядом',exact=True)).to_have_count(0)
-  expect(dialog.get_by_role('button',name='Включить Музыку рядом',exact=True)).to_be_visible()
+  expect(dialog.locator('.ryadom-shell-bar')).to_have_count(0)
+  page.frame_locator('.ryadom-shell-iframe').get_by_role('link',name='Главная',exact=True).click()
+  expect(page.get_by_role('button',name='Включить Музыку рядом',exact=True)).to_be_visible()
   assert not errors,errors
   print('PASS',width,'single audio; truthful states; route/iframe continuity; pause/mute/volume; no banner or overflow')
   context.close()

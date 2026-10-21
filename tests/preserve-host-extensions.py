@@ -16,7 +16,7 @@ class Preservation(unittest.TestCase):
         built='<head><script type="module" src="/assets/index-new.js"></script><meta name="ryadom-build-version" content="new"></head>'
         result=module.preserve(live,built)
         self.assertIn('index-new.js',result)
-        self.assertIn('/ui/site-shell.js?v=20261021music1',result)
+        self.assertIn('/ui/site-shell.js?v=20261021music2',result)
         self.assertNotIn('/ui/site-shell.js?v=1\"',result)
         self.assertIn('/categories/panel.css?v=1',result)
         self.assertIn('apple-mobile-web-app-title',result)
