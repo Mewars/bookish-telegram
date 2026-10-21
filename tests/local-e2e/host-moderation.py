@@ -187,13 +187,13 @@ with sync_playwright() as p:
  # Server role matrix in a future city, with genuine local Auth JWTs.
  # Fixture-only setup uses psql in stack.py, never a browser service key.
  future_city='Новый город проверки'
- code,_=api('owner','POST','/rest/v1/city_directory',{'name':future_city,'region':'Тестовая область'})
- assert code==201
+ code,created_city=api('owner','POST','/rest/v1/city_directory?select=name',{'name':future_city,'region':'Тестовая область'})
+ assert code==201,(code,created_city)
  for role,city,should_review in [('owner',future_city,True),('editor','Енисейск',False)]:
   post=rpc(role,'create_community_post',{'p_city':city,'p_type':'post','p_title':'Своя запись '+role,'p_body':'Синтетическая собственная запись для проверки роли.'})
   rpc(role,'community_submit_post',{'p_post_id':post})
   rpc(role,'review_community_post_with_reason',{'p_id':post,'p_approve':True,'p_reason':None},200 if should_review else 403)
-  code,rows=api(role,'POST','/rest/v1/classifieds',{'city':city,'title':'Своё объявление '+role,'description':'Синтетическое собственное объявление для проверки роли.','deal_type':'sell','category':'Другое'})
+  code,rows=api(role,'POST','/rest/v1/classifieds?select=id',{'city':city,'title':'Своё объявление '+role,'description':'Синтетическое собственное объявление для проверки роли.','deal_type':'sell','category':'Другое'})
   assert code==201,(role,code,rows)
   listing=rows[0]['id']
   code,_=api(role,'PATCH',f'/rest/v1/classifieds?id=eq.{listing}',{'status':'pending'})
