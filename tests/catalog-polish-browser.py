@@ -43,8 +43,9 @@ with sync_playwright() as p:
   cookies=page.get_by_role('button',name='Только необходимые',exact=True)
   if cookies.is_visible():cookies.click()
   cover=page.locator('.city-cover');bounds=cover.bounding_box()
-  if width==1440:assert bounds['height']<=610,bounds
-  else:assert bounds['height']<=620,bounds
+  assert abs(bounds['y']+bounds['height']-900)<=3,bounds
+  expect(page.get_by_role('link',name='Добавить организацию',exact=True)).to_be_visible()
+  assert page.locator('#city-selections').bounding_box()['y']>=897
   assert page.locator('.cover-search').bounding_box()['y']+page.locator('.cover-search').bounding_box()['height']<=bounds['y']+bounds['height']+2
   page.add_script_tag(url=ORIGIN+'/host-public/categories/panel.js',type='module')
   page.get_by_role('button',name='Все категории',exact=True).click()
@@ -79,6 +80,6 @@ with sync_playwright() as p:
   expect(page.locator('.ryadm-toolbar')).to_contain_text('3 всего')
   assert page.evaluate("window.catalogRequests.every(call=>call.filters.some(([key,value])=>key==='city'&&value.length===1&&value[0]==='Город А'))")
   assert not errors,errors
-  print('PASS',width,'compact cover; real/broken/changed images; shared food route; city/status counters; refresh; owner save; editor scope')
+  print('PASS',width,'first-screen cover and submission button; real/broken/changed images; shared food route; city/status counters; refresh; owner save; editor scope')
   context.close()
  browser.close()

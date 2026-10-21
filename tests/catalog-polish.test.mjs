@@ -48,3 +48,20 @@ test('managed counts page beyond 1000 rows and narrow every editor query to assi
  assert.deepEqual(await readManagedOrganizations(null,[{active:false,city:'*',role:'owner'}]),[]);
  assert.deepEqual(await readManagedOrganizations(null,[{active:true,city:'*',role:'editor'}]),[]);
 });
+
+test('organization requests use the public category tree and retain the selected branch',async()=>{
+ const {requestCategoryGroups,requestCategory}=await import('../public/catalog/requestCategories.js');
+ assert(requestCategoryGroups.length>10);
+ for(const group of requestCategoryGroups){
+  const parent=catalogGroups.flatMap(g=>g.items).find(p=>p.name===group.label);
+  for(const option of group.options){
+   assert(option.value.length<=100,option.value);
+   assert(matchesParent({category:option.value},parent),option.value);
+   assert(matchesCatalogFilters({kind:option.kind,category:option.value},{...emptyCatalogFilters,category:group.label,subcategory:option.label.split(' / ').at(-1)}),option.value);
+   assert.equal(requestCategory(option.value)?.value,option.value);
+  }
+ }
+ assert.equal(requestCategory('Кафе / Пиццерии и суши').kind,'places');
+ const services=requestCategoryGroups.find(g=>g.label==='Услуги и мастера');
+ assert(services.options.every(o=>o.kind==='services'));
+});

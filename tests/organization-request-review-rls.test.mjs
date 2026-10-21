@@ -67,7 +67,7 @@ test('organization applications: private photographs, city review, atomic publis
     assert.equal((await db.query("SELECT name FROM storage.objects WHERE bucket_id='ryadom-org-requests'")).rows.length,1);
   });
   await t.test('outsiders, applicant and cross-city editor cannot approve',async()=>{
-    const draft={city:'Енисейск',kind:'places',status:'published',title:'Кафе Тест',category:'Кафе',description:'Подробное описание',address:'ул. Тестовая 1'};
+    const draft={city:'Енисейск',kind:'places',status:'published',title:'Кафе Тест',category:'Кафе / Пиццерии и суши',description:'Подробное описание',address:'ул. Тестовая 1'};
     for(const id of [applicant,outsider]){
       await reset('authenticated',id);
       await assert.rejects(db.query("SELECT public.review_organization_request($1,'approved',$2,NULL)",[appId,JSON.stringify(draft)]),/Not authorized/);
@@ -78,6 +78,7 @@ test('organization applications: private photographs, city review, atomic publis
     const result=await db.query("SELECT public.review_organization_request($1,'approved',$2,NULL) AS id",[appId,JSON.stringify(draft)]);
     const publishedId=result.rows[0].id;
     assert.ok(publishedId.startsWith('place-'));
+    assert.equal((await db.query('SELECT category FROM public.organizations WHERE id=$1',[publishedId])).rows[0].category,'Кафе / Пиццерии и суши');
     assert.equal((await db.query('SELECT status FROM public.organizations WHERE id=$1',[publishedId])).rows[0].status,'published');
     assert.equal((await db.query('SELECT status,organization_id FROM public.organization_applications WHERE id=$1',[appId])).rows[0].organization_id,publishedId);
     await assert.rejects(db.query("SELECT public.review_organization_request($1,'approved',$2,NULL)",[appId,JSON.stringify(draft)]),/not pending/);

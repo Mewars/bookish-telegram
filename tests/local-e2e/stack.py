@@ -286,6 +286,7 @@ for filename in [
     "supabase/schema.sql",
     "docs/sql/city-directory-multicity.sql",
     "docs/sql/classifieds-private-messaging-v1.sql",
+    "docs/sql/classified-owner-pins-v1.sql",
     "docs/sql/classifieds-editor-privacy-v2.sql",
     "docs/sql/classified-photos-private-v1.sql",
     "docs/sql/classified-unread-receipts-v1.sql",

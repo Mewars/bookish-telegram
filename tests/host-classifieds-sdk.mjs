@@ -6,7 +6,7 @@ const row={id:'listing',city:'Енисейск',author_id:user.id,title:'Тес�
 window.hostCalls=[];
 class Query {
  constructor(table){this.table=table;this.filters=[];this.payload=null;this.one=false;}
- select(){return this;} order(){return this;} limit(){return this;}
+ range(){return this;} select(){return this;} order(){return this;} limit(){return this;}
  eq(k,v){this.filters.push([k,[v]]);return this;} in(k,v){this.filters.push([k,v]);return this;}
  update(payload){this.payload=payload;return this;}
  single(){this.one=true;return this;} maybeSingle(){this.one=true;return this;}

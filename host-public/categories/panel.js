@@ -1,4 +1,5 @@
-import {catalogGroups} from '/catalog/taxonomy.js?v=20261021catalog1';
+import {requestCategoryGroups} from '/catalog/requestCategories.js?v=20261021requests1';
+import {catalogGroups} from '/catalog/taxonomy.js?v=20261021requests1';
 /* РЯДОМ · фирменная панель разделов и подразделов. Ни одного стороннего дизайна. */
 (()=>{
 'use strict';
@@ -176,6 +177,11 @@ function choose(item,parent=activeParent){
  }
  if(item.section){const b=document.querySelector('.web-nav [data-section="'+item.section+'"],.bottom-nav [data-section="'+item.section+'"]');
   if(b instanceof HTMLElement)b.click();else location.hash='#/'+item.section;return;
+ }
+ const branch=requestCategoryGroups.find(group=>group.label===parent?.name);
+ if(branch?.options.length){
+  const params=new URLSearchParams({city,category:parent.catalogCategory||parent.name,subcategory:item.name});
+  location.hash='#/'+branch.options[0].kind+'?'+params.toString();return;
  }
  searchCatalog(item.term||item.name);
 }

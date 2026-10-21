@@ -843,22 +843,17 @@ html:root[data-a11y-motion=reduce] .city-home .home-carousel-arrow {transition:n
   .city-home .home-carousel-stage .home-carousel-arrow svg {width:25px;height:25px;}
 }
 
-/* Compact the existing cover without changing its image or the mobile composition. */
-@media (min-width:900px) {
-  .city-home>.city-cover {height:clamp(490px,38vw,610px);}
-  .city-cover-content {top:105px;}
-  .city-cover-content h1 {font-size:clamp(98px,10.3vw,168px);}
-  .cover-tagline {font-size:clamp(30px,2.8vw,46px);}
-}
-@media (min-width:600px) and (max-width:899px) {
-  .city-home>.city-cover {height:560px;}
-  .city-cover-content {top:100px;}
-}
-@media (max-width:599px) {
-  .city-home>.city-cover {margin-bottom:18px;}
-  .city-cover .city-cover-content {padding-bottom:16px;margin-top:-10px;}
-  .city-cover .cover-summary {margin-top:8px;line-height:1.4;}
-  .city-cover .cover-tagline {margin-top:8px;font-size:clamp(23px,6.2vw,30px);}
-  .city-cover .cover-search {margin-top:12px;}
-  .city-cover .quick-discovery {margin-top:10px;}
+/* One first screen: the city image ends where the following sections begin. */
+.city-home>.city-cover {height:var(--home-cover-height,calc(100svh - 80px));min-height:420px;margin-bottom:0;}
+.home-add-organization {display:flex;align-items:center;justify-content:center;gap:9px;width:max-content;max-width:100%;margin-top:14px;padding:13px 20px;border:1px solid #ffd166;border-radius:14px;color:#ffd166;background:rgba(7,22,34,.82);font-weight:750;text-decoration:none;}
+.home-add-organization:hover {background:#183747;}
+.home-add-organization:focus-visible {outline:3px solid #ffd166;outline-offset:3px;}
+@media(min-width:900px){.city-cover-content {top:105px;}.city-cover-content h1 {font-size:clamp(98px,10.3vw,168px);}}
+@media(max-width:599px){
+ .city-home>.city-cover {display:block;min-height:540px;border-radius:20px;}
+ .city-cover .cover-image {position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;}
+ .city-cover .cover-image img {object-fit:cover;object-position:62% center;}
+ .city-cover .cover-atmosphere {inset:0;height:100%;aspect-ratio:auto;background:linear-gradient(180deg,rgba(7,22,34,.14),rgba(7,22,34,.8) 50%,#071622);}
+ .city-cover .city-cover-content {position:absolute;inset:auto 0 25px;margin:0;padding:0 18px;width:100%;}
+ .home-add-organization {font-size:13px;padding:11px 15px;margin-top:12px;}
 }
