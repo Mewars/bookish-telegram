@@ -81,7 +81,8 @@ export function mergePublished(local: Item[], rows: OrganizationRow[], fallbackI
     const ownerPhoto = row.image_url && isSafeWebUrl(row.image_url) ? row.image_url : undefined;
     const photoHost = ownerPhoto ? new URL(ownerPhoto).hostname : '';
     const publicPhotoCredit = photoHost === 'avatars.mds.yandex.net' ? 'Фото: карточка организации в Яндекс Картах'
-      : photoHost === 'naov.ru' ? 'Фото: НАОВ.РУ, 2017 год' : undefined;
+      : photoHost === 'naov.ru' ? 'Фото: НАОВ.РУ, 2017 год'
+      : photoHost === 'visitsiberia.info' ? 'Фото: туристский портал Красноярского края' : undefined;
     const publicPhotoSource = publicPhotoCredit && row.source_url && isSafeWebUrl(row.source_url) ? row.source_url : undefined;
     const item: Item = {
       ...existing, id: existing?.id ?? row.id, city: row.city, kind, real: true,

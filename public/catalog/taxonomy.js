@@ -122,6 +122,11 @@ export const catalogGroups = [
             "name": "Нерудные материалы",
             "hint": "песок щебень гравий строительные материалы",
             "term": "нерудные материалы"
+          },
+          {
+            "name": "Универмаги и торговые центры",
+            "term": "универмаг",
+            "hint": "Универмаги и торговые центры"
           }
         ],
         "term": "магазин"
@@ -157,9 +162,9 @@ export const catalogGroups = [
       },
       {
         "name": "Гостиницы",
-        "description": "Гостиницы, хостелы, посуточно",
+        "description": "Отели, гостевые дома, общежития и загородный отдых",
         "icon": "hotel",
-        "hint": "Гостиницы Гостиницы, хостелы, посуточно Гостиницы и отели отель отели  Хостелы бюджетное проживание  Квартиры посуточно апартаменты квартиры  Почасовое размещение отель почасовой  Базы отдыха турбазы гостевые дома ",
+        "hint": "Гостиницы Гостиницы, хостелы, посуточно Гостиницы и отели отель отели  Хостелы бюджетное проживание  Квартиры посуточно апартаменты квартиры  Почасовое размещение отель почасовой  Базы отдыха турбазы гостевые дома  Гостевые дома общежития комнаты дома отдыха кемпинги глэмпинги юрты",
         "subs": [
           {
             "name": "Гостиницы и отели",
@@ -185,6 +190,36 @@ export const catalogGroups = [
             "name": "Базы отдыха",
             "hint": "турбазы гостевые дома",
             "term": "база отдыха"
+          },
+          {
+            "name": "Гостевые дома",
+            "term": "гостев",
+            "hint": "Гостевые дома"
+          },
+          {
+            "name": "Общежития",
+            "term": "общежит",
+            "hint": "Общежития"
+          },
+          {
+            "name": "Комнаты посуточно",
+            "term": "комнат",
+            "hint": "Комнаты посуточно"
+          },
+          {
+            "name": "Дома отдыха",
+            "term": "дом отдыха",
+            "hint": "Дома отдыха"
+          },
+          {
+            "name": "Кемпинги",
+            "term": "кемпинг",
+            "hint": "Кемпинги"
+          },
+          {
+            "name": "Глэмпинги и юрты",
+            "term": "глэмпинг",
+            "hint": "Глэмпинги и юрты"
           }
         ],
         "term": "гостиниц"
@@ -487,6 +522,11 @@ export const catalogGroups = [
             "name": "Спортивные школы",
             "term": "спортивная школа",
             "hint": "Детско-юношеские спортивные школы"
+          },
+          {
+            "name": "Управление образованием",
+            "term": "управление образованием",
+            "hint": "Управление образованием"
           }
         ],
         "term": "школ"
@@ -526,6 +566,11 @@ export const catalogGroups = [
             "name": "Ветеринария",
             "hint": "животные ветклиника",
             "term": "ветеринар"
+          },
+          {
+            "name": "Детские поликлиники",
+            "term": "детская поликлиника",
+            "hint": "Детские поликлиники"
           }
         ],
         "term": "больниц"
@@ -642,6 +687,11 @@ export const catalogGroups = [
             "name": "Детские площадки",
             "hint": "площадки для детей",
             "term": "детская площадка"
+          },
+          {
+            "name": "Зоны отдыха",
+            "term": "зона отдыха",
+            "hint": "Зоны отдыха"
           }
         ],
         "term": "парк"
@@ -682,6 +732,11 @@ export const catalogGroups = [
             "name": "Аэропорты",
             "hint": "Аэропорты",
             "term": "аэропорт"
+          },
+          {
+            "name": "Автовокзалы и автостанции",
+            "term": "автовокзал",
+            "hint": "Автовокзалы и автостанции"
           }
         ]
       },
@@ -866,6 +921,17 @@ export const catalogGroups = [
 export const foodSubcategories = catalogGroups.flatMap(group=>group.items)
   .find(parent=>parent.name==='Где поесть').subs;
 export const normalizeCategory = value=>String(value||'').toLocaleLowerCase('ru').replaceAll('ё','е').trim();
+const lodgingBranches=catalogGroups.flatMap(group=>group.items).find(parent=>parent.name==='Гостиницы').subs;
+export function lodgingSubcategory(item){
+ const parts=String(item.category||'').split(' / '),primary=normalizeCategory(parts[0]);
+ const declaredGuestHouse=/^гостевой дом(?=\s|[«"“]|$)/u.test(normalizeCategory(item.title));
+ if(!/гостиниц|отел|хостел|гостев|апартамент|посуточно|баз[аы] отдыха|дом[а]? отдыха|общежит|кемпинг|глэмпинг/.test(primary)&&!declaredGuestHouse)return null;
+ const exact=parts.length>1&&lodgingBranches.find(sub=>normalizeCategory(sub.name)===normalizeCategory(parts.slice(1).join(' / ')));
+ if(exact)return exact;
+ const value=primary==='гостиницы'?normalizeCategory(item.title):primary;
+ const declared=declaredGuestHouse?'Гостевые дома':/общежит/.test(value)?'Общежития':/хостел/.test(value)?'Хостелы':/гостев/.test(value)?'Гостевые дома':/баз[аы] отдыха/.test(value)?'Базы отдыха':/дом[а]? отдыха/.test(value)?'Дома отдыха':/комнат/.test(value)?'Комнаты посуточно':/посуточно|апартамент/.test(value)?'Квартиры посуточно':/глэмпинг|юрт/.test(value)?'Глэмпинги и юрты':/кемпинг/.test(value)?'Кемпинги':'Гостиницы и отели';
+ return lodgingBranches.find(sub=>sub.name===declared);
+}
 const foodTypes=[
  ['pizza-sushi',/пицц|суши|роллы/],['streetfood',/бургер|стритфуд|фастфуд|закусочн|шаурм/],
  ['canteen',/столов/],['bakery',/пекар|кондитер|булоч/],['restaurant',/ресторан/],
@@ -924,11 +990,13 @@ const parentPatterns={
 };
 export function matchesParent(item,parent){
  if(parent.name==='Где поесть')return isFoodCategory(item.category);
+ if(parent.name==='Гостиницы')return !!lodgingSubcategory(item);
  if(normalizeCategory(categoryParts(item).category)===normalizeCategory(parent.catalogCategory||parent.name))return true;
  return !!parentPatterns[parent.name]?.test(normalizeCategory(item.category));
 }
 export function matchesLeaf(item,leaf,parent){
  if(parent.name==='Где поесть')return foodSubcategory(item)?.foodKey===leaf.foodKey;
+ if(parent.name==='Гостиницы')return lodgingSubcategory(item)?.name===leaf.name;
  if(leaf.subs?.length)return leaf.subs.some(child=>matchesLeaf(item,child,parent));
  if(!matchesParent(item,parent))return false;
  const value=normalizeCategory(item.category);

@@ -20,7 +20,7 @@
     "test:release": "node tests/release-version.test.mjs",
     "test:seo": "node --loader ./tests/typescript-loader.mjs tests/seo.test.mjs",
     "test:maps": "node --loader ./tests/typescript-loader.mjs tests/place-map-links.test.mjs",
-    "test:import": "node --loader ./tests/typescript-loader.mjs tests/organization-import.test.mjs && node --loader ./tests/typescript-loader.mjs --test tests/reviewed-organizations-import.test.mjs",
+    "test:import": "node --loader ./tests/typescript-loader.mjs tests/organization-import.test.mjs && node --loader ./tests/typescript-loader.mjs --test tests/reviewed-organizations-import.test.mjs tests/lodging-import.test.mjs",
     "test:osm": "node --loader ./tests/typescript-loader.mjs tests/openstreetmap.test.mjs",
     "test:verified": "node tests/verified-eniseysk.test.mjs",
     "test:photo-editor": "node tests/directory-photos-rls.test.mjs",

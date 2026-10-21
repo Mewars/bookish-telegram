@@ -1,0 +1,907 @@
+{
+  "batch": "2026-10-21-owner-lodging",
+  "verified_date": "2026-10-21",
+  "verification": "Карточки 30 полных строк открыты в Яндекс Картах по числовым ID. Для неоднозначных сведений проверены независимые источники. Фото осмотрены, рейтинги и отзывы не переносятся.",
+  "records": [
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-95374271374",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Золото Сибири",
+        "category": "Гостиницы / Базы отдыха",
+        "description": "Золото Сибири — база, дом отдыха. Адрес: Красноярский край, Енисейский муниципальный округ, деревня Борки, Прибрежная улица, 20.",
+        "address": "Красноярский край, Енисейский муниципальный округ, деревня Борки, Прибрежная улица, 20",
+        "phone": "+7 (950) 989-88-08",
+        "hours": "ежедневно, круглосуточно",
+        "website": "https://vk.ru/siberiangold01",
+        "vk_url": null,
+        "latitude": 58.508051,
+        "longitude": 92.100412,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/95374271374/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/18781639/2a0000019f5a183619e6fe47277a1a43707e/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "95374271374",
+      "source_urls": [
+        "https://yandex.ru/maps/org/95374271374/",
+        "https://vk.ru/siberiangold01"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/95374271374/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-62357237512",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Мобильные средства размещения",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Мобильные средства размещения — гостиница. Адрес: Красноярский край, Енисейский муниципальный округ, деревня Борки, Южный переулок.",
+        "address": "Красноярский край, Енисейский муниципальный округ, деревня Борки, Южный переулок",
+        "phone": null,
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.484278,
+        "longitude": 92.102416,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/62357237512/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": null
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "62357237512",
+      "source_urls": [
+        "https://yandex.ru/maps/org/62357237512/"
+      ],
+      "photo_source_url": null,
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-116899064567",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Колизей",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Колизей — гостиница. Адрес: Красноярский край, Енисейск, улица Чкалова, 4Б.",
+        "address": "Красноярский край, Енисейск, улица Чкалова, 4Б",
+        "phone": null,
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.46378,
+        "longitude": 92.129226,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/116899064567/",
+        "verified_at": null,
+        "status": "draft",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/10834132/2a0000018db26e39750725cbf08ad7ab3b62/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "116899064567",
+      "source_urls": [
+        "https://yandex.ru/maps/org/116899064567/",
+        "https://2gis.ru/enisejsk/firm/70000001057747885"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/116899064567/",
+      "notes": [
+        "Яндекс: гостиница; 2ГИС и другие справочники: банкетный зал по тому же адресу. На фото банкетный интерьер. Назначение и возможность проживания требуют уточнения."
+      ]
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-103209056458",
+        "city": "Енисейск",
+        "kind": "services",
+        "title": "СПАСОП",
+        "category": "Госуслуги / МЧС и пожарная охрана / Поисково-спасательные службы",
+        "description": "СПАСОП — спасательная служба на улице Ромашкина в Енисейске. Порядок обращения и контакты в источнике не указаны.",
+        "address": "Красноярский край, Енисейск, улица Ромашкина",
+        "phone": null,
+        "hours": "ежедневно, круглосуточно",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.462576,
+        "longitude": 92.098346,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/103209056458/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": null
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "103209056458",
+      "source_urls": [
+        "https://yandex.ru/maps/org/103209056458/",
+        "http://mchs.gov.ru/"
+      ],
+      "photo_source_url": null,
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-222679130889",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Уютный домик",
+        "category": "Гостиницы / Гостевые дома",
+        "description": "Уютный домик — гостевой дом. Адрес: Красноярский край, Енисейск, улица Иоффе, 48.",
+        "address": "Красноярский край, Енисейск, улица Иоффе, 48",
+        "phone": null,
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.455647,
+        "longitude": 92.152077,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/222679130889/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/19699569/2a0000019e412c95122a7dc3c69b57465ac1/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "222679130889",
+      "source_urls": [
+        "https://yandex.ru/maps/org/222679130889/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/222679130889/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-180585089697",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Юбилейная",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Юбилейная — гостиница. Адрес: Красноярский край, Енисейск, улица Лебедевой, 34.",
+        "address": "Красноярский край, Енисейск, улица Лебедевой, 34",
+        "phone": null,
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.446306,
+        "longitude": 92.167028,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/180585089697/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": null
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "180585089697",
+      "source_urls": [
+        "https://yandex.ru/maps/org/180585089697/"
+      ],
+      "photo_source_url": null,
+      "notes": []
+    },
+    {
+      "action": "enrich",
+      "organization": {
+        "id": "place-hotel-eniseyskaya",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Енисейская",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Енисейская — гостиница. Адрес: Красноярский край, Енисейск, улица Ленина, 133.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 133",
+        "phone": "+7 (39195) 2-63-58",
+        "hours": "ежедневно, круглосуточно",
+        "website": "https://hotelenisei.ru/",
+        "vk_url": null,
+        "latitude": 58.45573,
+        "longitude": 92.169948,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/1313524964/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/4380921/2a0000017ac9867cbb90eb84ef5594daa9d6/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "1313524964",
+      "source_urls": [
+        "https://yandex.ru/maps/org/1313524964/",
+        "http://hotelenisei.ru/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/1313524964/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-164059327628",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Еркаловская усадьба",
+        "category": "Гостиницы / Гостевые дома",
+        "description": "Еркаловская усадьба — гостевой дом. Адрес: Красноярский край, Енисейский муниципальный округ, Енисейск, улица Кирова, 109.",
+        "address": "Красноярский край, Енисейский муниципальный округ, Енисейск, улица Кирова, 109",
+        "phone": "+7 (913) 033-66-88",
+        "hours": "ежедневно, круглосуточно",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.454451,
+        "longitude": 92.171281,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/164059327628/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/6950449/2a000001837a8fe2a5b5ee1d122bc9fb3c31/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "164059327628",
+      "source_urls": [
+        "https://yandex.ru/maps/org/164059327628/",
+        "https://wa.me/+79130336688?text=%D0%9E%D0%B1%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5+%D0%B8%D0%B7+%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81+%D0%9A%D0%B0%D1%80%D1%82%0A%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!+%D0%9C%D0%B5%D0%BD%D1%8F+%D0%B7%D0%B0%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BE%D0%B2%D0%B0%D0%BB%D0%BE+%D0%B2%D0%B0%D1%88%D0%B5+%D0%BF%D1%80%D0%B5%D0%B4%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/164059327628/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-204032190592",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Горница",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Горница — гостиница. Адрес: Красноярский край, Енисейск, улица Ленина, 125.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 125",
+        "phone": "+7 (953) 590-30-80",
+        "hours": "ежедневно, круглосуточно",
+        "website": "https://gornitsahotel.ru/",
+        "vk_url": null,
+        "latitude": 58.455443,
+        "longitude": 92.1721,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/204032190592/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/14235465/2a000001945616895a2d0acaefdb2e9a80be/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "204032190592",
+      "source_urls": [
+        "https://yandex.ru/maps/org/204032190592/",
+        "http://gornitsahotel.ru/",
+        "https://vk.ru/gornisa.eniseisk"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/204032190592/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-176019126600",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Старый город",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Старый город — гостиница. Адрес: Красноярский край, Енисейский муниципальный округ, Енисейск, улица Бабкина, 13А.",
+        "address": "Красноярский край, Енисейский муниципальный округ, Енисейск, улица Бабкина, 13А",
+        "phone": "+7 (933) 023-93-78",
+        "hours": "ежедневно, круглосуточно",
+        "website": "https://vk.ru/club238416776",
+        "vk_url": null,
+        "latitude": 58.453531,
+        "longitude": 92.174425,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/176019126600/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/18140291/2a0000019de4545cf92567e6676b4145acab/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "176019126600",
+      "source_urls": [
+        "https://yandex.ru/maps/org/176019126600/",
+        "https://vk.ru/club238416776"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/176019126600/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-1189202255",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Гостиничный комплекс Дом",
+        "category": "Гостиницы / Гостевые дома",
+        "description": "Гостиничный комплекс Дом — гостевой дом. Адрес: Красноярский край, Енисейск, Рабоче-Крестьянская улица, 98.",
+        "address": "Красноярский край, Енисейск, Рабоче-Крестьянская улица, 98",
+        "phone": "+7 (923) 297-54-24",
+        "hours": "ежедневно, круглосуточно",
+        "website": "https://vk.ru/eniseyskdom",
+        "vk_url": null,
+        "latitude": 58.453611,
+        "longitude": 92.171325,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/1189202255/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/11732311/2a0000018e30e68b335732a4733801b4af80/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "1189202255",
+      "source_urls": [
+        "https://yandex.ru/maps/org/1189202255/",
+        "https://viber.click/89135172225",
+        "https://wa.me/89135172225?text=%D0%9E%D0%B1%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5+%D0%B8%D0%B7+%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81+%D0%9A%D0%B0%D1%80%D1%82%0A%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!+%D0%9C%D0%B5%D0%BD%D1%8F+%D0%B7%D0%B0%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BE%D0%B2%D0%B0%D0%BB%D0%BE+%D0%B2%D0%B0%D1%88%D0%B5+%D0%BF%D1%80%D0%B5%D0%B4%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5",
+        "https://vk.ru/eniseyskdom"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/1189202255/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-140197861593",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Илимпейская",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Илимпейская — гостиница. Адрес: Красноярский край, Енисейск, Рабоче-Крестьянская улица, 78.",
+        "address": "Красноярский край, Енисейск, Рабоче-Крестьянская улица, 78",
+        "phone": "+7 (39195) 2-37-65",
+        "hours": "ежедневно, круглосуточно",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.452957,
+        "longitude": 92.176478,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/140197861593/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/11421909/2a00000191c52c0245e2d228d38a527c5978/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "140197861593",
+      "source_urls": [
+        "https://yandex.ru/maps/org/140197861593/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/140197861593/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-181774483180",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Автовокзал Енисейск",
+        "category": "Транспорт / Автовокзалы и автостанции",
+        "description": "Автовокзал Енисейск — автовокзал, автостанция. Адрес: Красноярский край, Енисейск, Рабоче-Крестьянская улица, 86.",
+        "address": "Красноярский край, Енисейск, Рабоче-Крестьянская улица, 86",
+        "phone": "+7 (39195) 2-20-57",
+        "hours": null,
+        "website": "https://www-lk.ru/enisejsk_avtovokzal-raspisanie_cena_bileta/",
+        "vk_url": null,
+        "latitude": 58.453272,
+        "longitude": 92.174113,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/181774483180/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/4304228/2a0000017759ea57a2cb30e4af63013c6548/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "181774483180",
+      "source_urls": [
+        "https://yandex.ru/maps/org/181774483180/",
+        "https://www-lk.ru/enisejsk_avtovokzal-raspisanie_cena_bileta/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/181774483180/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-195548751506",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Хоромы",
+        "category": "Гостиницы / Гостевые дома",
+        "description": "Хоромы — гостевой дом. Адрес: Красноярский край, Енисейск, улица Каурова, 24.",
+        "address": "Красноярский край, Енисейск, улица Каурова, 24",
+        "phone": "+7 (950) 427-74-77",
+        "hours": "ежедневно, 09:00–21:00",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.448348,
+        "longitude": 92.173718,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/195548751506/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/11374564/2a0000019215063642e97a96e04a857f5272/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "195548751506",
+      "source_urls": [
+        "https://yandex.ru/maps/org/195548751506/",
+        "https://wa.me/79131976765?text=%D0%9E%D0%B1%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5+%D0%B8%D0%B7+%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81+%D0%9A%D0%B0%D1%80%D1%82%0A%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!+%D0%9C%D0%B5%D0%BD%D1%8F+%D0%B7%D0%B0%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BE%D0%B2%D0%B0%D0%BB%D0%BE+%D0%B2%D0%B0%D1%88%D0%B5+%D0%BF%D1%80%D0%B5%D0%B4%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/195548751506/",
+      "notes": []
+    },
+    {
+      "action": "enrich",
+      "organization": {
+        "id": "place-borodkin-house",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Купца Бородкина",
+        "category": "Музеи / История",
+        "description": "Купца Бородкина — гостевой дом. Адрес: Красноярский край, Енисейский муниципальный округ, Енисейск, Рабоче-Крестьянская улица, 62.",
+        "address": "Красноярский край, Енисейский муниципальный округ, Енисейск, Рабоче-Крестьянская улица, 62",
+        "phone": "+7 (991) 445-23-23",
+        "hours": "ежедневно, круглосуточно",
+        "website": "https://domborodkina.ru/",
+        "vk_url": null,
+        "latitude": 58.45218,
+        "longitude": 92.182123,
+        "source_type": "manual_verified",
+        "source_url": "https://domborodkina.ru/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/16130837/2a00000199a825ca218f715eb8f6f6c6d999/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "204966562518",
+      "source_urls": [
+        "https://yandex.ru/maps/org/204966562518/",
+        "https://domborodkina.ru/",
+        "https://yandex.ru/maps/org/130181488686/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/204966562518/",
+      "notes": [
+        "Одна существующая карточка сохраняет основной музейный раздел. Явное назначение «Гостевой дом» в названии также учитывается в разделе размещения. Фото и описание владельца сохраняются."
+      ]
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-156036311923",
+        "city": "Енисейск",
+        "kind": "services",
+        "title": "Отдел образования",
+        "category": "Образование и молодёжь / Управление образованием",
+        "description": "Отдел образования — управление образованием. Адрес: Красноярский край, Енисейск, улица Ленина, 101.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 101",
+        "phone": "+7 (39195) 2-25-01",
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.454316,
+        "longitude": 92.180624,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/156036311923/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/2408669/2a000001758eac6cad9161a93a72b04c1135/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "156036311923",
+      "source_urls": [
+        "https://yandex.ru/maps/org/156036311923/",
+        "http://eniseysk-obrazovanie.ru/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/156036311923/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-1376703525",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Абсолют",
+        "category": "Магазины / Строительство и ремонт",
+        "description": "Абсолют — строительный магазин. Адрес: Красноярский край, Енисейск, улица Ленина, 104С3.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 104С3",
+        "phone": "+7 (923) 312-11-33",
+        "hours": "ежедневно, 09:00–19:00",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.455188,
+        "longitude": 92.183128,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/1376703525/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": null
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "1376703525",
+      "source_urls": [
+        "https://yandex.ru/maps/org/1376703525/"
+      ],
+      "photo_source_url": null,
+      "notes": []
+    },
+    {
+      "action": "enrich",
+      "organization": {
+        "id": "place-hotel-domino",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Домино",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Домино — гостиница. Адрес: Красноярский край, Енисейск, улица Петровского, 2/1.",
+        "address": "Красноярский край, Енисейск, улица Петровского, 2/1",
+        "phone": null,
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.455911,
+        "longitude": 92.182103,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/1557442466/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/5965316/2a00000181a04887d52f1e5607f156cc0047/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "1557442466",
+      "source_urls": [
+        "https://yandex.ru/maps/org/1557442466/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/1557442466/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-189633852970",
+        "city": "Енисейск",
+        "kind": "services",
+        "title": "Енисейская РБ, детская поликлиника",
+        "category": "Здоровье / Детские поликлиники",
+        "description": "Енисейская РБ, детская поликлиника — детская поликлиника. Адрес: Красноярский край, Енисейск, улица Диктатуры Пролетариата, 4.",
+        "address": "Красноярский край, Енисейск, улица Диктатуры Пролетариата, 4",
+        "phone": "+7 (39195) 2-27-59",
+        "hours": null,
+        "website": "https://en-bol.gosuslugi.ru/",
+        "vk_url": null,
+        "latitude": 58.455499,
+        "longitude": 92.18136,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/189633852970/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": null
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "189633852970",
+      "source_urls": [
+        "https://yandex.ru/maps/org/189633852970/",
+        "https://en-bol.gosuslugi.ru/",
+        "https://vk.ru/enisrb"
+      ],
+      "photo_source_url": null,
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-77766743132",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "ЦУМ",
+        "category": "Магазины / Универмаги и торговые центры",
+        "description": "ЦУМ — универмаг. Адрес: Красноярский край, Енисейск, улица Ленина, 104.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 104",
+        "phone": null,
+        "hours": "ежедневно, 10:00–19:00",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.454873,
+        "longitude": 92.183416,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/77766743132/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/5097872/2a00000181779a81b22b51e1d5a58960e0c8/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "77766743132",
+      "source_urls": [
+        "https://yandex.ru/maps/org/77766743132/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/77766743132/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-78433421937",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Паломник",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Паломник — гостиница. Адрес: Красноярский край, Енисейск, улица Ленина, 94.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 94",
+        "phone": null,
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.453417,
+        "longitude": 92.19013,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/78433421937/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/4544819/2a000001794b10e0399989d42c67b97095eb/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "78433421937",
+      "source_urls": [
+        "https://yandex.ru/maps/org/78433421937/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/78433421937/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-1333330182",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Церковь Иверской Богоматери",
+        "category": "Достопримечательности / Храмы и монастыри",
+        "description": "Церковь Иверской Богоматери — православный храм. Адрес: Красноярский край, Енисейск, улица Ленина, 100.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 100",
+        "phone": "+7 (950) 434-06-23",
+        "hours": "ср-вс 10:00–18:00",
+        "website": "https://enmuseum.ru/",
+        "vk_url": null,
+        "latitude": 58.453729,
+        "longitude": 92.18825,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/1333330182/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/5236391/2a0000017b73351e1def2a48322520a70f32/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "1333330182",
+      "source_urls": [
+        "https://yandex.ru/maps/org/1333330182/",
+        "http://iverskiy-mon.cerkov.ru/",
+        "https://enmuseum.ru/",
+        "https://vk.ru/iversky1623"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/1333330182/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-124145027000",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Туристический клуб «Золотой Арбалет»",
+        "category": "Гостиницы / Базы отдыха",
+        "description": "Туристический клуб в селе Озёрное, примерно в девяти километрах от Енисейска. По данным туристического портала Красноярского края, предлагает размещение и загородный отдых.",
+        "address": "Красноярский край, Енисейский район, село Озёрное, Брусничная улица, 1",
+        "phone": "+7 (995) 893-24-92",
+        "hours": null,
+        "website": "https://visitsiberia.info/turisticheskij-klub-zolotoj-arbalet-1.html",
+        "vk_url": null,
+        "latitude": null,
+        "longitude": null,
+        "source_type": "manual_verified",
+        "source_url": "https://visitsiberia.info/turisticheskij-klub-zolotoj-arbalet-1.html",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://visitsiberia.info/assets/cache_image/assets/manager/dasha__Manager/And_Golden_Crossbow/zolotoj-arbalet-osnovnaya_1000x800_dca.jpg"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "124145027000",
+      "source_urls": [
+        "https://yandex.ru/maps/org/124145027000/",
+        "https://visitsiberia.info/turisticheskij-klub-zolotoj-arbalet-1.html",
+        "https://visitsiberia.info/turisticheskij-klub-zolotoj-arbalet.html"
+      ],
+      "photo_source_url": "https://visitsiberia.info/turisticheskij-klub-zolotoj-arbalet-1.html",
+      "notes": [
+        "Адрес и телефон уточнены по туристическому порталу края. Координаты из выгрузки не перенесены: они относятся к другому расположению. Исходный телефон: +7 (913) 585-23-54."
+      ]
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-180341313182",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Гостевой дом — ул. Фефелова, 33",
+        "category": "Гостиницы / Гостевые дома",
+        "description": "Гостевой дом — гостевой дом. Адрес: Красноярский край, Енисейск, улица Фефелова, 33.",
+        "address": "Красноярский край, Енисейск, улица Фефелова, 33",
+        "phone": "+7 (923) 356-56-48",
+        "hours": "ежедневно, круглосуточно",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.449604,
+        "longitude": 92.19001,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/180341313182/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/1132477/2a0000018880f9a06d357243a51c583ef0a3/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "180341313182",
+      "source_urls": [
+        "https://yandex.ru/maps/org/180341313182/",
+        "http://енисгостевой.рф/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/180341313182/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-1395995904",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Прасковья",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Прасковья — гостиница. Адрес: Красноярский край, Енисейск, улица Бабушкина, 1.",
+        "address": "Красноярский край, Енисейск, улица Бабушкина, 1",
+        "phone": "+7 (902) 946-20-81",
+        "hours": "ежедневно, круглосуточно",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.459252,
+        "longitude": 92.207994,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/1395995904/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/14098455/2a00000191c688a37e2fb7e87354d42cf5c5/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "1395995904",
+      "source_urls": [
+        "https://yandex.ru/maps/org/1395995904/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/1395995904/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-111718629191",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Аренда комнат в квартире",
+        "category": "Гостиницы / Комнаты посуточно",
+        "description": "Аренда комнат в квартире — жильё посуточно. Адрес: Красноярский край, Енисейск, улица Ленина, 34.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 34",
+        "phone": null,
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.45201,
+        "longitude": 92.21354,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/111718629191/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": null
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "111718629191",
+      "source_urls": [
+        "https://yandex.ru/maps/org/111718629191/"
+      ],
+      "photo_source_url": null,
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-1214177646",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Гостиница Уют",
+        "category": "Гостиницы / Гостиницы и отели",
+        "description": "Гостиница Уют — гостиница. Адрес: Красноярский край, Енисейск, улица Ленина, 10.",
+        "address": "Красноярский край, Енисейск, улица Ленина, 10",
+        "phone": "+7 (929) 336-56-59",
+        "hours": "ежедневно, 08:00–00:00",
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.452096,
+        "longitude": 92.221885,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/1214177646/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": "https://avatars.mds.yandex.net/get-altay/1908863/2a0000016dad02cd56d9f53302ca3b993f62/XL"
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "1214177646",
+      "source_urls": [
+        "https://yandex.ru/maps/org/1214177646/"
+      ],
+      "photo_source_url": "https://yandex.ru/maps/org/1214177646/",
+      "notes": []
+    },
+    {
+      "action": "insert",
+      "organization": {
+        "id": "place-yandex-119441759572",
+        "city": "Енисейск",
+        "kind": "places",
+        "title": "Общежитие №2",
+        "category": "Гостиницы / Общежития",
+        "description": "Общежитие № 2 на улице ДОС, 15, в Енисейске. Возможность посуточного размещения и приёма гостей не подтверждена.",
+        "address": "Красноярский край, Енисейск, улица ДОС, 15",
+        "phone": null,
+        "hours": null,
+        "website": null,
+        "vk_url": null,
+        "latitude": 58.448581,
+        "longitude": 92.256006,
+        "source_type": "manual_verified",
+        "source_url": "https://yandex.ru/maps/org/119441759572/",
+        "verified_at": "2026-10-21",
+        "status": "published",
+        "image_url": null
+      },
+      "source_file": "yandex-maps-scraper-2026-10-21_13-59-48.json",
+      "source_record_id": "119441759572",
+      "source_urls": [
+        "https://yandex.ru/maps/org/119441759572/"
+      ],
+      "photo_source_url": null,
+      "notes": []
+    }
+  ],
+  "skipped": [
+    {
+      "id": "119100734981",
+      "reason": "Барин уже добавлен предыдущим импортом; новых сведений нет."
+    },
+    {
+      "id": "130181488686",
+      "reason": "Тот же дом Бородкина, адрес и контакты совпадают с 204966562518; объединён с существующим place-borodkin-house."
+    },
+    {
+      "id": "__YMS_FREE_LIMIT_NOTICE__",
+      "reason": "Служебное уведомление парсера, не организация."
+    },
+    {
+      "id": "239571889275",
+      "reason": "Обрезанные поля; не переносятся. Кофе и Астра уже есть. Для Энергоресурса и Школы биатлона найдены открытые карточки, но вид деятельности/населённый пункт расходятся между источниками."
+    },
+    {
+      "id": "216012104131",
+      "reason": "Обрезанные поля; не переносятся. Кофе и Астра уже есть. Для Энергоресурса и Школы биатлона найдены открытые карточки, но вид деятельности/населённый пункт расходятся между источниками."
+    },
+    {
+      "id": "192391931816",
+      "reason": "Обрезанные поля; не переносятся. Кофе и Астра уже есть. Для Энергоресурса и Школы биатлона найдены открытые карточки, но вид деятельности/населённый пункт расходятся между источниками."
+    },
+    {
+      "id": "146589397670",
+      "reason": "Обрезанные поля; не переносятся. Кофе и Астра уже есть. Для Энергоресурса и Школы биатлона найдены открытые карточки, но вид деятельности/населённый пункт расходятся между источниками."
+    }
+  ]
+}
