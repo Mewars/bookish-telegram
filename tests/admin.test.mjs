@@ -101,14 +101,18 @@ test('admin UI is feature gated, requires a member row and does not contain priv
 });
 
 test('unified dashboard preserves categories for existing listings and supports new city categories', () => {
-  assert.equal(directoryCategories.length, 19);
+  assert.equal(directoryCategories.length, 24);
   const identifiers = new Set(directoryCategories.map(category => category.id));
-  assert.equal(identifiers.size, 19);
+  assert.equal(identifiers.size, directoryCategories.length);
   const examples = [
     ['Кафе','food'], ['Гостиницы','hotel'], ['Музеи / История','museum'],
     ['Парки / Прогулки','park'], ['Госуслуги','services'], ['Почта','mail'],
     ['Салоны красоты','beauty'], ['Достопримечательности','landmark'],
     ['Библиотеки','library'], ['Культура','culture'], ['Другое','general'],
+    ['Общественные организации / Общественные объединения','associations'],
+    ['ЖКХ / Управляющие компании','housing'], ['Транспорт / Аэропорты','transport'],
+    ['Инфраструктура / Электроснабжение','infrastructure'],
+    ['Образование и молодёжь / Детские сады','education'],
   ];
   for (const [category,expected] of examples)
     assert.equal(categoryForOrganization({ category }),expected,category);

@@ -22,12 +22,22 @@ export const directoryCategories = [
   { id: 'beauty', label: 'Салоны красоты', value: 'Салоны красоты', kind: 'services', color: '#EF81AE', path: 'M4 5c0 5 9 6 12 10a4 4 0 1 1-3 3L4 5zm16 0L7 18' },
   { id: 'health', label: 'Больницы', value: 'Больницы', kind: 'services', color: '#EB79AA', path: 'M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7V3z' },
   { id: 'sport', label: 'Спорт', value: 'Спорт', kind: 'places', color: '#9982FF', path: 'M3 9v6m3-9v12m12-12v12m3-9v6M6 10h12v4H6z' },
+  { id: 'associations', label: 'Общественные организации', value: 'Общественные организации', kind: 'services', color: '#778B9A', path: 'M3 21h18M5 21V9l7-5 7 5v12' },
+  { id: 'housing', label: 'ЖКХ', value: 'ЖКХ', kind: 'services', color: '#778B9A', path: 'm3 10 9-7 9 7v11H3V10z' },
+  { id: 'transport', label: 'Транспорт', value: 'Транспорт', kind: 'places', color: '#648ECA', path: 'M3 12h18M12 3v18' },
+  { id: 'infrastructure', label: 'Инфраструктура', value: 'Инфраструктура', kind: 'places', color: '#A6A9AE', path: 'm13 2-8 12h6l-1 8 9-13h-6z' },
+  { id: 'education', label: 'Образование и молодёжь', value: 'Образование и молодёжь', kind: 'services', color: '#78A5D0', path: 'M3 21h18M5 21V7l7-4 7 4v14' },
   { id: 'general', label: 'Другое', value: 'Другое', kind: 'places', color: '#778B9A', path: 'M12 2v20M2 12h20' },
 ] as const;
 
 export type DirectoryCategoryId = typeof directoryCategories[number]['id'];
 export function categoryForOrganization(item: Pick<OrganizationRow, 'category'>): DirectoryCategoryId {
   const value = item.category.toLocaleLowerCase('ru');
+  if (/общественные организации/.test(value)) return 'associations';
+  if (/жкх/.test(value)) return 'housing';
+  if (/транспорт/.test(value)) return 'transport';
+  if (/инфраструктура/.test(value)) return 'infrastructure';
+  if (/образование|школ|детск.*сад/.test(value)) return 'education';
   if (/музе|рубано/.test(value)) return 'museum';
   if (isFoodCategory(value)) return 'food';
   if (/гостиниц|отел|хостел/.test(value)) return 'hotel';
