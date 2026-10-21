@@ -6,18 +6,20 @@ const source=()=>JSON.parse(localStorage.getItem('catalog-fixture-data')||JSON.s
  {id:'4',title:'Требует уточнения',category:'Кафе',city:'Город А',kind:'places',status:'archived',description:'Тестовый архив'}
 ]));
 window.catalogRequests=[];
+const complete=r=>({...r,address:r.address||'Улица, 1',image_url:'/tests/photo-valid.png',source_type:'manual_verified',verified_at:'2026-10-21',created_at:'2026-10-21T00:00:00Z',updated_at:'2026-10-21T00:00:00Z',phone:null,hours:null,website:null,vk_url:null,source_url:null,latitude:null,longitude:null});
 export function c(){return {
  auth:{getUser:async()=>({data:{user:{id:actor()}},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},
- from(table){let filters=[],range=[0,499];const q={select(){return q},eq(key,value){filters.push([key,[value]]);return q},in(key,values){filters.push([key,values]);return q},order(){return q},range(start,end){range=[start,end];return q},then(resolve){
+ from(table){let filters=[],range=[0,499];const q={select(){return q},eq(key,value){filters.push([key,[value]]);return q},in(key,values){filters.push([key,values]);return q},order(){return q},abortSignal(){return q},range(start,end){range=[start,end];return q},then(resolve){
   let rows=[];
   if(table==='city_directory')rows=[{name:'Город А',active:true},{name:'Город Б',active:true},{name:'Новый город',active:true}];
   if(table==='city_admin_access')rows=[{user_id:actor(),city:actor()==='owner'?'*':'Город А',role:actor()==='owner'?'owner':'editor',active:true}];
-  if(table==='organizations'){rows=source();window.catalogRequests.push({filters,range})}
+  if(table==='organizations'){rows=source().map(complete);window.catalogRequests.push({filters,range})}
   rows=rows.filter(row=>filters.every(([key,values])=>values.includes(row[key]))).slice(range[0],range[1]+1);
   return Promise.resolve({data:rows,error:null}).then(resolve);
  }};return q},
- rpc:async(name,args)=>{
+ rpc(name,args){const request={abortSignal(){return request},then(resolve){return Promise.resolve(run()).then(resolve)}};const run=()=>{
+  if(name==='delete_organization'){const rows=source(),row=rows.find(r=>r.id===args.p_id);if(!row||actor()!=='owner'&&row.city!=='Город А')return {data:null,error:{message:'Not authorized'}};localStorage.setItem('catalog-fixture-data',JSON.stringify(rows.filter(r=>r.id!==args.p_id)));return {data:args.p_id,error:null}}
   if(name!=='owner_edit_organization'||actor()!=='owner')return {data:null,error:{message:'Not authorized'}};
   const rows=source(),row=rows.find(row=>row.id===args.p_id);Object.assign(row,args.p_changes);localStorage.setItem('catalog-fixture-data',JSON.stringify(rows));return {data:null,error:null};
- }
+ };return request}
 }}

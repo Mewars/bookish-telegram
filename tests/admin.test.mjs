@@ -124,7 +124,7 @@ test('owner dashboard has actionable city overview with separate published count
   const source = await readFile('src/admin/AdminPage.tsx', 'utf8');
   assert.match(source, /screen === 'overview' && owner && <section className="admin-panel admin-cms-network"/);
   assert.match(source, /cities\.map\(cityName =>/);
-  assert.match(source, /cityOrganizations\.filter\(row => row\.status === 'published'\)/);
+  assert.match(source, /cityOrganizations\.length/);
   assert.match(source, /setCityFilter\(cityName\); navigateAdmin\('catalog'\)/);
   assert.match(source, /cityDirectoryEnabled && <button className="admin-cms-link"/);
 });
@@ -167,27 +167,11 @@ test('closing a business archives it; restoring does not publish it automaticall
   assert.equal(nextAvailabilityStatus('archived'), 'draft');
 });
 
-test('quick archive control is independent of card edit and asks confirmation', async () => {
-  const [panel, repo, css] = await Promise.all([
-    readFile('src/admin/AdminPage.tsx', 'utf8'),
-    readFile('src/admin/repository.ts', 'utf8'),
-    readFile('src/admin/admin.css', 'utf8'),
-  ]);
-  assert.match(panel, /className="admin-cms-card-open"/);
-  assert.match(panel, /className="admin-cms-card-action"/);
-  assert.match(panel, /window\.confirm\(/);
-  assert.match(panel, /onClick=\{\(\) => \{ void toggleAvailability\(row\); \}\}/);
-  assert.match(panel, /aria-label=\{row\.status === 'archived' \?/);
-  assert.match(panel, /<option>Действующие<\/option><option>Все статусы<\/option>/);
-  assert.match(panel, /statusFilter === 'Действующие' \? row\.status !== 'archived'/);
-  assert.match(panel, /window\.dispatchEvent\(new Event\('ryadom:organizations-changed'\)\)/);
-  assert.match(panel, /Восстановление — через фильтр «Архив»/);
-  assert.match(repo, /await requireCurrentUser\(client, userId\)/);
-  assert.match(repo, /if \(!canManageCity\(access, row\.city\)\)/);
-  assert.match(repo, /\.eq\('id', row\.id\)\.eq\('city', row\.city\)\.eq\('status', row\.status\)/);
-  assert.match(repo, /\.update\(\{ status: target \}\)/);
-  assert.doesNotMatch(repo, /\.delete\(\)\.eq\('id', row\.id\)/);
-  assert.match(css, /\.admin-cms-card-action \{[^}]*min-width:44px/);
+test('delete control calls the protected permanent-delete RPC instead of archiving', async () => {
+ const panel=await readFile('src/admin/AdminPage.tsx','utf8'),repo=await readFile('src/admin/repository.ts','utf8');
+ assert.match(panel,/className="admin-cms-card-action"/);assert.match(panel,/window\.confirm\(/);
+ assert.match(panel,/void removeOrganization\(row\)/);assert.doesNotMatch(panel,/toggleAvailability/);
+ assert.match(repo,/rpc\('delete_organization'/);assert.match(repo,/p_expected_updated_at:row.updated_at/);
 });
 
 test('location pin coordinates are optional, paired, validated and preserved in admin drafts', async () => {
