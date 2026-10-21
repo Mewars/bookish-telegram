@@ -1,5 +1,5 @@
 import {catalogGroups,savedFoodCategory} from './taxonomy.js';
-const serviceParents=new Set(['Услуги и мастера','Банки и банкоматы','Аптеки','Госуслуги','Образование и молодёжь','Здоровье','Красота','Авто']);
+const serviceParents=new Set(['Услуги и мастера','Банки и банкоматы','Аптеки','Госуслуги','Образование и молодёжь','Здоровье','Красота','Авто','Общественные организации','ЖКХ']);
 const excluded=new Set(['Афиша','Объявления','Городская стена']);
 export const requestCategoryGroups=catalogGroups.flatMap(group=>group.items).filter(parent=>!excluded.has(parent.name)).map(parent=>{
  const options=[];
