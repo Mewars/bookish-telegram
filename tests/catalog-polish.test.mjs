@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {catalogGroups,foodSubcategories,foodSubcategory,categoryParts,matchesLeaf,matchesParent,catalogCounts,savedFoodCategory} from '../public/catalog/taxonomy.js';
 import {readManagedOrganizations} from '../public/catalog/adminData.js';
+import {matches} from '../src/utils/search.ts';
 import {matchesCatalogFilters,emptyCatalogFilters} from '../src/navigation/catalogRoute.ts';
 
 const food=catalogGroups.flatMap(group=>group.items).find(parent=>parent.name==='Где поесть');
@@ -59,6 +60,7 @@ test('organization requests use the public category tree and retain the selected
    assert(matchesParent({category:option.value},parent),option.value);
    assert(matchesCatalogFilters({kind:option.kind,category:option.value},{...emptyCatalogFilters,category:group.label,subcategory:option.label.split(' / ').at(-1)}),option.value);
    assert.equal(requestCategory(option.value)?.value,option.value);
+   assert(matches({title:'Проверенная организация',category:option.value,description:'Описание',kind:option.kind},option.term),option.value);
   }
  }
  assert.equal(requestCategory('Кафе / Пиццерии и суши').kind,'places');
