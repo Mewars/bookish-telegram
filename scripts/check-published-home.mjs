@@ -218,13 +218,20 @@ try {
         assert(await vk.isVisible(), 'Owner VK contact link missing');
         result.checks.push('Owner contacts page and VK link');
         await page.screenshot({ path: `${folder}/${scenario.name}-contacts.png`, fullPage: true, animations: 'disabled' });
-        // Unreviewed community and classified beta must never open against
-        // production Supabase, even if someone guesses the hash URL.
+        // The old React community beta remains disabled. The live host's
+        // navigation deliberately redirects the old classifieds hash to the
+        // reviewed standalone module; waiting for its old placeholder races
+        // that redirect and incorrectly reports a working link as a failure.
         await page.goto(`${base}/#/community`, { waitUntil: 'domcontentloaded' });
         await page.getByRole('heading', { name: 'Городская лента готовится' }).waitFor();
         await page.goto(`${base}/#/classifieds`, { waitUntil: 'domcontentloaded' });
-        await page.getByRole('heading', { name: 'Объявления готовятся' }).waitFor();
-        result.checks.push('Classified and community betas remain disabled in production');
+        await page.waitForURL(`${base}/classifieds/`);
+        await page.getByRole('heading', { name: 'Объявления рядом',exact:true }).waitFor();
+        await page.getByRole('link',{name:'Войти / зарегистрироваться',exact:true}).waitFor();
+        assert.equal(await page.locator('#mod-tab').isVisible(),false,'Guest must not see the moderation tab');
+        await page.getByRole('button',{name:'Подать объявление',exact:true}).click();
+        await page.getByRole('heading',{name:'Требуется вход в аккаунт',exact:true}).waitFor();
+        result.checks.push('Legacy classifieds link opens the approved module; guest submission requires login and moderation is hidden; old community beta remains disabled');
       }
       await page.goto(`${base}/#/profile`, { waitUntil: 'domcontentloaded' });
       await page.getByRole('heading', { name: 'Вы не вошли в аккаунт' }).waitFor({ state: 'visible', timeout: 15000 });
