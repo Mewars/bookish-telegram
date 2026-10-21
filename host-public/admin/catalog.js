@@ -21,7 +21,7 @@ function renderEditor(root,item,parent,onDone,roles){
  const fields={};for(const [key,label,limit] of specs){const block=el('label','ryadm-field');block.append(el('span','',label));const input=el(key==='description'?'textarea':'input');input.value=item[key]||'';input.maxLength=limit;input.required=key!=='address';block.append(input);panel.append(block);fields[key]=input}
  if(isFoodCategory(item.category)){
   const label=el('label','ryadm-field');label.append(el('span','','Подкатегория общепита'));
-  const select=el('select');for(const sub of foodSubcategories){const option=el('option','',sub.name);option.value=sub.foodKey;select.append(option)}
+  const select=el('select');select.setAttribute('aria-label','Подкатегория общепита');for(const sub of foodSubcategories){const option=el('option','',sub.name);option.value=sub.foodKey;select.append(option)}
   select.value=foodSubcategory(item)?.foodKey||'unclassified';
   select.onchange=()=>{fields.category.value=savedFoodCategory(select.value)};
   label.append(select);panel.append(label);
