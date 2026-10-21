@@ -1,0 +1,42 @@
+name: Catalog Launch Polish
+on:
+  pull_request:
+    branches: [mewars]
+    paths: ['src/admin/**', 'src/components/MediaImage.tsx', 'src/components/mediaSource.ts', 'src/components/Card.tsx', 'src/pages/CatalogPage.tsx', 'src/pages/DetailPage.tsx', 'src/styles/home.css', 'public/catalog/**', 'host-public/admin/**', 'host-public/categories/**', 'tests/catalog-*', 'tests/host-catalog-*', '.github/workflows/catalog-polish-browser.yml']
+permissions:
+  contents: read
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run test:catalog-polish
+      - run: python tests/preserve-host-extensions.py
+      - name: Install isolated browser runner
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+      - name: Check shared taxonomy, counters, images and cover without real accounts
+        env:
+          VITE_ADMIN_PANEL_ENABLED: 'false'
+          VITE_CITY_DIRECTORY_ENABLED: 'false'
+          VITE_ORGANIZATIONS_ENABLED: 'false'
+          VITE_CARD_PHOTOS_ENABLED: 'false'
+        run: |
+          npm run dev -- --port 4178 --strictPort > "$RUNNER_TEMP/catalog-vite.log" 2>&1 &
+          catalog_pid=$!
+          trap 'kill "$catalog_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4178/ > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/catalog-polish-browser.py

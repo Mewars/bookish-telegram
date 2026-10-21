@@ -1,3 +1,4 @@
+import { foodSubcategories, foodSubcategory, savedFoodCategory, isFoodCategory } from '../../public/catalog/taxonomy.js';
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -35,6 +36,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   const [kindFilter, setKindFilter] = useState('Все разделы');
   const [statusFilter, setStatusFilter] = useState('Действующие');
   const [categoryFilter, setCategoryFilter] = useState<DirectoryCategoryId | 'all'>('all');
+  const [subcategoryFilter,setSubcategoryFilter]=useState('all');
   const [screen, setScreen] = useState<'overview' | 'catalog' | 'applications' | 'cities'>('overview');
   const [applicationOrigin,setApplicationOrigin]=useState<ApplicationRow|null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -60,6 +62,13 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     });
     return () => { active = false; };
   }, [enabled, userId, attempt]);
+
+  useEffect(()=>{
+    if(!enabled||!userId)return;
+    const refresh=()=>setAttempt(value=>value+1);
+    window.addEventListener('ryadom:organizations-changed',refresh);
+    return ()=>window.removeEventListener('ryadom:organizations-changed',refresh);
+  },[enabled,userId]);
 
   const edit = (row: OrganizationRow) => {
     setApplicationOrigin(null);
@@ -93,14 +102,14 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     }
   };
   const chooseCategory = (id: DirectoryCategoryId) => {
-    setCategoryFilter(id);
+    setCategoryFilter(id);setSubcategoryFilter('all');
     setScreen('catalog');
     setStatusFilter('Действующие');
     setFilter('');
   };
   const navigateAdmin = (next: 'overview' | 'catalog' | 'applications' | 'cities') => {
     setDraft(null); setApplicationOrigin(null); chooseFile(null); setMessage(''); setScreen(next);
-    setCategoryFilter('all'); setFilter(''); setStatusFilter('Действующие');
+    setCategoryFilter('all');setSubcategoryFilter('all'); setFilter(''); setStatusFilter('Действующие');
   };
   const change = (key: keyof AdminDraft, value: string) => {
     setDraft(current => current ? { ...current, [key]: value } : current);
@@ -176,6 +185,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   const activeRows = cityRows.filter(row => row.status !== 'archived');
   const filtered = cityRows.filter(row =>
     (categoryFilter === 'all' || categoryForOrganization(row) === categoryFilter)
+    && (subcategoryFilter==='all'||foodSubcategory(row)?.foodKey===subcategoryFilter)
     && (kindFilter === 'Все разделы' || (row.kind === 'services' ? 'services' : 'places') === kindFilter)
     && (statusFilter === 'Все статусы' || (statusFilter === 'Действующие' ? row.status !== 'archived' : row.status === statusFilter))
     && [row.title, row.category, row.address ?? ''].some(value => value.toLocaleLowerCase('ru').includes(filter.trim().toLocaleLowerCase('ru')))
@@ -186,7 +196,9 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     directoryCategories.find(category => category.id === categoryFilter)?.label ?? 'Все организации';
   const categories = <div className="admin-cms-tiles">
     {directoryCategories.map(category => {
-      const count = activeRows.filter(row => categoryForOrganization(row) === category.id).length;
+      const categoryRows=cityRows.filter(row=>categoryForOrganization(row)===category.id);
+      const count=categoryRows.length;
+      const publishedCount=categoryRows.filter(row=>row.status==='published').length;
       return <button key={category.id} type="button"
         className={'admin-cms-tile' + (categoryFilter === category.id && screen === 'catalog' ? ' is-selected' : '')}
         aria-label={category.label + ': ' + count} aria-pressed={categoryFilter === category.id && screen === 'catalog'}
@@ -196,7 +208,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             <path d={category.path}/>
           </svg>
         </span>
-        <strong>{category.label}</strong><small>{count} объект(ов)</small>
+        <strong>{category.label}</strong><small>{count} объект(ов) · {publishedCount} опубликовано · {count-publishedCount} не опубликовано</small>
       </button>;
     })}
   </div>;
@@ -255,7 +267,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
       <div className="admin-cms-topbar">
         <span>Рядом / {draft ? 'Редактор организации' : screen === 'overview' ? 'Обзор города' : screen === 'applications' ? 'Заявки' : screen === 'cities' ? 'Города' : 'Организации'}</span>
         <div className="admin-cms-top-actions">
-          {cities.length > 1 && <select aria-label="Город управления" value={cityFilter} onChange={event => { setCityFilter(event.target.value); setCategoryFilter('all'); }}>
+          {cities.length > 1 && <select aria-label="Город управления" value={cityFilter} onChange={event => { setCityFilter(event.target.value); setCategoryFilter('all');setSubcategoryFilter('all'); }}>
             <option>Все города</option>{cities.map(city => <option key={city}>{city}</option>)}
           </select>}
           <button type="button" className="secondary-button" onClick={goHome}>На сайт <Icon name="arrow" size={17}/></button>
@@ -302,6 +314,12 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
               <label className="admin-wide">Уточнение категории
                 <input disabled={busy} maxLength={100} value={draft.category} onChange={event => change('category',event.target.value)} placeholder="Например, кафе, пиццерия, музей"/>
               </label>
+              {isFoodCategory(draft.category)&&<label>Подкатегория общепита
+                <select disabled={busy} value={foodSubcategory(draft)?.foodKey??'unclassified'} onChange={event=>change('category',savedFoodCategory(event.target.value))}>
+                  {foodSubcategories.map(sub=><option key={sub.foodKey} value={sub.foodKey}>{sub.name}</option>)}
+                </select>
+              </label>}
+
               <label className="admin-wide">Описание *
                 <textarea disabled={busy} rows={5} maxLength={2000} value={draft.description} onChange={event => change('description',event.target.value)} placeholder="Расскажи, что здесь находится и чем полезно посетителям"/>
               </label>
@@ -377,7 +395,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
           </section>
         </form> : screen === 'cities' && owner ? (cityDirectoryEnabled
           ? <CityManagement cities={directoryCities} refreshCities={refreshCities}
-              onCitySaved={cityName => { setCityFilter(cityName); setCategoryFilter('all'); setFilter(''); }}/>
+              onCitySaved={cityName => { setCityFilter(cityName); setCategoryFilter('all');setSubcategoryFilter('all'); setFilter(''); }}/>
           : <section className="admin-panel"><h2>Подключение городов</h2><p>Настройка новых городов пока выключена до резервной копии и безопасного подключения Supabase.</p></section>
 ) : screen === 'applications' && supabase ? <AdminApplicationsPanel client={supabase} userId={userId} access={access} cityFilter={cityFilter} onEdit={app=>{void openApplication(app);}}/> : <>
           {screen === 'overview' && owner && <section className="admin-panel admin-cms-network" aria-label="Города сети">
@@ -404,6 +422,8 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
           </section>}
           {screen === 'overview' && owner && import.meta.env.VITE_VK_FEDERAL_POSTING_ENABLED === 'true' && <VkFederalComposer/>}
           {screen === 'overview' && <section className="admin-cms-stats" aria-label="Статистика каталога">
+            <div><small>Всего организаций</small><strong>{cityRows.length}</strong></div>
+            <div><small>Не опубликовано</small><strong>{cityRows.length-published}</strong></div>
             <div><small>Действующие карточки</small><strong>{activeRows.length}</strong></div>
             <div><small>Опубликовано</small><strong>{published}</strong></div>
             <div><small>Черновики</small><strong>{draftCount}</strong></div>
@@ -415,6 +435,14 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             </div>
             <p>Выбери раздел, чтобы посмотреть и изменить организации. Пустые разделы готовы для новых карточек.</p>
             {categories}
+            {categoryFilter==='food'&&<div className="admin-food-subcategories" role="group" aria-label="Подкатегории организаций">
+              <button type="button" aria-pressed={subcategoryFilter==='all'} onClick={()=>setSubcategoryFilter('all')}>Все форматы</button>
+              {foodSubcategories.map(sub=>{
+                const records=cityRows.filter(row=>categoryForOrganization(row)==='food'&&foodSubcategory(row)?.foodKey===sub.foodKey);
+                const published=records.filter(row=>row.status==='published').length;
+                return <button type="button" key={sub.foodKey} aria-pressed={subcategoryFilter===sub.foodKey} onClick={()=>setSubcategoryFilter(sub.foodKey!)}>{sub.name}: {records.length} · {published} опубликовано · {records.length-published} не опубликовано</button>;
+              })}
+            </div>}
           </section>}
           {message && <p role="status" className="admin-message admin-cms-list-message">{message}</p>}
           <section className="admin-panel admin-cms-directory">

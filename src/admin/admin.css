@@ -247,3 +247,6 @@
 .admin-request-reject label {font-weight:700;font-size:12px;}
 .admin-request-reject textarea {width:100%;box-sizing:border-box;min-height:85px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;color:var(--text);background:var(--bg);}
 @media(max-width:730px){.admin-request-item{grid-template-columns:1fr}.admin-request-actions{flex-direction:row;flex-wrap:wrap;}.admin-request-actions button{flex:1;}}
+.admin-food-subcategories {display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}
+.admin-food-subcategories button {padding:10px 12px;border:1px solid var(--line);border-radius:10px;text-align:left;font-size:12px;}
+.admin-food-subcategories button[aria-pressed=true] {background:var(--primary-soft);border-color:var(--primary);}

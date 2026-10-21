@@ -1,4 +1,4 @@
-/* global process, fetch, AbortSignal, console, document, window, getComputedStyle, innerWidth, innerHeight, navigator */
+/* global process, fetch, AbortSignal, console, document, window, getComputedStyle, navigator */
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -87,17 +87,15 @@ try {
       result.checks.push('All agreed editorial sections');
       assert.equal(await page.locator('.city-selections-backdrop').count(), 0, 'Repeated photo backdrop should be off');
       result.checks.push('Single photo hero, solid dark lower background');
-      const a11y = page.locator('.accessibility-button--fixed');
-      await a11y.waitFor({ state: 'visible', timeout: 10000 });
-      const placement = await a11y.evaluate(element => {
-        const bounds = element.getBoundingClientRect();
-        return { position: getComputedStyle(element).position, right: innerWidth - bounds.right, bottom: innerHeight - bounds.bottom };
-      });
-      assert.equal(placement.position, 'fixed');
-      assert(placement.right >= 0 && placement.right < 50, 'Accessibility button is not docked to the right');
-      assert(placement.bottom >= 0 && placement.bottom < (scenario.name === 'desktop-1440' ? 55 : 180),
-        'Accessibility button is not docked near the bottom');
-      result.checks.push('Accessibility launcher fixed near lower-right corner');
+      const a11y = page.getByRole('button', {name:'Версия для слабовидящих',exact:true});
+      await a11y.waitFor({state:'visible',timeout:10000});
+      assert.equal(await page.locator('.accessibility-button--fixed').isVisible(),false,
+        'The existing host shell uses the footer launcher');
+      await a11y.click();
+      const a11yDialog=page.getByRole('dialog',{name:'Настройки доступности',exact:true});
+      await a11yDialog.waitFor({state:'visible'});
+      await a11yDialog.getByRole('button',{name:'Закрыть настройки',exact:true}).click();
+      result.checks.push('Existing footer accessibility launcher opens the settings dialog');
 
       // Check the actual deployed footer, not just the source or release hash.
       const footer = page.locator('.web-footer');

@@ -1,3 +1,4 @@
+import { isFoodCategory } from '../../public/catalog/taxonomy.js';
 import type { OrganizationRow } from '../organizations/model';
 
 // A presentation taxonomy for the existing free-text organization.category column.
@@ -28,7 +29,7 @@ export type DirectoryCategoryId = typeof directoryCategories[number]['id'];
 export function categoryForOrganization(item: Pick<OrganizationRow, 'category'>): DirectoryCategoryId {
   const value = item.category.toLocaleLowerCase('ru');
   if (/музе|рубано/.test(value)) return 'museum';
-  if (/кафе|пицц|ресторан|столов|пекар|бургер|суши|еда|где поесть/.test(value)) return 'food';
+  if (isFoodCategory(value)) return 'food';
   if (/гостиниц|отел|хостел/.test(value)) return 'hotel';
   if (/аптек/.test(value)) return 'pharmacy';
   if (/продукт|супермаркет|магазин продуктов/.test(value)) return 'groceries';
