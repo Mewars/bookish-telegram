@@ -41,7 +41,7 @@ def records(role,table,title):
  return rows
 def rpc(role,name,values,expected=200):
  code,data=api(role,'POST','/rest/v1/rpc/'+name,values)
- assert code==expected,(name,role,code,data)
+ assert code==expected or (expected==200 and code==204),(name,role,code,data)
  return data
 for role,user in cfg['users'].items():
  code,data=api(None,'POST','/auth/v1/token?grant_type=password',{'email':user['email'],'password':user['password']})
@@ -155,6 +155,11 @@ with sync_playwright() as p:
    editor.get_by_label('Причина отказа',exact=True).fill(reason)
    editor.get_by_role('button',name='Отклонить с причиной',exact=True).click()
   expect(card).to_have_count(0)
+  history='classified_moderation_history' if module=='classifieds' else 'community_post_review_reasons'
+  reason_key='listing_id' if module=='classifieds' else 'post_id'
+  for role in ['buyer','foreign_editor']:
+   code,hidden=api(role,'GET',f'/rest/v1/{history}?select=reason&{reason_key}=eq.{first_id}')
+   assert code==200 and hidden==[],(module,role,code)
   resident.reload()
   resident.get_by_role('button',name='Мои объявления' if module=='classifieds' else 'Мои записи',exact=True).click()
   expect(resident.get_by_text(('Причина отклонения: ' if module=='classifieds' else 'Причина отказа: ')+reason,exact=True)).to_be_visible()
@@ -171,7 +176,7 @@ with sync_playwright() as p:
   owner.goto(origin+'/host/'+module+'/?view='+('moderation' if module=='classifieds' else 'admin'))
   with owner.expect_response(lambda response:review in response.url and response.request.method=='POST') as approval:
    owner.locator(selector).filter(has=owner.get_by_role('heading',name=title,exact=True)).get_by_role('button',name='Одобрить' if module=='classifieds' else 'Опубликовать',exact=True).click()
-  assert approval.value.status==200
+  assert approval.value.status in (200,204),(module,approval.value.status,approval.value.text())
   assert records(None,table,title)[0]['status']=='published'
   guest.goto(origin+'/host/'+module+'/')
   expect(guest.get_by_role('heading',name=title,exact=True)).to_be_visible()
@@ -187,7 +192,13 @@ with sync_playwright() as p:
   post=rpc(role,'create_community_post',{'p_city':city,'p_type':'post','p_title':'Своя запись '+role,'p_body':'Синтетическая собственная запись для проверки роли.'})
   rpc(role,'community_submit_post',{'p_post_id':post})
   rpc(role,'review_community_post_with_reason',{'p_id':post,'p_approve':True,'p_reason':None},200 if should_review else 403)
- passed('global owner can moderate own post across cities; city editor cannot approve own submission')
+  code,rows=api(role,'POST','/rest/v1/classifieds',{'city':city,'title':'Своё объявление '+role,'description':'Синтетическое собственное объявление для проверки роли.','deal_type':'sell','category':'Другое'})
+  assert code==201,(role,code,rows)
+  listing=rows[0]['id']
+  code,_=api(role,'PATCH',f'/rest/v1/classifieds?id=eq.{listing}',{'status':'pending'})
+  assert code==200
+  rpc(role,'review_classified_with_reason',{'p_listing_id':listing,'p_approve':True,'p_reason':None},200 if should_review else 403)
+ passed('global owner can moderate own posts and listings in a future city; city editor cannot approve own submissions')
  for context in contexts:context.close()
  browser.close()
 (args.workdir/'host-moderation-report.json').write_text(json.dumps({'backend':'disposable local Auth/PostgreSQL/PostgREST/Storage','checks':results,'cloud_writes':False},ensure_ascii=False,indent=2))
