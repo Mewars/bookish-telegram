@@ -22,6 +22,11 @@ test('one food directory handles explicit formats without treating menu keywords
  assert.equal(foodSubcategories.length,9);
  assert.equal(foodSubcategory({category:'Кафе',title:'Проба',description:'Проба — служба доставки суши и роллов.'}).foodKey,'delivery');
  assert.equal(foodSubcategory({category:savedFoodCategory('unclassified'),title:'Пиццерия «Проба»'}).foodKey,'unclassified');
+ for(const [category,key] of [['Бар','bar'],['Доставка еды','delivery']]){
+  const item={category,title:'Проба'};
+  assert(matchesParent(item,food));
+  assert.equal(foodSubcategory(item).foodKey,key);
+ }
 });
 test('food subcategory counts partition the same city rows, including unpublished and archived cards',()=>{
  const rows=[{city:'Город А',category:'Кафе',title:'Кафе «Тест»',status:'published'},{city:'Город А',category:'Кафе',title:'Бургерная «Тест»',status:'draft'},{city:'Город А',category:'Кафе',title:'Неуточнённый формат',status:'archived'},{city:'Город Б',category:'Кафе',title:'Кафе «Другое»',status:'published'}];

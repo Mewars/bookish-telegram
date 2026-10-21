@@ -92,7 +92,7 @@ try {
       assert.equal(await page.locator('.accessibility-button--fixed').isVisible(),false,
         'The existing host shell uses the footer launcher');
       await a11y.click();
-      const a11yDialog=page.getByRole('dialog',{name:'Версия для слабовидящих и слабослышащих'});
+      const a11yDialog=page.getByRole('dialog',{name:'Настройки доступности',exact:true});
       await a11yDialog.waitFor({state:'visible'});
       await a11yDialog.getByRole('button',{name:'Закрыть настройки',exact:true}).click();
       result.checks.push('Existing footer accessibility launcher opens the settings dialog');

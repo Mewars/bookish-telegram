@@ -865,7 +865,10 @@ const parentPatterns={
  'Авто':/авто|азс|запчаст|шиномонтаж|заправк|такси/,
  'Спорт':/спорт|фитнес|стадион|тренажер|секци|бассейн/,
 };
-export function matchesParent(item,parent){return !!parentPatterns[parent.name]?.test(normalizeCategory(item.category))}
+export function matchesParent(item,parent){
+ if(parent.name==='Где поесть')return isFoodCategory(item.category);
+ return !!parentPatterns[parent.name]?.test(normalizeCategory(item.category));
+}
 export function matchesLeaf(item,leaf,parent){
  if(parent.name==='Где поесть')return foodSubcategory(item)?.foodKey===leaf.foodKey;
  if(leaf.subs?.length)return leaf.subs.some(child=>matchesLeaf(item,child,parent));
