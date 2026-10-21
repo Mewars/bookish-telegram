@@ -165,7 +165,7 @@
       style.textContent='.ryadom-notif-trigger,.ryadom-notif-popover,.ryadom-push-consent{display:none!important}';
       doc.head.append(style);
       doc.addEventListener('click',event=>{
-        const a=event.target instanceof Element?event.target.closest('a[href]'):null;
+        const a=event.target instanceof doc.defaultView.Element?event.target.closest('a[href]'):null;
         if(!a||event.defaultPrevented||event.button!==0||event.ctrlKey||event.shiftKey||event.altKey||event.metaKey||a.target==='_blank'||a.hasAttribute('download'))return;
         const dest=allowedPath(a.href);
         if(dest){event.preventDefault();event.stopImmediatePropagation();openSection(dest);return}
