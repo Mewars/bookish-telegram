@@ -48,7 +48,7 @@ with sync_playwright() as p:
   page.locator('#city').select_option('Лесосибирск')
   expect(page.get_by_role('heading',name='Исправленная запись жителя')).to_have_count(0)
   # A new resident post is sent to review rather than appearing in the feed.
-  page.get_by_role('button',name='Предложить запись',exact=True).click()
+  page.get_by_role('navigation',name='Разделы стены').get_by_role('button',name='Предложить запись',exact=True).click()
   page.get_by_label('Заголовок',exact=True).fill('Новая запись другого города')
   page.get_by_label('Текст записи',exact=True).fill('Новый текст жителя должен пройти модерацию владельца.')
   page.get_by_role('button',name='Отправить запись',exact=True).click()
