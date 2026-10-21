@@ -1,5 +1,5 @@
-import {readManagedOrganizations} from '/catalog/adminData.js?v=20261021orgs1';
-import {catalogGroups,matchesParent,matchesLeaf,catalogCounts,foodSubcategories,foodSubcategory,isFoodCategory,savedFoodCategory} from '/catalog/taxonomy.js?v=20261021orgs1';
+import {readManagedOrganizations} from '/catalog/adminData.js?v=20261021lodging1';
+import {catalogGroups,matchesParent,matchesLeaf,catalogCounts,foodSubcategories,foodSubcategory,isFoodCategory,savedFoodCategory} from '/catalog/taxonomy.js?v=20261021lodging1';
 /* РЯДОМ: те же категории в кабинете администратора, что и на главной.
  * Старая административная сетка остаётся доступной как запасной вариант.
  */

@@ -8,7 +8,7 @@ const literal=value=>`'${JSON.stringify(value).replaceAll("'","''")}'::jsonb`;
 
 // Offline SQL preparation only. No credentials, DB connections or automatic execution.
 export function prepareImport(manifest,before){
- if(manifest.batch!=='2026-10-21-owner-organizations'||!Array.isArray(before))throw Error('Unexpected import or snapshot');
+ if(!['2026-10-21-owner-organizations','2026-10-21-owner-lodging'].includes(manifest.batch)||!Array.isArray(before))throw Error('Unexpected import or snapshot');
  const records=manifest.records, ids=new Set(records.map(r=>r.organization.id));
  if(ids.size!==records.length)throw Error('Duplicate import ID');
  const existing=new Map(before.map(r=>[r.id,r]));
@@ -35,7 +35,7 @@ END $guard$;
 INSERT INTO public.organizations (${columns.join(',')})
 SELECT ${columns.join(',')} FROM jsonb_populate_recordset(null::public.organizations,${literal(inserts)});
 UPDATE public.organizations o SET
- category=CASE WHEN o.category='Кафе' THEN m.category ELSE o.category END,
+ category=CASE WHEN o.category IN ('Кафе','Гостиницы') THEN m.category ELSE o.category END,
  phone=coalesce(nullif(o.phone,''),m.phone),hours=coalesce(nullif(o.hours,''),m.hours),
  website=coalesce(nullif(o.website,''),m.website),
  latitude=coalesce(o.latitude,m.latitude),longitude=coalesce(o.longitude,m.longitude),

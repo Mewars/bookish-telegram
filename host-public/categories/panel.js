@@ -1,4 +1,4 @@
-import {catalogGroups} from '/catalog/taxonomy.js?v=20261021orgs1';
+import {catalogGroups} from '/catalog/taxonomy.js?v=20261021lodging1';
 /* РЯДОМ · фирменная панель разделов и подразделов. Ни одного стороннего дизайна. */
 (()=>{
 'use strict';

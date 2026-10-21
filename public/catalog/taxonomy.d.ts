@@ -5,6 +5,7 @@ export const foodSubcategories:CatalogBranch[];
 export function normalizeCategory(value:unknown):string;
 export function isFoodCategory(value:string):boolean;
 export function foodSubcategory(item:CatalogItem):CatalogBranch|null|undefined;
+export function lodgingSubcategory(item:CatalogItem):CatalogBranch|null|undefined;
 export function categoryParts(item:CatalogItem):{category:string;subcategory:string};
 export function savedFoodCategory(key:string):string;
 export function matchesParent(item:CatalogItem,parent:CatalogBranch):boolean;
