@@ -42,6 +42,8 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
   const [loadedKey,setLoadedKey]=useState('');
   const [busy,setBusy]=useState(false);
   const [feedback,setFeedback]=useState('');
+  const [rejectingId,setRejectingId]=useState<string|null>(null);
+  const [rejectionReason,setRejectionReason]=useState('');
 
   useEffect(()=>{
     let live=true;
@@ -172,6 +174,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
         <div className="community-card-meta"><span>{postTypeNames[post.post_type]}</span><time dateTime={post.created_at}>{formatDate(post.created_at)}</time></div>
         <h2>{post.title}</h2><p>{post.body}</p>
         {view==='mine'&&<div className="community-card-actions">
+          {post.status==='rejected'&&post.review_reason&&<p>Причина отказа: {post.review_reason}</p>}
           <small>Статус: {({draft:'Черновик',pending:'На проверке',published:'Опубликовано',rejected:'Отклонено',archived:'Скрыто'} as Record<string,string>)[post.status]}</small>
           {(post.status==='draft'||post.status==='rejected')&&<button disabled={busy} onClick={()=>editDraft(post)}>Изменить</button>}
           {(post.status==='draft'||post.status==='rejected')&&<button disabled={busy}
@@ -187,7 +190,17 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
         {view==='moderate'&&<div className="community-card-actions">
           {mayModerateCommunityMaterial(userId,post.author_id)?<>
             <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityPost(supabase,post.id,true))}>Одобрить</button>
-            <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityPost(supabase,post.id,false))}>Отклонить</button>
+            <button disabled={busy} onClick={()=>{setRejectingId(post.id);setRejectionReason('');}}>Отклонить</button>
+            {rejectingId===post.id&&<form onSubmit={event=>{
+              event.preventDefault();
+              void doAction(()=>reviewCommunityPost(supabase,post.id,false,rejectionReason),()=>{setRejectingId(null);setRejectionReason('');});
+            }}>
+              <label>Причина отказа
+                <textarea required minLength={3} maxLength={1000} value={rejectionReason} onChange={event=>setRejectionReason(event.target.value)}/>
+              </label>
+              <button disabled={busy} type="submit">Отклонить с причиной</button>
+              <button disabled={busy} type="button" onClick={()=>setRejectingId(null)}>Отмена</button>
+            </form>}
           </>:<small>Собственную публикацию должен проверить другой редактор.</small>}
         </div>}
         {view==='feed'&&<section className="community-comments">
