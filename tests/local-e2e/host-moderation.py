@@ -174,7 +174,8 @@ with sync_playwright() as p:
   expect(resident.locator('article').filter(has=resident.get_by_role('heading',name=title,exact=True)).locator('.pending')).to_be_visible()
   # The global owner reviews the resubmitted post through the real UI.
   owner.goto(origin+'/host/'+module+'/?view='+('moderation' if module=='classifieds' else 'admin'))
-  with owner.expect_response(lambda response:review in response.url and response.request.method=='POST') as approval:
+  approval_rpc='review_classified_with_reason' if module=='classifieds' else 'review_community_post'
+  with owner.expect_response(lambda response:approval_rpc in response.url and response.request.method=='POST') as approval:
    owner.locator(selector).filter(has=owner.get_by_role('heading',name=title,exact=True)).get_by_role('button',name='Одобрить' if module=='classifieds' else 'Опубликовать',exact=True).click()
   assert approval.value.status in (200,204),(module,approval.value.status,approval.value.text())
   assert records(None,table,title)[0]['status']=='published'

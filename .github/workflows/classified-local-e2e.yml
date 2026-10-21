@@ -75,7 +75,7 @@ jobs:
           import {build} from 'esbuild';
           await build({stdin:{contents:'export {createClient as c} from "@supabase/supabase-js"',resolveDir:process.cwd()},bundle:true,format:'esm',platform:'browser',outfile:process.env.TEST_WORKDIR+'/host-supabase-client.js'});
           JS
-      - name: Exercise real UI and negative API permissions with five synthetic users
+      - name: Exercise real UI and negative API permissions with six synthetic users
         run: |
           FRIENDS_LOCAL_PHP_ORIGIN=http://127.0.0.1:8187 python tests/local-e2e/gateway.py --workdir "$TEST_WORKDIR" > "$RUNNER_TEMP/local-e2e-gateway.log" 2>&1 &
           gateway_pid=$!
