@@ -1,3 +1,4 @@
+import {verifyHuman} from '../../public/security/antispam.js';
 import { useRef, useState, type FormEvent } from 'react';
 import { hasCurrentPersonalDataConsent, savePersonalDataConsent } from '../privacy/personalDataConsent';
 import '../privacy/personalDataConsent.css';
@@ -13,6 +14,7 @@ type EmailMode = 'signin' | 'signup' | 'forgot';
 
 function accountError(code: string | undefined, fallback: string): string {
   switch (code) {
+    case 'captcha_failed': return 'Проверка безопасности не пройдена. Повторите отправку.';
     case 'invalid_credentials': return 'Неверная почта или пароль.';
     case 'email_not_confirmed': return 'Подтвердите почту по ссылке из письма и повторите вход.';
     case 'weak_password': return 'Пароль не соответствует требованиям безопасности. Попробуйте более сложный.';
@@ -87,7 +89,7 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
     setLoginError(null);
     setNotice(null);
     try { await action(); }
-    catch { setLoginError('Не удалось выполнить запрос. Проверьте соединение и попробуйте снова.'); }
+    catch (error) { setLoginError(error instanceof Error ? error.message : 'Не удалось выполнить запрос. Проверьте соединение и попробуйте снова.'); }
     finally { inFlight.current = false; setBusy(false); }
   };
 
@@ -129,9 +131,15 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
       const address = email.trim();
       if (!address) { setLoginError('Введите электронную почту.'); return; }
 
+      if(mode==='signup'){
+        if(!checkConsent())return;
+        if(password.length<8){setLoginError('Используйте пароль не короче 8 символов.');return;}
+        if(password!==passwordAgain){setLoginError('Пароли не совпадают.');return;}
+      }
+      const captchaToken=await verifyHuman(supabase,'auth');
       if (mode === 'forgot') {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(address, {
-          redirectTo: recoveryReturnUrl(),
+          redirectTo: recoveryReturnUrl(), captchaToken,
         });
         if (resetError) {
           setLoginError(accountError(resetError.code, 'Не удалось отправить письмо. Попробуйте позднее.'));
@@ -143,7 +151,7 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
 
       if (mode === 'signin') {
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: address, password,
+          email: address, password, options:{captchaToken},
         });
         if (signInError) {
           setLoginError(accountError(signInError.code, 'Не удалось войти. Проверьте данные и повторите попытку.'));
@@ -154,18 +162,9 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
         return;
       }
 
-      if (!checkConsent()) return;
-      if (password.length < 8) {
-        setLoginError('Используйте пароль не короче 8 символов.');
-        return;
-      }
-      if (password !== passwordAgain) {
-        setLoginError('Пароли не совпадают.');
-        return;
-      }
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: address, password,
-        options: { emailRedirectTo: loginReturnUrl() },
+        options: { emailRedirectTo: loginReturnUrl(), captchaToken },
       });
       if (signUpError) {
         setLoginError(accountError(signUpError.code, 'Регистрация не удалась. Попробуйте позднее.'));

@@ -27,4 +27,4 @@ class Query {
 }
 export const c=()=>({from:table=>new Query(table),
  auth:{getSession:async()=>({data:{session:{user}},error:null}),onAuthStateChange(){return {};},signOut:async()=>{}},
- rpc:async(name)=>{window.hostCalls.push({rpc:name});if(name==='begin_classified_revision')row.status='draft';return {data:null,error:null};}});
+ rpc:async(name)=>{window.hostCalls.push({rpc:name});if(name==='antispam_public_config')return {data:{auth_enabled:false,content_enabled:false,site_key:null},error:null};if(name==='begin_classified_revision')row.status='draft';return {data:null,error:null};}});

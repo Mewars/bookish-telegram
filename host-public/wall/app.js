@@ -1,3 +1,4 @@
+import {verifyHuman} from '/security/antispam.js?v=20261022spam1';
 import {c as createClient} from './supabase-client.js';
 import {rejectWallPost,loadReviewReasons,saveWallDraft} from './moderation.js?v=20261020a';
 const sb=createClient('https://cptbmepnbzogqkfhflsg.supabase.co','sb_publishable_-LLEHXpg_rqIZ_vUdPnwTQ_0ajeVm37',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,flowType:'pkce'}});
@@ -305,7 +306,7 @@ async function makePost(post,photos=[],likes=null,scope='feed',video=null,author
   if(post.status==='rejected'&&post.review_reason)card.append(el('p','status-note',['Причина отказа: '+post.review_reason]));
   if(['draft','rejected'].includes(post.status))actions.append(
    btn('Редактировать и добавить медиа',()=>goto('write',{edit:post}),'btn small secondary'),
-   btn('Отправить',()=>act(async()=>{await rpc('community_submit_post',{p_post_id:post.id});await renderMine();flash('Запись отправлена на модерацию.')}),'btn small')
+   btn('Отправить',()=>act(async()=>{await verifyHuman(sb,'wall_post',post.id);await rpc('community_submit_post',{p_post_id:post.id});await renderMine();flash('Запись отправлена на модерацию.')}),'btn small')
   );
   if(post.status==='pending'){
    if(s.isOwner)actions.append(btn('Опубликовать сейчас',()=>act(async()=>{
@@ -384,7 +385,7 @@ async function commentSection(postId){const section=el('section','comments');con
  const authors=await getAuthorCards((data||[]).map(x=>x.author_id));
  for(const c of data||[]){const line=el('div','comment'),content=el('div','');const person=authors.get(c.author_id);
  content.append(el('div','comment-info',[person?.display_name|| (c.author_id===s.user?.id?'Вы':'Житель города'),' · ',safeTime(c.created_at)]),el('p','comment-text',[c.body]));if(isStaff(s.city))content.append(btn('Скрыть',()=>act(async()=>{if(!confirm('Скрыть комментарий?'))return;await rpc('hide_community_comment',{p_id:c.id});s.expanded=postId;await renderFeed()}),'btn ghost small'));line.append(makeAvatar(person,false),content);section.append(line)}
- const form=el('form','comment-form');const field=document.createElement('textarea');field.maxLength=2000;field.minLength=2;field.required=true;field.placeholder='Написать комментарий…';cleanPastedText(field);const send=btn('Отправить',()=>{});send.type='submit';form.append(field,send);form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await rpc('submit_community_comment',{p_post_id:postId,p_body:cleanMarkdownPaste(field.value.trim())});s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});section.append(form);return section;}
+ const form=el('form','comment-form');const field=document.createElement('textarea');field.maxLength=2000;field.minLength=2;field.required=true;field.placeholder='Написать комментарий…';cleanPastedText(field);const send=btn('Отправить',()=>{});send.type='submit';form.append(field,send);form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');await rpc('submit_community_comment',{p_post_id:postId,p_body:cleanMarkdownPaste(field.value.trim())});s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});section.append(form);return section;}
 async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),settings()]);
  const requested=new URLSearchParams(location.search).get('post');
  if(requested && /^[0-9a-f-]{36}$/i.test(requested) && !posts.some(p=>p.id===requested)){
@@ -457,6 +458,7 @@ async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(
     if(item.f.size>10485760)throw Error('Фотография превышает 10 МБ: '+item.f.name);}
    const videoType=videoFile?fileType(videoFile,VIDEO_TYPES):null;
    if(videoFile&&(!videoType||videoFile.size>52428800))throw Error('Видео должно быть MP4, WebM или MOV размером до 50 МБ.');
+   if(!savedPostId)await verifyHuman(sb,'wall_post');
    let postId;
    if(savedPostId){await saveWallDraft(sb,savedPostId,s.user.id,cleanMarkdownPaste(title.value.trim()),cleanMarkdownPaste(body.value.trim()));postId=savedPostId;
    }else{postId=await rpc('create_community_post',{p_city:s.city,p_type:typ.value,p_title:cleanMarkdownPaste(title.value.trim()),p_body:cleanMarkdownPaste(body.value.trim())});savedPostId=postId;}

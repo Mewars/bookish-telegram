@@ -1,3 +1,4 @@
+import {verifyHuman} from '../../public/security/antispam.js';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -45,6 +46,8 @@ function ApplicationForm({ userId, city, openApplications }: { userId: string; c
     }
     locked.current = true; setBusy(true);
     try {
+      if(!supabase)throw Error('Приём заявок временно недоступен.');
+      await verifyHuman(supabase,'organization');
       requestId.current ??= crypto.randomUUID();
       const saved=await submitApplication(supabase, userId, draft, consent, requestId.current);
       if(photoFile){
