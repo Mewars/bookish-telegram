@@ -7,6 +7,7 @@ with sync_playwright() as p:
   context.route('**/*',lambda r:r.continue_() if r.request.url.startswith('http://127.0.0.1:4178/') else r.abort())
   context.add_init_script("""window.turnstile={render(node,options){const ok=document.createElement('button');ok.textContent='Synthetic pass';ok.onclick=()=>options.callback('synthetic-token');const fail=document.createElement('button');fail.textContent='Synthetic failure';fail.onclick=()=>options['error-callback']();node.append(ok,fail);return 'synthetic-widget';},remove(){}};""")
   page=context.new_page();page.goto('http://127.0.0.1:4178/tests/antispam-fixture.html')
+  expect(page.locator('vite-error-overlay')).to_have_count(0)
   page.get_by_role('button',name='Отправить объявление',exact=True).click()
   dialog=page.get_by_role('dialog',name='Проверка безопасности',exact=True)
   expect(dialog).to_be_visible()

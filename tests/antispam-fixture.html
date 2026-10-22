@@ -1,5 +1,5 @@
 <!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Isolated anti-spam fixture</title><body><input aria-label="Текст объявления" value="Не потерять введённый текст"><button id="auth">Войти</button><button id="classified">Отправить объявление</button><p role="status"></p><script type="module">
-import {verifyHuman} from '/security/antispam.js';
+import {verifyHuman} from '../public/security/antispam.js';
 window.verificationCalls=[];
 const client={rpc:async()=>({data:{auth_enabled:true,content_enabled:true,site_key:'synthetic-widget-only'},error:null}),functions:{invoke:async(name,args)=>{window.verificationCalls.push({name,...args.body});return {data:{verified:true},error:null}}}};
 for(const id of ['auth','classified'])document.getElementById(id).onclick=async()=>{try{const token=await verifyHuman(client,id,id==='classified'?'synthetic-row':null);document.querySelector('[role=status]').textContent=id==='auth'?'auth: '+token:'Отправлено';}catch(error){document.querySelector('[role=status]').textContent=error.message;}};
