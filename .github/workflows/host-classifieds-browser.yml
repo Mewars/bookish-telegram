@@ -2,7 +2,7 @@ name: Live Host Module Regression
 on:
   pull_request:
     branches: [mewars]
-    paths: ['host-public/classifieds/**', 'scripts/preserve-host-extensions.py', 'tests/host-classified*', 'tests/preserve-host-extensions.py', '.github/workflows/host-classifieds-browser.yml', '.github/workflows/sprinthost-deploy.yml']
+    paths: ['public/security/**', 'host-public/classifieds/**', 'scripts/preserve-host-extensions.py', 'tests/host-classified*', 'tests/preserve-host-extensions.py', '.github/workflows/host-classifieds-browser.yml', '.github/workflows/sprinthost-deploy.yml']
 permissions:
   contents: read
 jobs:
@@ -28,6 +28,7 @@ jobs:
       - name: Test real live-host module with synthetic accounts only
         run: |
           cp -R public/catalog host-public/catalog
+          cp -R public/security host-public/security
           python -m http.server 4176 --bind 127.0.0.1 --directory host-public > "$RUNNER_TEMP/host-test.log" 2>&1 &
           host_pid=$!
           trap 'kill "$host_pid" 2>/dev/null || true' EXIT

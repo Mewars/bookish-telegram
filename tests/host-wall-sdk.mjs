@@ -38,7 +38,8 @@ export function c(){
    onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
    signOut:async()=>({error:null})
   },
-  rpc:async(name,args)=>{
+  rpc:async(name,args={})=>{
+   if(name==='antispam_public_config')return {data:{auth_enabled:false,content_enabled:false,site_key:null},error:null};
    const db=read(),who=actor();
    const post=db.posts.find(p=>p.id===(args.p_id||args.p_post_id));
    const denied=()=>({data:null,error:{message:'Not authorized'}});
