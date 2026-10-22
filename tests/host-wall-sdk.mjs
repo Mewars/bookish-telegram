@@ -39,7 +39,7 @@ export function c(){
    signOut:async()=>({error:null})
   },
   rpc:async(name,args={})=>{
-   if(name==='antispam_public_config')return {data:{auth_enabled:false,content_enabled:false,site_key:null},error:null};
+   if(name==='antispam_public_config'){window.wallVerificationCount=(window.wallVerificationCount||0)+1;return {data:{auth_enabled:false,content_enabled:false,site_key:null},error:null};}
    const db=read(),who=actor();
    const post=db.posts.find(p=>p.id===(args.p_id||args.p_post_id));
    const denied=()=>({data:null,error:{message:'Not authorized'}});
@@ -54,6 +54,7 @@ export function c(){
     write(db);return {data:null,error:null};
    }
    if(name==='community_submit_post'){
+    if(window.wallSubmitFailures>0){window.wallSubmitFailures--;return {data:null,error:{message:'Synthetic retry required'}};}
     if(!post||post.author_id!==who||!['draft','rejected'].includes(post.status))return denied();
     post.status='pending';write(db);return {data:'pending',error:null};
    }
