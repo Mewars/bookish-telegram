@@ -1,4 +1,4 @@
-import {verifyHuman} from '/security/antispam.js?v=20261022spam1';
+import {verifyHuman} from '/security/antispam.js?v=20261022spam2';
 import {readCityPins,sortPinnedClassifieds} from './pins.js?v=20261021pins1';
 import {createPhotoPlaceholder} from '/catalog/photoFallback.js?v=20261021catalog1';
 import { c as createClient } from './supabase-client.js';
