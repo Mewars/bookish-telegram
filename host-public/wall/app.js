@@ -458,7 +458,7 @@ async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(
     if(item.f.size>10485760)throw Error('Фотография превышает 10 МБ: '+item.f.name);}
    const videoType=videoFile?fileType(videoFile,VIDEO_TYPES):null;
    if(videoFile&&(!videoType||videoFile.size>52428800))throw Error('Видео должно быть MP4, WebM или MOV размером до 50 МБ.');
-   if(!savedPostId)await verifyHuman(sb,'wall_post');
+   if(!existing)await verifyHuman(sb,'wall_post',savedPostId);
    let postId;
    if(savedPostId){await saveWallDraft(sb,savedPostId,s.user.id,cleanMarkdownPaste(title.value.trim()),cleanMarkdownPaste(body.value.trim()));postId=savedPostId;
    }else{postId=await rpc('create_community_post',{p_city:s.city,p_type:typ.value,p_title:cleanMarkdownPaste(title.value.trim()),p_body:cleanMarkdownPaste(body.value.trim())});savedPostId=postId;}
