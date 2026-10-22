@@ -10,6 +10,7 @@ with sync_playwright() as p:
  browser=p.chromium.launch()
  for width in (360,390,1440):
   context=browser.new_context(viewport={'width':width,'height':900})
+  admin_fixture=False
   def route(request):
    url=request.request.url
    if url.startswith(ORIGIN+'/host-public/'):
@@ -17,6 +18,7 @@ with sync_playwright() as p:
     # source transform, which rejects their absolute public-directory imports.
     path=Path(urlparse(url).path.lstrip('/'))
     request.fulfill(status=200,content_type='text/css' if path.suffix=='.css' else 'text/javascript',body=path.read_text())
+   elif admin_fixture and urlparse(url).path=='/src/lib/supabase.ts':request.fulfill(status=200,content_type='text/javascript',body="import {c} from '/tests/host-catalog-sdk.mjs';export const supabase=c();")
    elif '/wall/supabase-client.js' in url:request.fulfill(status=200,content_type='text/javascript',body=SDK)
    elif '/tests/photo-valid.png' in url:request.fulfill(status=200,content_type='image/png',body=PNG)
    elif '/tests/photo-broken.png' in url:request.fulfill(status=404,body='missing')
@@ -55,31 +57,35 @@ with sync_playwright() as p:
   expect(page.get_by_role('group',name='Подкатегории',exact=True).get_by_role('button',name='Бургерные и стритфуд',exact=True)).to_have_attribute('aria-pressed','true')
   expect(page.get_by_role('heading',name='Бургерная «Мясорубка»',exact=True)).to_be_visible()
   expect(page.get_by_role('heading',name='Кафе «Домино»',exact=True)).to_have_count(0)
-  # Owner counters and explicit recategorization; no real database is contacted.
-  page.goto(ORIGIN+'/tests/host-catalog-fixture.html')
-  expect(page.locator('.ryadm-toolbar')).to_contain_text('3 всего · 1 опубликовано · 2 не опубликовано')
-  page.get_by_role('button',name=re.compile('^Где поесть')).click()
-  burger=page.get_by_role('button',name=re.compile('^Бургерные и стритфуд'))
-  expect(burger).to_contain_text('1 всего · 0 опубликовано · 1 не опубликовано')
-  burger.click();expect(page.locator('.ryadm-result')).to_have_count(1)
-  page.get_by_role('button',name=re.compile('Редактировать')).click()
-  page.get_by_label('Подкатегория общепита',exact=True).select_option('restaurant')
-  page.get_by_role('button',name='Сохранить',exact=True).click()
-  expect(page.get_by_role('dialog',name='Редактирование организации')).to_have_count(0)
-  page.get_by_role('button',name='← Разделы',exact=True).click()
-  expect(page.get_by_role('button',name=re.compile('^Рестораны'))).to_contain_text('1 всего · 0 опубликовано · 1 не опубликовано')
-  # A server-side change triggers fresh counters through the existing event.
-  page.evaluate("const rows=JSON.parse(localStorage.getItem('catalog-fixture-data'));rows.find(x=>x.id==='2').status='published';localStorage.setItem('catalog-fixture-data',JSON.stringify(rows));window.dispatchEvent(new Event('ryadom:organizations-changed'))")
-  expect(page.locator('.ryadm-toolbar')).to_contain_text('3 всего · 2 опубликовано · 1 не опубликовано')
-  page.get_by_label('Город организаций',exact=True).select_option('Город Б')
-  expect(page.locator('.ryadm-toolbar')).to_contain_text('1 всего · 1 опубликовано · 0 не опубликовано')
-  # The city editor can request only their own city, including after refresh.
+  # The real React admin owns a single shared tree and opens photo cards immediately.
+  admin_fixture=True
+  page.goto(ORIGIN+'/tests/admin-photo-fixture.html')
+  page.get_by_label('Город управления',exact=True).select_option('Город А')
+  page.get_by_role('button',name=re.compile('^Где поесть:')).click()
+  expect(page.locator('.admin-cms-card')).to_have_count(2)
+  expect(page.locator('.admin-cms-card img')).to_have_count(2)
+  expect(page.locator('.ryadm-interface')).to_have_count(0)
+  group=page.get_by_role('group',name='Подкатегории организаций',exact=True)
+  assert 'не опубликовано' not in group.inner_text()
+  page.get_by_label('Подкатегория организации',exact=True).select_option(label='Бургерные и стритфуд')
+  expect(page.locator('.admin-cms-card')).to_have_count(1)
+  expect(page.locator('.admin-cms-card')).to_contain_text('Бургерная')
+  page.get_by_role('button',name='Редактировать: Бургерная «Проба»',exact=True).click()
+  expect(page.get_by_role('heading',name='Редактирование организации',exact=True)).to_be_visible()
+  page.get_by_role('button',name='Отмена',exact=True).click()
+  page.once('dialog',lambda dialog:dialog.accept())
+  page.get_by_role('button',name='Удалить навсегда: Бургерная «Проба»',exact=True).click()
+  expect(page.locator('.admin-cms-card')).to_have_count(0)
+  assert not page.evaluate("JSON.parse(localStorage.getItem('catalog-fixture-data')).some(r=>r.id==='2')")
+  page.get_by_label('Статус организации',exact=True).select_option('archived')
+  expect(page.locator('.admin-cms-card')).to_have_count(0)
+  # An editor's query is scoped at the API as well as in the UI.
   page.evaluate("localStorage.setItem('catalog-actor','editor')")
   page.reload()
-  expect(page.get_by_label('Город организаций',exact=True).locator('option')).to_have_count(1)
-  expect(page.locator('.ryadm-toolbar')).to_contain_text('3 всего')
+  page.get_by_role('button',name=re.compile('^Где поесть:')).click()
+  expect(page.locator('.admin-cms-card')).to_have_count(1)
   assert page.evaluate("window.catalogRequests.every(call=>call.filters.some(([key,value])=>key==='city'&&value.length===1&&value[0]==='Город А'))")
   assert not errors,errors
-  print('PASS',width,'first-screen cover and submission button; real/broken/changed images; shared food route; city/status counters; refresh; owner save; editor scope')
+  print('PASS',width,'cover, photos, public route, single React admin, food dropdown, editing, permanent deletion, editor city scope')
   context.close()
  browser.close()

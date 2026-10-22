@@ -1,4 +1,3 @@
-import { foodSubcategories, foodSubcategory, savedFoodCategory, isFoodCategory } from '../../public/catalog/taxonomy.js';
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -14,9 +13,10 @@ import {
   canManageCity, manageableAdminCities, newAdminDraft, rowToAdminDraft,
   validateAdminDraft, type AdminDraft, type CityAdminAccess, type AdminStatus,
 } from './model';
-import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto, removeOrphanedAdminPhoto, changeAdminOrganizationAvailability, downloadApplicantPhoto, decideOrganizationApplication } from './repository';
-import { directoryCategories, categoryForOrganization, type DirectoryCategoryId } from './directoryCategories';
+import { readAdminOrganizations, readCityAccess, saveAdminOrganization, uploadAdminPhoto, removeOrphanedAdminPhoto, deleteAdminOrganization, downloadApplicantPhoto, decideOrganizationApplication } from './repository';
+import { directoryCategories, categoryForOrganization } from './directoryCategories';
 import './admin.css';
+import {adminCatalogGroups,adminSubcategories,matchesAdminGroup,matchesAdminSubcategory,adminNewCategory,adminGroupForRow} from './catalogNavigation';
 import {requestCategory} from '../../public/catalog/requestCategories.js';
 
 export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCities, refreshCities, goHome, openLogin }: { enabled: boolean; cityDirectoryEnabled: boolean; cities: readonly DirectoryCity[]; refreshCities: () => void; goHome: () => void; openLogin: () => void }) {
@@ -34,9 +34,8 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState('');
   const [cityFilter, setCityFilter] = useState('Все города');
-  const [kindFilter, setKindFilter] = useState('Все разделы');
   const [statusFilter, setStatusFilter] = useState('Действующие');
-  const [categoryFilter, setCategoryFilter] = useState<DirectoryCategoryId | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [subcategoryFilter,setSubcategoryFilter]=useState('all');
   const [screen, setScreen] = useState<'overview' | 'catalog' | 'applications' | 'cities'>('overview');
   const [applicationOrigin,setApplicationOrigin]=useState<ApplicationRow|null>(null);
@@ -76,12 +75,12 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     setDraft(rowToAdminDraft(row)); chooseFile(null); setConfirmed(false); setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  const create = (groupId?: DirectoryCategoryId) => {
+  const create = (groupId?: string) => {
     setApplicationOrigin(null);
     const preferred = cityFilter !== 'Все города' && access && canManageCity(access, cityFilter) ? cityFilter : null;
     const city = preferred ?? access?.find(entry => entry.active && entry.city !== '*')?.city ?? directoryCities[0]?.name ?? availableCities[0].name;
-    const group = directoryCategories.find(entry => entry.id === groupId) ?? directoryCategories[0];
-    setDraft({ ...newAdminDraft(city), category: group.value, kind: group.kind });
+    const selection = adminNewCategory(groupId ?? adminCatalogGroups[0].id,subcategoryFilter);
+    setDraft({ ...newAdminDraft(city), ...selection });
     chooseFile(null); setConfirmed(false); setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -102,7 +101,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
       }catch(error){setMessage(error instanceof Error?error.message:'Не удалось открыть фото заявителя.');}
     }
   };
-  const chooseCategory = (id: DirectoryCategoryId) => {
+  const chooseCategory = (id: string) => {
     setCategoryFilter(id);setSubcategoryFilter('all');
     setScreen('catalog');
     setStatusFilter('Действующие');
@@ -148,26 +147,17 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
   };
 
 
-  const toggleAvailability = async (row: OrganizationRow) => {
+  const removeOrganization = async (row: OrganizationRow) => {
     if (busy || !userId || !supabase || !access) return;
-    const restoring = row.status === 'archived';
-    if (!restoring && !window.confirm(
-      `Убрать организацию «${row.title}» (${row.city}) с сайта?\n\nКарточка перейдёт в архив, но её данные и фото сохранятся. Позже её можно будет восстановить.`
-    )) return;
-    if (restoring && !window.confirm(
-      `Вернуть организацию «${row.title}» в черновики?\nОна не появится на сайте до повторной проверки и публикации.`
-    )) return;
-    setBusy(true); setMessage('');
+    if (!window.confirm(`Удалить организацию «${row.title}» (${row.city}) навсегда?\n\nКарточка и её отзывы будут удалены. В архив или черновики она не попадёт.`)) return;
+    setBusy(true);setMessage('');
     try {
-      const updated = await changeAdminOrganizationAvailability(supabase, userId, access, row);
-      setRows(current => current.map(item => item.id === updated.id ? updated : item));
-      setMessage(restoring
-        ? `«${updated.title}» восстановлена в черновики. Для публикации проверь информацию.`
-        : `«${updated.title}» убрана с сайта и перенесена в архив. Восстановление — через фильтр «Архив».`);
+      await deleteAdminOrganization(supabase,userId,access,row);
+      setRows(current=>current.filter(item=>item.id!==row.id));
+      setMessage(`«${row.title}» удалена.`);
       window.dispatchEvent(new Event('ryadom:organizations-changed'));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Не удалось изменить статус организации.');
-    } finally { setBusy(false); }
+    } catch(error) {setMessage(error instanceof Error?error.message:'Удаление не подтверждено. Обнови список.');}
+    finally {setBusy(false);}
   };
 
   if (!enabled) return <EmptyState title="Админка готовится к запуску" text="Пока мы не проверили права в Supabase и не включили защищённый доступ, управление организациями выключено." action="На главную" onAction={goHome}/>;
@@ -183,23 +173,18 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     owner ? directoryCities.map(city => city.name) : [],
   );
   const cityRows = rows.filter(row => cityFilter === 'Все города' || row.city === cityFilter);
-  const activeRows = cityRows.filter(row => row.status !== 'archived');
   const filtered = cityRows.filter(row =>
-    (categoryFilter === 'all' || categoryForOrganization(row) === categoryFilter)
-    && (subcategoryFilter==='all'||foodSubcategory(row)?.foodKey===subcategoryFilter)
-    && (kindFilter === 'Все разделы' || (row.kind === 'services' ? 'services' : 'places') === kindFilter)
+    matchesAdminGroup(row,categoryFilter)
+    && matchesAdminSubcategory(row,categoryFilter,subcategoryFilter)
     && (statusFilter === 'Все статусы' || (statusFilter === 'Действующие' ? row.status !== 'archived' : row.status === statusFilter))
     && [row.title, row.category, row.address ?? ''].some(value => value.toLocaleLowerCase('ru').includes(filter.trim().toLocaleLowerCase('ru')))
   ).sort((left, right) => left.title.localeCompare(right.title, 'ru'));
-  const published = cityRows.filter(row => row.status === 'published').length;
-  const draftCount = cityRows.filter(row => row.status === 'draft').length;
   const selectedLabel = categoryFilter === 'all' ? 'Все организации' :
-    directoryCategories.find(category => category.id === categoryFilter)?.label ?? 'Все организации';
+    adminCatalogGroups.find(category => category.id === categoryFilter)?.label ?? 'Все организации';
   const categories = <div className="admin-cms-tiles">
-    {directoryCategories.map(category => {
-      const categoryRows=cityRows.filter(row=>categoryForOrganization(row)===category.id);
+    {adminCatalogGroups.map(category => {
+      const categoryRows=cityRows.filter(row=>matchesAdminGroup(row,category.id));
       const count=categoryRows.length;
-      const publishedCount=categoryRows.filter(row=>row.status==='published').length;
       return <button key={category.id} type="button"
         className={'admin-cms-tile' + (categoryFilter === category.id && screen === 'catalog' ? ' is-selected' : '')}
         aria-label={category.label + ': ' + count} aria-pressed={categoryFilter === category.id && screen === 'catalog'}
@@ -209,7 +194,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             <path d={category.path}/>
           </svg>
         </span>
-        <strong>{category.label}</strong><small>{count} объект(ов) · {publishedCount} опубликовано · {count-publishedCount} не опубликовано</small>
+        <strong>{category.label}</strong><small>{count} объект(ов)</small>
       </button>;
     })}
   </div>;
@@ -236,12 +221,10 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
         </button>
         <button type="button" className="admin-cms-card-action"
           disabled={busy}
-          aria-label={row.status === 'archived' ? `Восстановить в черновики: ${row.title}` : `Убрать в архив: ${row.title}`}
-          title={row.status === 'archived' ? 'Восстановить в черновики' : 'Убрать с сайта в архив'}
-          onClick={() => { void toggleAvailability(row); }}>
-          {row.status === 'archived' ?
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11a9 9 0 1 1 2.3 6M3 4v7h7"/></svg> :
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v6m4-6v6"/></svg>}
+          aria-label={`Удалить навсегда: ${row.title}`}
+          title="Удалить организацию навсегда"
+          onClick={() => { void removeOrganization(row); }}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v6m4-6v6"/></svg>
         </button>
       </div>;
     })}
@@ -278,7 +261,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
         <header className="admin-cms-header">
           <div><span className="eyebrow">РЯДОМ · УПРАВЛЕНИЕ ГОРОДОМ</span>
             <h1>{draft ? draft.id ? 'Редактирование организации' : 'Новая организация' : screen === 'overview' ? 'Управление каталогом' : screen === 'applications' ? 'Входящие заявки' : screen === 'cities' ? 'Управление городами' : selectedLabel}</h1>
-            <p>{owner ? 'Главный администратор' : 'Редактор города'} · {cityFilter === 'Все города' ? 'Все доступные города' : cityFilter} · {activeRows.length} карточек</p>
+            <p>{owner ? 'Главный администратор' : 'Редактор города'} · {cityFilter === 'Все города' ? 'Все доступные города' : cityFilter} · {cityRows.filter(row=>row.status!=='archived').length} карточек</p>
           </div>
           {!draft && <button className="primary-button" onClick={() => create()}>＋ Добавить организацию</button>}
         </header>
@@ -299,11 +282,11 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
                 </select>
               </label>
               <label>Категория каталога *
-                <select disabled={busy} value={categoryForOrganization(draft)} onChange={event => {
-                  const group = directoryCategories.find(category => category.id === event.target.value);
+                <select disabled={busy} value={adminGroupForRow(draft)} onChange={event => {
+                  const group = adminCatalogGroups.find(category => category.id === event.target.value);
                   if (group) setDraft(current => current ? { ...current, category: group.value, kind: current.id ? current.kind : group.kind } : current);
                 }}>
-                  {directoryCategories.filter(group => !draft.id || group.kind === draft.kind).map(group =>
+                  {adminCatalogGroups.filter(group => !draft.id || group.kind === draft.kind || group.id===adminGroupForRow(draft)).map(group =>
                     <option value={group.id} key={group.id}>{group.label}</option>)}
                 </select>
               </label>
@@ -315,9 +298,13 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
               <label className="admin-wide">Уточнение категории
                 <input disabled={busy} maxLength={100} value={draft.category} onChange={event => change('category',event.target.value)} placeholder="Например, кафе, пиццерия, музей"/>
               </label>
-              {isFoodCategory(draft.category)&&<label>Подкатегория общепита
-                <select disabled={busy} value={foodSubcategory(draft)?.foodKey??'unclassified'} onChange={event=>change('category',savedFoodCategory(event.target.value))}>
-                  {foodSubcategories.map(sub=><option key={sub.foodKey} value={sub.foodKey}>{sub.name}</option>)}
+              {!!adminSubcategories(adminGroupForRow(draft)).length&&<label>Подкатегория
+                <select disabled={busy} value={adminSubcategories(adminGroupForRow(draft)).find(sub=>sub.value===draft.category)?.key??'all'} onChange={event=>{
+                  const sub=adminSubcategories(adminGroupForRow(draft)).find(sub=>sub.key===event.target.value);
+                  change('category',sub?.value??adminCatalogGroups.find(g=>g.id===adminGroupForRow(draft))!.value);
+                }}>
+                  <option value="all">Без уточнения</option>
+                  {adminSubcategories(adminGroupForRow(draft)).map(sub=><option key={sub.key} value={sub.key}>{sub.label}</option>)}
                 </select>
               </label>}
 
@@ -411,40 +398,29 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
               {cities.map(cityName => {
                 const cityDefinition = directoryCities.find(entry => entry.name === cityName);
                 const cityOrganizations = rows.filter(row => row.city === cityName);
-                const cityPublished = cityOrganizations.filter(row => row.status === 'published').length;
                 return <button type="button" key={cityName} onClick={() => { setCityFilter(cityName); navigateAdmin('catalog'); }}>
                   <strong>{cityName}</strong>
                   <small>{cityDefinition?.region ?? 'Регион не указан'}</small>
-                  <span>{cityOrganizations.length} карточек · {cityPublished} опубликовано</span>
+                  <span>{cityOrganizations.length} карточек</span>
                   <span>Перейти к каталогу →</span>
                 </button>;
               })}
             </div>
           </section>}
           {screen === 'overview' && owner && import.meta.env.VITE_VK_FEDERAL_POSTING_ENABLED === 'true' && <VkFederalComposer/>}
-          {screen === 'overview' && <section className="admin-cms-stats" aria-label="Статистика каталога">
-            <div><small>Всего организаций</small><strong>{cityRows.length}</strong></div>
-            <div><small>Не опубликовано</small><strong>{cityRows.length-published}</strong></div>
-            <div><small>Действующие карточки</small><strong>{activeRows.length}</strong></div>
-            <div><small>Опубликовано</small><strong>{published}</strong></div>
-            <div><small>Черновики</small><strong>{draftCount}</strong></div>
-          </section>}
-          {<section className="admin-panel admin-cms-categories">
+          <section className="admin-panel admin-cms-categories" data-admin-catalog-native="true">
             <div className="admin-cms-panel-heading">
-              <h2>Категории города</h2>
-              {categoryFilter !== 'all' && <button type="button" className="admin-cms-link" onClick={() => setCategoryFilter('all')}>Показать все →</button>}
+              <h2>{categoryFilter==='all'?'Категории города':'Подкатегории'}</h2>
+              {categoryFilter!=='all'&&<button type="button" className="admin-cms-link" onClick={()=>{setCategoryFilter('all');setSubcategoryFilter('all');}}>← Все разделы</button>}
             </div>
-            <p>Выбери раздел, чтобы посмотреть и изменить организации. Пустые разделы готовы для новых карточек.</p>
-            {categories}
-            {categoryFilter==='food'&&<div className="admin-food-subcategories" role="group" aria-label="Подкатегории организаций">
-              <button type="button" aria-pressed={subcategoryFilter==='all'} onClick={()=>setSubcategoryFilter('all')}>Все форматы</button>
-              {foodSubcategories.map(sub=>{
-                const records=cityRows.filter(row=>categoryForOrganization(row)==='food'&&foodSubcategory(row)?.foodKey===sub.foodKey);
-                const published=records.filter(row=>row.status==='published').length;
-                return <button type="button" key={sub.foodKey} aria-pressed={subcategoryFilter===sub.foodKey} onClick={()=>setSubcategoryFilter(sub.foodKey!)}>{sub.name}: {records.length} · {published} опубликовано · {records.length-published} не опубликовано</button>;
+            {categoryFilter==='all'?categories:<div className="admin-food-subcategories" role="group" aria-label="Подкатегории организаций">
+              <button type="button" aria-pressed={subcategoryFilter==='all'} onClick={()=>setSubcategoryFilter('all')}>Все разделы</button>
+              {adminSubcategories(categoryFilter).map(sub=>{
+                const count=cityRows.filter(row=>matchesAdminGroup(row,categoryFilter)&&matchesAdminSubcategory(row,categoryFilter,sub.key)).length;
+                return <button type="button" key={sub.key} aria-pressed={subcategoryFilter===sub.key} onClick={()=>setSubcategoryFilter(sub.key)}>{sub.label} · {count}</button>;
               })}
             </div>}
-          </section>}
+          </section>
           {message && <p role="status" className="admin-message admin-cms-list-message">{message}</p>}
           <section className="admin-panel admin-cms-directory">
             <div className="admin-cms-panel-heading"><h2>{screen === 'overview' ? 'Последние карточки' : selectedLabel}</h2>
@@ -452,8 +428,9 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
             </div>
             {screen !== 'overview' && <div className="admin-filters">
               <input aria-label="Поиск организаций" type="search" placeholder="Найти по названию или адресу" value={filter} onChange={event => setFilter(event.target.value)}/>
-              <select aria-label="Тип организации" value={kindFilter} onChange={event => setKindFilter(event.target.value)}>
-                <option>Все разделы</option><option value="places">Места</option><option value="services">Услуги</option>
+              <select aria-label="Подкатегория организации" value={subcategoryFilter} onChange={event=>setSubcategoryFilter(event.target.value)} disabled={categoryFilter==='all'}>
+                <option value="all">Все разделы</option>
+                {adminSubcategories(categoryFilter).map(sub=><option value={sub.key} key={sub.key}>{sub.label}</option>)}
               </select>
               <select aria-label="Статус организации" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
                 <option>Действующие</option><option>Все статусы</option><option value="published">Опубликовано</option><option value="draft">Черновики</option><option value="archived">Архив</option>

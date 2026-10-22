@@ -10,6 +10,15 @@ const BUCKET = 'ryadom-places';
 const ADMIN_COLUMNS = ORGANIZATION_COLUMNS;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
+export async function deleteAdminOrganization(client:SupabaseClient,userId:string,access:CityAdminAccess[],row:OrganizationRow):Promise<void>{
+ await requireCurrentUser(client,userId);
+ if(!canManageCity(access,row.city))throw Error('Нет прав для удаления этой организации.');
+ const {data,error}=await withDeadline(signal=>client.rpc('delete_organization',{
+  p_id:row.id,p_city:row.city,p_expected_updated_at:row.updated_at,
+ }).abortSignal(signal));
+ if(error||data!==row.id)throw Error('Удаление не подтверждено. Возможно, карточку изменили или права доступа обновились. Обнови список перед повтором.');
+}
+
 async function requireCurrentUser(client: SupabaseClient, expectedUserId: string) {
   const { data, error } = await withDeadline(() => client.auth.getUser());
   if (error || !data.user || data.user.id !== expectedUserId) throw new Error('Сессия истекла. Войди снова.');
@@ -27,9 +36,14 @@ export async function readAdminOrganizations(client: SupabaseClient, userId: str
   await requireCurrentUser(client, userId);
   if (!access.length) throw new Error('Нет разрешения на управление организациями.');
   const rows: OrganizationRow[] = [];
+  const owner=access.some(entry=>entry.active&&entry.city==='*'&&entry.role==='owner');
+  const cities=access.filter(entry=>entry.active&&entry.city!=='*').map(entry=>entry.city);
   for (let offset = 0; offset < 10000; offset += 250) {
-    const { data, error } = await withDeadline(signal => client.from('organizations')
-      .select(ADMIN_COLUMNS).order('title').order('id').range(offset, offset + 249).abortSignal(signal));
+    const { data, error } = await withDeadline(signal => {
+      let query=client.from('organizations').select(ADMIN_COLUMNS).order('title').order('id').range(offset,offset+249).abortSignal(signal);
+      if(!owner)query=query.in('city',cities);
+      return query;
+    });
     if (error || !Array.isArray(data)) throw new Error('Не удалось получить организации.');
     rows.push(...(data as OrganizationRow[]).filter(row => canManageCity(access, row.city)));
     if (data.length < 250) return rows;
