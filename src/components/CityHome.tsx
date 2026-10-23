@@ -40,7 +40,7 @@ function PlacePreview({item,open}:Pick<CardActions,'open'>&{item:Item}){
 export function CityHome({city,cityProfile,items,navigate,...actions}:CardActions&{city:string;cityProfile?:DirectoryCity;items:Item[];navigate:(section:Section)=>void}){
  useEffect(()=>{
   const cover=document.querySelector<HTMLElement>('.city-home > .city-cover');if(!cover)return;
-  const size=()=>{const top=cover.getBoundingClientRect().top+window.scrollY;cover.style.setProperty('--home-cover-height',`${Math.max(540,window.innerHeight-Math.max(0,top))}px`);};
+  const size=()=>{const top=cover.getBoundingClientRect().top+window.scrollY;cover.style.setProperty('--home-cover-height',`${Math.max(window.innerWidth<700&&window.innerHeight<=740?420:540,window.innerHeight-Math.max(0,top))}px`);};
   size();window.addEventListener('resize',size);const observer=new ResizeObserver(size);
   const header=document.querySelector('.web-header,.app-header');if(header)observer.observe(header);
   return ()=>{window.removeEventListener('resize',size);observer.disconnect();};
