@@ -21,6 +21,7 @@ with sync_playwright() as p:
   page.goto(ORIGIN+'/tests/home-life-fixture.html#/home?city='+ 'Город А')
   expect(page.get_by_role('heading',name='Новость Город А',exact=True)).to_be_visible()
   expect(page.get_by_role('heading',name='Объявление Город А',exact=True)).to_be_visible()
+  page.wait_for_function("document.querySelector('.life-listing-image img')?.naturalWidth>0")
   expect(page.get_by_role('heading',name='Прошедшее событие',exact=True)).to_have_count(0)
   assert abs(page.locator('.city-cover').evaluate('(el)=>el.getBoundingClientRect().bottom+scrollY')-height)<3
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')

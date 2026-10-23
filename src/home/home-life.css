@@ -142,3 +142,5 @@
 }
 @media(prefers-reduced-motion:reduce){.city-home.home-life *{scroll-behavior:auto;transition:none;}}
 html:root[data-a11y-contrast=high] .city-home.home-life{--life-muted:#fff;--life-gold:#ffda80;}
+
+.city-home.home-life .life-collection>.photo-placeholder{position:absolute;inset:0;z-index:-2;}
