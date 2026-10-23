@@ -1,9 +1,6 @@
 name: Published Home Browser QA
 
 on:
-  pull_request:
-    branches: [mewars]
-    paths: ['scripts/check-published-home.mjs', '.github/workflows/published-home-qa.yml']
   workflow_run:
     workflows: ["Deploy Ryadom to Sprinthost"]
     branches: [mewars]

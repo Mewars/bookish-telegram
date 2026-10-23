@@ -17,7 +17,7 @@
     "test:beta-host": "node --test tests/closed-beta-host-audit.test.mjs",
     "test:beta-config": "node --loader ./tests/typescript-loader.mjs tests/closed-beta-config.test.mjs && node --test tests/closed-beta-assets.test.mjs",
     "test:mobile-design": "node tests/mobile-design-regressions.test.mjs",
-    "test:home-shortcuts": "node tests/home-shortcuts.test.mjs && node --loader ./tests/typescript-loader.mjs tests/brand-scroll-to-top.test.mjs && node --loader ./tests/typescript-loader.mjs tests/home-discovery.test.mjs && node tests/header-avatar-and-carousel.test.mjs && node --test tests/header-brand-cookie.test.mjs",
+    "test:home-shortcuts": "node tests/home-shortcuts.test.mjs && node --loader ./tests/typescript-loader.mjs --test tests/home-feed.test.mjs && node --loader ./tests/typescript-loader.mjs tests/brand-scroll-to-top.test.mjs && node --loader ./tests/typescript-loader.mjs tests/home-discovery.test.mjs && node tests/header-avatar-and-carousel.test.mjs && node --test tests/header-brand-cookie.test.mjs",
     "test:release": "node tests/release-version.test.mjs",
     "test:seo": "node --loader ./tests/typescript-loader.mjs tests/seo.test.mjs",
     "test:maps": "node --loader ./tests/typescript-loader.mjs tests/place-map-links.test.mjs",

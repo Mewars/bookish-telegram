@@ -1,0 +1,43 @@
+name: City Homepage
+on:
+  pull_request:
+    branches: [mewars]
+    paths: ['src/components/CityHome.tsx', 'src/components/Search.tsx', 'src/home/**', 'tests/home-life*', 'tests/home-feed*', 'tests/home-shortcuts*', '.github/workflows/home-life-browser.yml']
+permissions:
+  contents: read
+jobs:
+  homepage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+      - name: Check four viewports and public city isolation
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 4178 --strictPort > "$RUNNER_TEMP/home-vite.log" 2>&1 &
+          home_pid=$!
+          trap 'kill "$home_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4178/ > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/home-life-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: city-homepage-screenshots
+          path: qa-screenshots/
+          retention-days: 14
