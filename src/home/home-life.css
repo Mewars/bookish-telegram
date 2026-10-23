@@ -67,6 +67,7 @@
 .city-home.home-life .life-place-body>strong{font-size:18px;line-height:1.35;}
 .city-home.home-life .life-place-body>span{font-size:12px;line-height:1.5;color:var(--life-muted);}
 .city-home.home-life .life-place-body>svg{position:absolute;right:18px;bottom:24px;color:var(--life-gold);}
+.city-home.home-life .life-collections{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));}
 .city-home.home-life .life-collection{position:relative;display:flex;align-items:end;min-height:255px;padding:25px;border-radius:18px;overflow:hidden;color:#fff;isolation:isolate;background:#163144;}
 .city-home.home-life .life-collection>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;}
 .city-home.home-life .life-collection::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#051521f5,#05152138);z-index:-1;}
