@@ -1,4 +1,4 @@
-import {verifyHuman} from '/security/antispam.js?v=20261022spam1';
+import {verifyHuman} from '/security/antispam.js?v=20261022spam2';
 import {c as createClient} from './supabase-client.js';
 import {rejectWallPost,loadReviewReasons,saveWallDraft} from './moderation.js?v=20261020a';
 const sb=createClient('https://cptbmepnbzogqkfhflsg.supabase.co','sb_publishable_-LLEHXpg_rqIZ_vUdPnwTQ_0ajeVm37',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,flowType:'pkce'}});
