@@ -46,11 +46,11 @@ with sync_playwright() as p:
   if cookies.is_visible():cookies.click()
   cover=page.locator('.city-cover');bounds=cover.bounding_box()
   assert abs(bounds['y']+bounds['height']-900)<=3,bounds
-  expect(page.get_by_role('link',name='Добавить организацию',exact=True)).to_be_visible()
+  expect(page.get_by_role('link',name='Добавить организацию',exact=True).first).to_be_visible()
   assert page.locator('#city-selections').bounding_box()['y']>=897
   assert page.locator('.cover-search').bounding_box()['y']+page.locator('.cover-search').bounding_box()['height']<=bounds['y']+bounds['height']+2
   page.add_script_tag(url=ORIGIN+'/host-public/categories/panel.js',type='module')
-  page.get_by_role('button',name='Все категории',exact=True).click()
+  page.locator('#ryadom-category-trigger').click()
   page.get_by_role('button',name='Раздел «Где поесть», открыть подразделы',exact=True).click()
   page.get_by_role('button',name=re.compile('^Бургерные и стритфуд')).click()
   page.wait_for_function("decodeURIComponent(location.hash).includes('subcategory=Бургерные')")

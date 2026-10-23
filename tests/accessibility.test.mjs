@@ -73,5 +73,5 @@ test('owner contact page and fixed launcher keep requested legal and mobile beha
   assert.match(links, /Контакты владельца/);
   assert.match(stylesheet, /position: fixed; right: 16px; bottom:/);
   assert.match(stylesheet, /bottom: calc\(94px \+ env\(safe-area-inset-bottom/);
-  assert.match(home, /VITE_HOME_BACKDROP_ENABLED === 'true'/);
+  assert.doesNotMatch(home, /className="city-selections-backdrop"/);
 });

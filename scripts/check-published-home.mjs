@@ -43,7 +43,7 @@ try {
       const response = await page.goto(`${base}/#/home`, { waitUntil: 'domcontentloaded', timeout: 45000 });
       assert(response?.ok(), `Home HTTP status: ${response?.status()}`);
       await page.locator('.city-home').waitFor({ state: 'visible', timeout: 45000 });
-      const categoriesLauncher=page.getByRole('button',{name:'Все категории',exact:true});
+      const categoriesLauncher=page.locator('#ryadom-category-trigger');
       await categoriesLauncher.waitFor({state:'visible'});
       assert.equal(await categoriesLauncher.count(),1,'Expected one live category launcher');
       result.checks.push('Live shared category launcher');
@@ -82,13 +82,11 @@ try {
       assert.equal(await weather.isVisible(), false);
       result.checks.push('Compact city weather icon opens current and hourly forecast');
 
-      const titles = await page.locator('#city-selections .section-heading h2').allTextContents();
-      for (const name of ['Выбор «Рядом»','Афиша города','Где поесть','Что посмотреть','За покупками','Услуги','Партнёры «Рядом»']) {
-        assert(titles.includes(name), `Missing section: ${name}`);
+      for (const name of ['Город сегодня','Быстрые действия','Нужное рядом']) {
+        assert.equal(await page.getByRole('heading',{name,exact:true}).count(),1,`Missing city-life section: ${name}`);
       }
-      result.checks.push('All agreed editorial sections');
-      assert.equal(await page.locator('.city-selections-backdrop').count(), 0, 'Repeated photo backdrop should be off');
-      result.checks.push('Single photo hero, solid dark lower background');
+      assert.equal(await page.locator('.home-carousel').count(),0,'Legacy directory rails should be absent');
+      result.checks.push('Everyday city homepage, compact navigation, no duplicate directory rails');
       const a11y = page.getByRole('button', {name:'Версия для слабовидящих',exact:true});
       await a11y.waitFor({state:'visible',timeout:10000});
       assert.equal(await page.locator('.accessibility-button--fixed').isVisible(),false,
@@ -129,33 +127,10 @@ try {
       await adminLink.scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${folder}/${scenario.name}-footer.png`, animations: 'disabled' });
 
-      const track = page.locator('.home-carousel-track').first();
-      await track.scrollIntoViewIfNeeded();
-      const start = await track.evaluate(el => ({ x: el.scrollLeft, overflow: el.scrollWidth > el.clientWidth + 10 }));
-      assert(start.overflow, 'Carousel contains no offscreen cards');
-      if (scenario.name === 'desktop-1440') {
-        await page.locator('.home-carousel').first().locator('.home-carousel-arrow--next').click();
-        await page.waitForTimeout(600);
-      } else {
-        const bounds = await track.boundingBox();
-        assert(bounds, 'Carousel has no dimensions');
-        const x = Math.round(bounds.x + Math.min(bounds.width - 85, 250));
-        const y = Math.round(bounds.y + Math.min(170, bounds.height * 0.72));
-        const hit = await page.evaluate(({ x, y }) => {
-          const element = document.elementFromPoint(x, y);
-          return { tag: element?.tagName ?? null, onCarousel: !!element?.closest('.home-carousel-track') };
-        }, { x, y });
-        result.checks.push(`Wheel hit target: ${JSON.stringify(hit)}`);
-        // Headless Chromium's CDP touch synthesis does not scroll even a plain
-        // standalone overflow-x:auto test element. Verify horizontal scrolling
-        // in a mobile viewport without falsely claiming a real finger gesture.
-        await page.mouse.move(x, y);
-        await page.mouse.wheel(230, 0);
-        await page.waitForTimeout(750);
-      }
-      const end = await track.evaluate(el => el.scrollLeft);
-      assert(end > start.x + 10, `Carousel did not move: ${start.x} -> ${end}`);
-      result.checks.push(scenario.name === 'desktop-1440' ? 'Desktop carousel arrow' : 'Mobile-viewport horizontal scrolling (not a physical touch test)');
+      const coverBounds = await page.locator('.city-cover').boundingBox();
+      const coverBottom = await page.locator('.city-cover').evaluate(el => el.getBoundingClientRect().bottom + window.scrollY);
+      assert(coverBounds && Math.abs(coverBottom - await page.evaluate(()=>window.innerHeight)) < 5,'City cover must end at the first viewport edge');
+      result.checks.push('Full first-screen city cover');
 
       const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: window.innerWidth }));
       assert(size.scroll <= size.viewport + 3, `Horizontal page overflow: ${JSON.stringify(size)}`);

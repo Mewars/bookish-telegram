@@ -1,57 +1,23 @@
+/* global AbortController */
+import {URL} from 'node:url';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { test } from 'node:test';
-import { URL } from 'node:url';
-
-const cityHome = await readFile(new URL('../src/components/CityHome.tsx', import.meta.url), 'utf8');
-const homeStyles = await readFile(new URL('../src/styles/home.css', import.meta.url), 'utf8');
-const carousel = await readFile(new URL('../src/components/HomeCarousel.tsx', import.meta.url), 'utf8');
-
-test('all five home shortcuts remain visible even when a category has no cards', () => {
-  for (const label of ['Сегодня', 'Поесть', 'Культура', 'Магазины', 'Услуги']) {
-    assert.ok(cityHome.includes(`label: '${label}'`));
-  }
-  assert.match(cityHome, /\{discoveries\.map\(option =>/);
-  assert.doesNotMatch(cityHome, /label: 'Погулять'/);
-  assert.match(cityHome, /label: 'Поесть', icon: 'places', matches: isFoodVenue/);
-  assert.match(cityHome, /label: 'Магазины', icon: 'shop', matches: isShop/);
-  assert.doesNotMatch(cityHome, /availableDiscoveries/);
+import {readFile} from 'node:fs/promises';
+import {test} from 'node:test';
+const home=await readFile(new URL('../src/components/CityHome.tsx',import.meta.url),'utf8');
+test('homepage retains public catalog search and reduced-motion navigation',()=>{
+ assert.match(home,/rememberHomeSearch\(city,query\)/);
+ assert.match(home,/getElementById\('city-selections'\)\?\.scrollIntoView/);
+ assert.match(home,/prefers-reduced-motion: reduce/);
+ assert.match(home,/setQuery\(''\);\s*setDiscovery\(label\);\s*showResults\(\)/);
 });
-
-test('shortcut click clears old text search, selects destination and auto-scrolls to results', () => {
-  assert.match(cityHome, /setQuery\(''\);\s*setDiscovery\(label\);\s*showResults\(\)/);
-  assert.match(cityHome, /onClick=\{\(\) => chooseDiscovery\(option\.label\)\}/);
-  assert.match(cityHome, /getElementById\('city-selections'\)\?\.scrollIntoView/);
-  assert.match(cityHome, /prefers-reduced-motion: reduce/);
-  assert.match(homeStyles, /#city-selections\s*\{\s*scroll-margin-top:/);
+test('native city sections use explicit city links instead of beta-only React pages',()=>{
+ for(const section of ['classifieds','wall'])assert.ok(home.includes(`hostSectionHref('${section}',city`));
+ assert.doesNotMatch(home,/navigate\('(classifieds|community)'\)/);
+ assert.match(home,/ryadomOpenCategories/);
 });
-
-test('empty shortcuts and sections explain there are no confirmed listings', () => {
-  assert.match(cityHome, /selected \? 'Пока нет записей'/);
-  assert.match(carousel, /city-section-coming-soon/);
-  assert.doesNotMatch(cityHome, /entries\.length > 0 && <section/);
-});
-
-test('homepage uses distinct editorial, event, food, culture, retail and service rails', async () => {
-  const homeCarousel = await readFile(new URL('../src/components/HomeCarousel.tsx', import.meta.url),'utf8');
-  for (const title of ['Выбор «Рядом»','Афиша города','Где поесть','Что посмотреть','За покупками','Услуги','Партнёры «Рядом»']) {
-    assert.ok(cityHome.includes(title), title);
-  }
-  assert.doesNotMatch(cityHome, /Популярные места|Куда сходить|Услуги рядом|Места, которые стоит увидеть/);
-  assert.match(homeCarousel, /items\.map\(item => <Card key=\{item\.id\}/);
-  assert.doesNotMatch(homeCarousel, /items\.slice\(/);
-  assert.match(homeCarousel, /node\.scrollBy\(/);
-  assert.match(homeCarousel, /ResizeObserver/);
-  assert.match(homeCarousel, /aria-controls=/);
-  assert.match(homeStyles, /home-carousel-arrow--next/);
-  assert.match(homeStyles, /scroll-snap-type:x mandatory/);
-  assert.match(cityHome, /VITE_HOME_BACKDROP_ENABLED === 'true'/);
-  assert.match(cityHome, /className="city-selections-backdrop"/);
-  assert.match(cityHome, /Реклама не подменяет редакционные рекомендации/);
-});
-
-test('compact homepage shows every quick category without cropping labels sideways', () => {
-  assert.ok(homeStyles.includes('flex-wrap: wrap;'));
-  assert.ok(homeStyles.includes('overflow-x: visible;'));
-  assert.ok(!homeStyles.includes('flex-wrap: nowrap;'));
+test('empty public feeds do not turn into invented content or empty advertising rails',()=>{
+ assert.match(home,/feed\.listings\.length>0&&/);
+ assert.match(home,/events\.length>0&&/);
+ assert.match(home,/Город начинается с нас/);
+ assert.doesNotMatch(home,/Выбор «Рядом»|Партнёры «Рядом»|HomeCarousel/);
 });
