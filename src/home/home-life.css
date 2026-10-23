@@ -18,7 +18,7 @@
 .city-home.home-life .cover-search .search input::placeholder{color:#66737d;}
 .city-home.home-life .cover-search .search button{background:transparent;color:#2f4654;}
 .city-home.home-life .cover-search-action{display:flex;align-items:center;justify-content:center;gap:12px;width:auto;min-width:104px;height:50px;padding:0 18px;border:0;border-radius:11px;background:var(--life-gold);color:#132633;font-weight:750;}
-.city-home.home-life .quick-discovery{display:flex;flex-wrap:wrap;gap:9px;margin:17px 0 0;padding:0;overflow:visible;}
+.city-home.home-life .quick-discovery{display:flex!important;flex-wrap:wrap;gap:9px;margin:17px 0 0;padding:0;overflow:visible;}
 .city-home.home-life .quick-discovery :is(a,button){display:flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 15px;border:1px solid #e3d4b54d;border-radius:11px;background:#0c2335b3;color:#fff8ec;font-size:13px;white-space:nowrap;}
 .city-home.home-life .quick-discovery :is(a,button):hover,.city-home.home-life .quick-discovery button[aria-pressed=true]{background:#20394b;border-color:var(--life-gold);}
 .city-home.home-life #ryadom-category-trigger{display:flex;align-items:center;gap:10px;width:max-content;margin:19px 0 0;padding:8px 0;border:0;border-radius:4px;background:transparent;color:var(--life-gold);font-size:14px;font-weight:700;box-shadow:none;}
@@ -104,7 +104,7 @@
  .city-home.home-life .cover-search .search input{font-size:12px;}
  .city-home.home-life .cover-search-action{height:44px;min-width:43px;width:43px;padding:0;border-radius:9px;}
  .city-home.home-life .cover-search-action>span{display:none;}
- .city-home.home-life .quick-discovery{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+ .city-home.home-life .quick-discovery{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
  .city-home.home-life .quick-discovery :is(a,button){width:100%;height:41px;padding:0 7px;font-size:11px;gap:7px;}
  .city-home.home-life #ryadom-category-trigger{margin-top:12px;font-size:12px;}
  .city-home.home-life .life-cover-caption{left:20px;right:20px;bottom:22px;font-size:9px;letter-spacing:0;gap:14px;}

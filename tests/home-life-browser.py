@@ -25,6 +25,8 @@ with sync_playwright() as p:
   expect(page.get_by_role('heading',name='Прошедшее событие',exact=True)).to_have_count(0)
   assert abs(page.locator('.city-cover').evaluate('(el)=>el.getBoundingClientRect().bottom+scrollY')-height)<3
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
+  expect(page.get_by_role('group',name='Быстрые сценарии',exact=True)).to_be_visible()
+  expect(page.get_by_role('button',name='Сегодня',exact=True)).to_be_visible()
   for link in page.locator('a[href^="/classifieds/"],a[href^="/wall/"],a[href^="#/add-organization"]').all():
    assert parse_qs(urlparse(link.get_attribute('href').replace('#/','/')).query).get('city')==['Город А']
   page.locator('#ryadom-category-trigger').click()
