@@ -8,7 +8,7 @@ PNG=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42m
 Path('qa-screenshots').mkdir(exist_ok=True)
 with sync_playwright() as p:
  browser=p.chromium.launch()
- for width,height in [(360,740),(390,844),(768,1024),(1440,900)]:
+ for width,height in [(360,740),(390,664),(390,844),(768,1024),(1440,900)]:
   context=browser.new_context(viewport={'width':width,'height':height},locale='ru-RU',reduced_motion='reduce')
   def route(r):
    u=urlparse(r.request.url)
@@ -46,7 +46,7 @@ with sync_playwright() as p:
   expect(page.get_by_role('heading',name='Объявления рядом',exact=True)).to_have_count(0)
   expect(page.get_by_role('heading',name='Куда сходить',exact=True)).to_have_count(0)
   assert not errors,errors
-  page.screenshot(path=f'qa-screenshots/home-life-{width}.png',full_page=True)
+  page.screenshot(path=f'qa-screenshots/home-life-{width}-{height}.png',full_page=True)
   print('PASS',width,'city isolation, links, search, category focus, hero, no overflow, empty city')
   context.close()
  browser.close()

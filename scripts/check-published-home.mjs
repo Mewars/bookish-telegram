@@ -129,7 +129,8 @@ try {
 
       const coverBounds = await page.locator('.city-cover').boundingBox();
       const coverBottom = await page.locator('.city-cover').evaluate(el => el.getBoundingClientRect().bottom + window.scrollY);
-      assert(coverBounds && Math.abs(coverBottom - await page.evaluate(()=>window.innerHeight)) < 5,'City cover must end at the first viewport edge');
+      const viewportHeight=await page.evaluate(()=>window.innerHeight);
+      assert(coverBounds && Math.abs(coverBottom-viewportHeight)<5,`City cover must end at the first viewport edge: ${JSON.stringify({coverBounds,coverBottom,viewportHeight})}`);
       result.checks.push('Full first-screen city cover');
 
       const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: window.innerWidth }));
@@ -202,7 +203,7 @@ try {
         result.checks.push('Classified and community betas remain disabled in production');
       }
       await page.goto(`${base}/#/profile`, { waitUntil: 'domcontentloaded' });
-      await page.getByRole('heading', { name: 'Вы не вошли в аккаунт' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('heading', { name: /^(Вы не вошли в аккаунт|Войдите в аккаунт)$/ }).waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.getByRole('button', { name: 'Мои заявки' }).count(), 0,
         'Anonymous visitors must not see organization application management in their profile');
       result.checks.push('Guest profile hides organization applications shortcut');
