@@ -1,3 +1,4 @@
+import {DESIGN_REQUEST_NOTE,withDesignRequest} from '../business/model';
 import {verifyHuman} from '../../public/security/antispam.js';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
@@ -11,17 +12,17 @@ import {validPhotoFile} from '../photos/adminImage';
 import './organizations.css';
 import {requestCategoryGroups} from '../../public/catalog/requestCategories.js';
 
-export function OrganizationsPage({ enabled, mode, city, goBack, openLogin, openApplications }: {
-  enabled: boolean; mode: 'add' | 'list'; city: string; goBack: () => void; openLogin: () => void; openApplications: () => void;
+export function OrganizationsPage({ enabled, mode, city, goBack, openLogin, openApplications, designRequested=false }: {
+  designRequested?:boolean; enabled: boolean; mode: 'add' | 'list'; city: string; goBack: () => void; openLogin: () => void; openApplications: () => void;
 }) {
   const { state } = useAuth();
   const userId = state.user?.id;
   if (!enabled) return <EmptyState title="Приём заявок пока не открыт" text="Каталог мест продолжает работать. Новая функция появится после подготовки сервиса." action="Назад" onAction={goBack}/>;
-  return <div className="organizations-page"><button className="back-link" onClick={goBack}><Icon name="back" size={18}/> Назад</button><div className="page-heading"><span className="eyebrow">КАТАЛОГ ГОРОДА</span><h1>{mode === 'add' ? 'Добавить организацию' : 'Мои заявки'}</h1><p>Сведения проверяются перед публикацией. Подача заявки не подтверждает владение организацией.</p></div>
-    {state.status === 'loading' ? <p role="status">Проверяем состояние входа…</p> : !userId ? <EmptyState title="Войдите для подачи заявки" text="Авторизованный пользователь может отправить сведения и посмотреть только свои заявки." action="Войти" onAction={openLogin}/> : mode === 'add' ? <ApplicationForm key={userId} userId={userId} city={city} openApplications={openApplications}/> : <ApplicationList key={userId} userId={userId}/>}
+  return <div className="organizations-page"><button className="back-link" onClick={goBack}><Icon name="back" size={18}/> Назад</button><div className="page-heading"><span className="eyebrow">КАТАЛОГ ГОРОДА</span><h1>{mode === 'add' ? designRequested ? 'Оформление новой карточки' : 'Добавить организацию' : 'Мои заявки'}</h1><p>Сведения проверяются перед публикацией. Подача заявки не подтверждает владение организацией.</p></div>
+    {state.status === 'loading' ? <p role="status">Проверяем состояние входа…</p> : !userId ? <EmptyState title="Войдите для подачи заявки" text="Авторизованный пользователь может отправить сведения и посмотреть только свои заявки." action="Войти" onAction={openLogin}/> : mode === 'add' ? <ApplicationForm key={`${userId}/${city}/${designRequested}`} userId={userId} city={city} designRequested={designRequested} openApplications={openApplications}/> : <ApplicationList key={userId} userId={userId}/>}
   </div>;
 }
-function ApplicationForm({ userId, city, openApplications }: { userId: string; city: string; openApplications: () => void }) {
+function ApplicationForm({ userId, city, openApplications, designRequested }: { userId: string; city: string; openApplications: () => void; designRequested:boolean }) {
   const [draft, setDraft] = useState<ApplicationDraft>(() => emptyDraft(city));
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<ApplicationErrors>({});
@@ -37,7 +38,10 @@ function ApplicationForm({ userId, city, openApplications }: { userId: string; c
   const submit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (locked.current) return;
-    const checked = validateDraft(draft, consent);
+    const submission=withDesignRequest(draft,designRequested);
+    const checked = validateDraft(submission, consent);
+    if(!draft.source_note.trim())checked.source_note='Укажите источник сведений или объясните, что вы представляете организацию.';
+    if(designRequested&&!draft.phone.trim()&&!draft.vk_url.trim())checked.phone='Для согласования оформления укажите телефон организации или её страницу VK.';
     setErrors(checked); setMessage('');
     if (Object.keys(checked).length) {
       const first = Object.keys(checked)[0];
@@ -49,7 +53,7 @@ function ApplicationForm({ userId, city, openApplications }: { userId: string; c
       if(!supabase)throw Error('Приём заявок временно недоступен.');
       await verifyHuman(supabase,'organization');
       requestId.current ??= crypto.randomUUID();
-      const saved=await submitApplication(supabase, userId, draft, consent, requestId.current);
+      const saved=await submitApplication(supabase, userId, submission, consent, requestId.current);
       if(photoFile){
         try {await attachApplicationPhoto(supabase,userId,saved.id,photoFile);}
         catch(error){if(mounted.current)setPhotoWarning(error instanceof Error?error.message:'Фотография не прикрепилась.');}
@@ -58,15 +62,16 @@ function ApplicationForm({ userId, city, openApplications }: { userId: string; c
     } catch (error) { if (mounted.current) setMessage(error instanceof Error ? error.message : 'Не удалось отправить заявку. Попробуйте позже.'); }
     finally { locked.current = false; if (mounted.current) setBusy(false); }
   };
-  if (success) return <section className="organization-panel" role="status"><h2>Заявка отправлена</h2><p>Статус: «На рассмотрении». Организация появится в каталоге только после ручной проверки и публикации.</p>{photoWarning&&<p className="organization-error">{photoWarning}</p>}<button className="primary-button" onClick={openApplications}>Мои заявки <Icon name="arrow" size={18}/></button></section>;
+  if (success) return <section className="organization-panel" role="status"><h2>Заявка отправлена</h2><p>Статус: «На рассмотрении». {designRequested&&'Запрос оформления сохранён; условия работы ещё нужно согласовать. '}Организация появится в каталоге только после ручной проверки и публикации.</p>{photoWarning&&<p className="organization-error">{photoWarning}</p>}<button className="primary-button" onClick={openApplications}>Мои заявки <Icon name="arrow" size={18}/></button></section>;
   return <form className="organization-panel organization-form" onSubmit={submit} noValidate aria-busy={busy}>
+    {designRequested&&<p className="organization-design-note">Заявка на помощь с оформлением новой организации поступит модератору. Оставьте телефон организации или её страницу VK для связи. Состав работ и стоимость согласуем отдельно. Отправка заявки не оформляет подписку и не подтверждает оплату. Если карточка уже существует, <a href={'#/business?'+new URLSearchParams({city})}>свяжитесь с РЯДОМ</a>, чтобы не создавать дубликат.</p>}
     <p>Указывайте сведения организации, которые можно опубликовать. Не отправляйте документы, пароли или чужие личные контакты. Поля со знаком * обязательны.</p>
     <fieldset disabled={busy}>{applicationFields.map(([key, label, limit, required]) => <div className={`organization-field ${['description', 'source_note'].includes(key) ? 'organization-wide' : ''}`} key={key}>
       <label htmlFor={`organization-${key}`}>{label}{required ? ' *' : ''}</label>
       {key==='category' ? <select id="organization-category" name="category" required value={draft.category} onChange={event=>setDraft({...draft,category:event.target.value})} aria-invalid={!!errors.category} aria-describedby={errors.category?'error-category':undefined}>
         <option value="">Выберите категорию и подкатегорию</option>
         {requestCategoryGroups.map(group=><optgroup key={group.label} label={group.label}>{group.options.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</optgroup>)}
-      </select> : ['description', 'source_note', 'hours'].includes(key) ? <textarea id={`organization-${key}`} name={key} maxLength={limit} required={required} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: event.target.value })} aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `error-${key}` : undefined} rows={key === 'description' ? 5 : 3}/> : <input id={`organization-${key}`} name={key} maxLength={limit} required={required} type={key === 'phone' ? 'tel' : ['website', 'vk_url'].includes(key) ? 'url' : 'text'} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: event.target.value })} aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `error-${key}` : undefined} placeholder={['website', 'vk_url'].includes(key) ? 'https://' : undefined}/>}
+      </select> : ['description', 'source_note', 'hours'].includes(key) ? <textarea id={`organization-${key}`} name={key} maxLength={key==='source_note'&&designRequested?limit-DESIGN_REQUEST_NOTE.length:limit} required={required} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: event.target.value })} aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `error-${key}` : undefined} rows={key === 'description' ? 5 : 3}/> : <input id={`organization-${key}`} name={key} maxLength={limit} required={required} type={key === 'phone' ? 'tel' : ['website', 'vk_url'].includes(key) ? 'url' : 'text'} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: event.target.value })} aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `error-${key}` : undefined} placeholder={['website', 'vk_url'].includes(key) ? 'https://' : undefined}/>}
       {errors[key] && <small id={`error-${key}`} className="organization-error">{errors[key]}</small>}
       {key === 'source_note' && <small>Укажите ссылку или объясните, откуда получены сведения. Источник заявки не публикуется автоматически.</small>}
     </div>)}

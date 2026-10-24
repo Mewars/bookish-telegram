@@ -2,7 +2,7 @@ name: City Homepage
 on:
   pull_request:
     branches: [mewars]
-    paths: ['src/components/CityHome.tsx', 'src/components/Search.tsx', 'src/home/**', 'tests/home-life*', 'tests/home-feed*', 'tests/home-shortcuts*', '.github/workflows/home-life-browser.yml']
+    paths: ['src/components/CityHome.tsx', 'src/components/Search.tsx', 'src/home/**', 'src/business/**', 'src/organizations/**', 'tests/business*', 'tests/home-life*', 'tests/home-feed*', 'tests/home-shortcuts*', '.github/workflows/home-life-browser.yml']
 permissions:
   contents: read
 jobs:
@@ -35,6 +35,7 @@ jobs:
             sleep 1
           done
           python tests/home-life-browser.py
+          python tests/business-browser.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

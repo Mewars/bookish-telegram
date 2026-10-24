@@ -1,3 +1,5 @@
+import {businessHash} from '../business/model';
+import '../business/business.css';
 import { isLegacyIllustration } from '../components/mediaSource';
 import type { Item } from '../types';
 import { placeMapLinks } from '../maps/placeMapLinks';
@@ -156,6 +158,7 @@ export function DetailPage({
       <div className="detail-map-tile"><PlaceMap key={item.id} item={item} desktop={desktop}/></div>
     </aside>}
     </div>
+    {item.real && item.kind !== 'events' && <section className="business-card-contact" aria-label="Для представителя организации"><div><strong>Это ваша организация?</strong><p>Поможем уточнить сведения и согласовать обновления карточки.</p></div><a href={businessHash(item.city,item.id)}>Связаться с РЯДОМ<Icon name="arrow" size={17}/></a></section>}
     {!!related.length && openRelated && <section className="city-section related-section">
       <div className="section-heading"><div><span className="section-index">ПРОДОЛЖАЙ ОТКРЫВАТЬ</span><h2>Ещё рядом</h2><p>{item.city} · {item.category.split(' / ')[0]}</p></div></div>
       <div className="card-grid discovery-grid">{related.map(entry => <Card key={entry.id} item={entry} favorites={favorites} toggle={toggle} favoritesBusy={favoritesBusy} open={openRelated}/>)}</div>

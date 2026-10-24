@@ -53,3 +53,7 @@
 .app-shell:has(.home-editorial) .web-footer{--text:#e9eff2;--muted:#aebdc9;--surface:#0a2434;--line:#ffffff1a;background:#061b28;color:#e9eff2;border-color:#ffffff1a;}
 .app-shell:has(.home-editorial) .web-footer a,.app-shell:has(.home-editorial) .web-footer button{color:#c4d0d9;}
 .app-shell:has(.home-editorial) .web-footer :is(h2,h3){color:#f8f6f0;}
+
+.home-editorial .life-business-actions{display:grid;gap:10px;flex-shrink:0;text-align:center;}
+.home-editorial .life-business-free{color:#b8c7d0;font-size:12px;text-decoration:underline;text-underline-offset:3px;}
+@media(max-width:699px){.home-editorial .life-business-actions{width:100%;}}

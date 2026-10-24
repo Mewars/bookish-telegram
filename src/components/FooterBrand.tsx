@@ -13,7 +13,7 @@ export function FooterCooperation({ showLegal = true }: { showLegal?: boolean })
     <span aria-hidden="true">·</span>
     <a href="#/add-organization">Добавление организации</a>
     <span aria-hidden="true">·</span>
-    <span title="Раздел готовится">Платные услуги</span>
+    <a href="#/business">Бизнесу</a>
   </div>
     <div className="footer-social">
       <h3>Мы в соцсетях:</h3>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Section } from '../types';
 import {catalogHash,detailHash,hashParts,isCatalogSection,readCatalogFilters,routeCity,safeCatalogReturn,type CatalogFilters} from '../navigation/catalogRoute';
-const sections: Section[] = ['friends', 'community', 'classifieds', 'home', 'events', 'places', 'services', 'profile', 'favorites', 'login', 'consent', 'privacy', 'cookies', 'terms', 'contacts', 'add-organization', 'my-applications', 'organization-consent', 'admin', 'admin-preview', 'photo-admin'];
+const sections: Section[] = ['business', 'friends', 'community', 'classifieds', 'home', 'events', 'places', 'services', 'profile', 'favorites', 'login', 'consent', 'privacy', 'cookies', 'terms', 'contacts', 'add-organization', 'my-applications', 'organization-consent', 'admin', 'admin-preview', 'photo-admin'];
 export function getRoute() {
  const hash=window.location.hash;
  const {section,id,valid}=hashParts(hash);
@@ -15,7 +15,7 @@ export function getRoute() {
 // so App's route-change scroll effect was not triggered. Explicitly return to
 // the top whenever Home is requested, including while already on Home.
 export function navigateToRoute(section: Section, id?: string, city='') {
- const publicCity=city && (section==='home'||isCatalogSection(section));
+ const publicCity=city && (['home','business','add-organization'].includes(section)||isCatalogSection(section));
  const nextHash = id && isCatalogSection(section)
   ? detailHash(section,id,city,window.location.hash)
   : `#/${section}${publicCity?'?'+new URLSearchParams({city}).toString():''}`;
@@ -39,7 +39,7 @@ export function ensureRouteCity(city:string) {
  const hash=window.location.hash || '#/home';
  const {section}=hashParts(hash);
  // Login/OAuth and other private fragments retain their existing contract.
- if(section!=='home'&&!isCatalogSection(section))return;
+ if(!['home','business','add-organization'].includes(section)&&!isCatalogSection(section))return;
  const [path,search='']=hash.split('?');
  const params=new URLSearchParams(search);
  if(params.get('city')===city)return;
