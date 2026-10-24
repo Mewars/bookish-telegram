@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {test} from 'node:test';
 
-test('footer: franchise messages, application form and no paid services link',async()=>{
+test('footer: franchise messages, application form and business section',async()=>{
  const footer=await readFile('src/components/FooterBrand.tsx','utf8');
  assert.match(footer,/href="https:\/\/vk\.me\/ryadomcity"/);
  assert.match(footer,/Франшиза/);
  assert.match(footer,/href="#\/add-organization"/);
  assert.match(footer,/Добавление организации/);
- assert.match(footer,/<span title="Раздел готовится">Платные услуги<\/span>/);
+ assert.match(footer,/<a href="#\/business">Бизнесу<\/a>/);
  assert.doesNotMatch(footer,/<a[^>]+>Платные услуги<\/a>/);
 });
 test('admin: requests instead of redundant photos menu, editable draft and source cover',async()=>{

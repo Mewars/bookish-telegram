@@ -1,3 +1,4 @@
+import {DESIGN_REQUEST_NOTE} from '../business/model';
 import {useEffect,useState} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {ApplicationRow} from '../organizations/model';
@@ -43,9 +44,9 @@ export function AdminApplicationsPanel({client,userId,access,cityFilter,onEdit}:
       ?<p>Новых заявок в выбранном городе нет.</p>:
     <div className="admin-request-list">
       {rows.filter(app=>cityFilter==='Все города'||app.city===cityFilter).map(app=><article className="admin-request-item" key={app.id}>
-        <div><strong>{app.title}</strong><small>{app.city} · {app.category} · {app.address}</small>
+        <div>{app.source_note.startsWith(DESIGN_REQUEST_NOTE)&&<span className="organization-status">Запрошено оформление · условия не согласованы</span>}<strong>{app.title}</strong><small>{app.city} · {app.category} · {app.address}</small>
           <small>Отправлено: {new Date(app.created_at).toLocaleString('ru-RU')}</small>
-          <p>{app.description}</p>
+          <p>{app.description}</p><small>Источник и пожелания: {app.source_note}</small>
           {app.photo_path&&<small>Фотография приложена — откройте заявку, чтобы проверить снимок.</small>}
         </div>
         <div className="admin-request-actions">

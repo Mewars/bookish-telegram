@@ -10,6 +10,7 @@ export const HOME_METADATA = {
 export interface PageMetadata { title: string; description: string; canonical?: string }
 
 const sections: Record<Section | 'import', PageMetadata> = {
+  business: {title: 'Бизнесу — Рядом', description: 'Бесплатное размещение организации в городском каталоге, помощь с оформлением и обновлением карточки.'},
   community: { title: 'Городская лента — Рядом', description: 'Будущая городская лента новостей, вопросов и обсуждений жителей.' },
   classifieds: { title: 'Объявления — Рядом', description: 'Будущая городская площадка объявлений и переписки жителей.' },
   home: HOME_METADATA,
