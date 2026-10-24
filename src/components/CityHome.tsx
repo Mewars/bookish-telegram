@@ -69,11 +69,12 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
   {title:'История и культура',text:'Узнать город через его места и истории',category:'Культура',match:isCulturalPlace},
  ].map(group=>({...group,item:cityItems.find(x=>group.match(x)&&x.image&&!x.photoIllustrative&&!/\.svg(?:[?#]|$)/i.test(x.image))}));
  return <div className="city-home home-life">
-  <section className={`city-cover${cover?'':' city-cover--no-image'}`} aria-labelledby="city-cover-title">
+  <section className={`city-cover${cover?'':' city-cover--no-image'}${city.length>10?' city-cover--long-name':''}`} aria-labelledby="city-cover-title">
    <div className={`cover-image${cover?'':' cover-image--neutral'}`}>{cover&&<MediaImage src={cover.src} alt={cover.alt} eager/>}</div><div className="cover-atmosphere" aria-hidden="true"/>
    <div className="city-cover-content">
-    <span className="life-eyebrow">РЯДОМ · {city}</span>
-    <h1 id="city-cover-title">Твой город.<br/><em>Твои возможности.</em></h1>
+    <span className="life-eyebrow">РЯДОМ</span>
+    <h1 id="city-cover-title">{city}</h1>
+    <p className="life-cover-tagline">Твой город. <em>Твои возможности.</em></p>
     <p className="cover-summary">{cityProfile?.summary||'Находи нужное, общайся и будь в курсе жизни города.'}</p>
     <form className="cover-search" role="search" onSubmit={e=>{e.preventDefault();showResults();}}>
      <Search value={query} onChange={setQuery} placeholder={`Что найти в городе ${city}?`}/><button className="cover-search-action" type="submit" aria-label="Показать результаты поиска"><span>Найти</span><Icon name="arrow" size={20}/></button>
