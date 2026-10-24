@@ -39,7 +39,9 @@ with sync_playwright() as p:
   page.get_by_label('Источник информации *',exact=True).fill('Предоставляю сведения своей организации для проверки.')
   page.get_by_role('button',name='Отправить на рассмотрение',exact=True).click()
   expect(page.locator('#error-consent')).to_be_visible()
+  expect(page.locator('#error-phone')).to_be_visible()
   assert page.evaluate("async()=> (await import('/tests/business-sdk.mjs')).submissions().length")==0
+  page.get_by_label('Телефон организации',exact=True).fill('+7 (000) 000-00-00')
   page.locator('#organization-consent').check()
   page.get_by_role('button',name='Отправить на рассмотрение',exact=True).click()
   expect(page.get_by_role('heading',name='Заявка отправлена',exact=True)).to_be_visible()

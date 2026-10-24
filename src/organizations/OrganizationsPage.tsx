@@ -41,6 +41,7 @@ function ApplicationForm({ userId, city, openApplications, designRequested }: { 
     const submission=withDesignRequest(draft,designRequested);
     const checked = validateDraft(submission, consent);
     if(!draft.source_note.trim())checked.source_note='Укажите источник сведений или объясните, что вы представляете организацию.';
+    if(designRequested&&!draft.phone.trim()&&!draft.vk_url.trim())checked.phone='Для согласования оформления укажите телефон организации или её страницу VK.';
     setErrors(checked); setMessage('');
     if (Object.keys(checked).length) {
       const first = Object.keys(checked)[0];
@@ -63,7 +64,7 @@ function ApplicationForm({ userId, city, openApplications, designRequested }: { 
   };
   if (success) return <section className="organization-panel" role="status"><h2>Заявка отправлена</h2><p>Статус: «На рассмотрении». {designRequested&&'Запрос оформления сохранён; условия работы ещё нужно согласовать. '}Организация появится в каталоге только после ручной проверки и публикации.</p>{photoWarning&&<p className="organization-error">{photoWarning}</p>}<button className="primary-button" onClick={openApplications}>Мои заявки <Icon name="arrow" size={18}/></button></section>;
   return <form className="organization-panel organization-form" onSubmit={submit} noValidate aria-busy={busy}>
-    {designRequested&&<p className="organization-design-note">Заявка на помощь с оформлением новой организации поступит модератору. Состав работ, стоимость и способ связи согласуем отдельно. Отправка заявки не оформляет подписку и не подтверждает оплату. Если карточка уже существует, <a href={'#/business?'+new URLSearchParams({city})}>свяжитесь с РЯДОМ</a>, чтобы не создавать дубликат.</p>}
+    {designRequested&&<p className="organization-design-note">Заявка на помощь с оформлением новой организации поступит модератору. Оставьте телефон организации или её страницу VK для связи. Состав работ и стоимость согласуем отдельно. Отправка заявки не оформляет подписку и не подтверждает оплату. Если карточка уже существует, <a href={'#/business?'+new URLSearchParams({city})}>свяжитесь с РЯДОМ</a>, чтобы не создавать дубликат.</p>}
     <p>Указывайте сведения организации, которые можно опубликовать. Не отправляйте документы, пароли или чужие личные контакты. Поля со знаком * обязательны.</p>
     <fieldset disabled={busy}>{applicationFields.map(([key, label, limit, required]) => <div className={`organization-field ${['description', 'source_note'].includes(key) ? 'organization-wide' : ''}`} key={key}>
       <label htmlFor={`organization-${key}`}>{label}{required ? ' *' : ''}</label>
