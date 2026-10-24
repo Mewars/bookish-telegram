@@ -15,6 +15,7 @@ import { useHomeFeed } from '../home/useHomeFeed';
 import { eventDate } from '../utils/date';
 import { homePrice, hostSectionHref } from '../home/feed';
 import '../home/home-life.css';
+import '../home/editorial.css';
 
 // These filters remain available to existing category-panel navigation.
 function homeShortcuts(today:number):{label:string;matches:(item:Item)=>boolean}[]{return [
@@ -64,11 +65,11 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
  const branchHref=(name:string)=>{const branch=catalogGroups.flatMap(g=>g.items).find(b=>b.name===name);if(branch?.url)return branch.url+'?'+new URLSearchParams({city});if(branch?.name==='Афиша')return catalogHash('events',city);if(branch?.catalogCategory)return catalogHash('places',city,{...emptyCatalogFilters,category:branch.catalogCategory});return '#/home?'+new URLSearchParams({city,q:branch?.term||name});};
  const events=cityItems.filter(item=>item.kind==='events'&&typeof item.dateOffset==='number'&&item.dateOffset>=0).sort((a,b)=>(a.dateOffset??0)-(b.dateOffset??0)).slice(0,3);
  const collections=[
-  {title:'На прогулку',text:'Парки, набережные и места для неспешного дня',category:'Парки и прогулки',match:(x:Item)=>/парк|набережн|прогулк/i.test(x.category)},
-  {title:'Кофе и встречи',text:'Найти место для разговора и небольшой паузы',category:'Где поесть',match:isFoodVenue},
-  {title:'История и культура',text:'Узнать город через его места и истории',category:'Культура',match:isCulturalPlace},
- ].map(group=>({...group,item:cityItems.find(x=>group.match(x)&&x.image&&!x.photoIllustrative&&!/\.svg(?:[?#]|$)/i.test(x.image))}));
- return <div className="city-home home-life">
+  {image:'park',title:'На прогулку',text:'Парки, набережные и места для неспешного дня',category:'Парки и прогулки',match:(x:Item)=>/парк|набережн|прогулк/i.test(x.category)},
+  {image:'coffee',title:'Кофе и встречи',text:'Найти место для разговора и небольшой паузы',category:'Где поесть',match:isFoodVenue},
+  {image:'culture',title:'История и культура',text:'Узнать город через его места и истории',category:'Культура',match:isCulturalPlace},
+ ].map(group=>({...group,item:cityItems.find(x=>group.match(x))}));
+ return <div className="city-home home-life home-editorial">
   <section className={`city-cover${cover?'':' city-cover--no-image'}${city.length>10?' city-cover--long-name':''}`} aria-labelledby="city-cover-title">
    <div className={`cover-image${cover?'':' cover-image--neutral'}`}>{cover&&<MediaImage src={cover.src} alt={cover.alt} eager/>}</div><div className="cover-atmosphere" aria-hidden="true"/>
    <div className="city-cover-content">
@@ -88,6 +89,7 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
     <button id="ryadom-category-trigger" className="life-categories-button" onClick={categories} aria-haspopup="dialog"><Icon name="search" size={19}/>Все категории<Icon name="arrow" size={18}/></button>
    </div>
    <span className="life-cover-caption">{cityProfile?.region||city}<span>Открывай город по-новому</span></span>
+   <svg className="life-route" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30C180 100 220 0 390 33S700 110 960 45S1210 30 1440 48"/><path className="life-route-echo" d="M0 75C250 0 350 80 610 65S1040 15 1440 55"/><circle cx="1070" cy="35" r="20"/><path d="M1070 47s-9-8-9-14a9 9 0 0 1 18 0c0 6-9 14-9 14z"/><circle cx="1070" cy="33" r="3"/></svg>
   </section>
   <div id="city-selections" className="life-content">
    {searching?<section className="city-section life-search-results"><div className="life-heading"><div><h2>{selected?.label||'Нашлось рядом'}</h2><p role="status">Найдено: {results.length}</p></div><button onClick={()=>{setQuery('');setDiscovery(null);}}>Сбросить<Icon name="close" size={16}/></button></div>{selected?.label==='Сегодня'&&<p className="today-schedule-note">Места показаны по заявленному расписанию. Перед посещением уточняйте часы работы.</p>}{results.length?<div className="card-grid">{results.map(item=><Card key={item.id} item={item} {...actions}/>)}</div>:<EmptyState title="Ничего не найдено" text="Попробуйте изменить запрос или открыть все категории." action="Все категории" onAction={categories}/>}</section>:<>
@@ -97,9 +99,9 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
      </section>
      <aside className="life-actions" aria-labelledby="life-actions-title"><h2 id="life-actions-title">Быстрые действия</h2><a href={hostSectionHref('classifieds',city,{view:'new'})}><Icon name="shop" size={25}/><span><strong>Подать объявление</strong><small>Продать, купить, найти нужное</small></span><Icon name="arrow" size={18}/></a><a href={'#/add-organization?'+new URLSearchParams({city})}><Icon name="places" size={25}/><span><strong>Добавить организацию</strong><small>Рассказать о своём деле</small></span><Icon name="arrow" size={18}/></a><a href={hostSectionHref('wall',city,{view:'write'})}><Icon name="profile" size={25}/><span><strong>Задать вопрос</strong><small>Спросить у жителей города</small></span><Icon name="arrow" size={18}/></a></aside>
     </div>
-    {feed.listings.length>0&&<section className="life-section" aria-label="Свежие объявления"><SectionHeading title="Объявления рядом" href={hostSectionHref('classifieds',city)} label="Все объявления"/><div className="life-listings">{feed.listings.map(item=><a key={item.id} className="life-listing" href={hostSectionHref('classifieds',city,{ad:item.id})}><span className="life-listing-image"><MediaImage src={item.image} alt={item.title}/></span><div><small>{item.category}</small><h3>{item.title}</h3><strong>{homePrice(item)}</strong></div></a>)}</div></section>}
+    {feed.listings.length>0&&<section className="life-section" aria-label="Свежие объявления"><SectionHeading title="Объявления рядом" href={hostSectionHref('classifieds',city)} label="Все объявления"/><div className="life-listings" data-count={feed.listings.length}>{feed.listings.map(item=><a key={item.id} className="life-listing" href={hostSectionHref('classifieds',city,{ad:item.id})}><span className="life-listing-image"><MediaImage src={item.image} alt={item.title}/></span><div><small>{item.category}</small><h3>{item.title}</h3><strong>{homePrice(item)}</strong><span className="life-listing-more">Подробнее<Icon name="arrow" size={18}/></span></div></a>)}</div></section>}
     {events.length>0&&<section className="life-section" aria-label="Афиша города"><SectionHeading title="Куда сходить" href={catalogHash('events',city)} label="Вся афиша"/><div className="life-events">{events.map(item=><PlacePreview key={item.id} item={item} open={actions.open}/>)}</div></section>}
-    {collections.some(group=>group.item)&&<section className="life-section" aria-label="Открывай город по-новому"><SectionHeading title="Открывай город по-новому" href={catalogHash('places',city)} label="Все места"/><div className="life-collections">{collections.filter(group=>group.item).map(group=><a className="life-collection" key={group.title} href={branchHref(group.category)}><MediaImage src={group.item!.image} alt=""/><span><h3>{group.title}</h3><p>{group.text}</p></span><Icon name="arrow" size={23}/></a>)}</div></section>}
+    {collections.some(group=>group.item)&&<section className="life-section" aria-label="Открывай город по-новому"><SectionHeading title="Открывай город по-новому" href={catalogHash('places',city)} label="Все места"/><div className="life-collections">{collections.filter(group=>group.item).map(group=><a className="life-collection" key={group.title} href={branchHref(group.category)}><MediaImage src={`${import.meta.env.BASE_URL}brand/discovery/${group.image}.webp`} alt=""/><small className="life-art-label">Иллюстрация</small><span><h3>{group.title}</h3><p>{group.text}</p></span><Icon name="arrow" size={23}/></a>)}</div></section>}
     <section className="life-section" aria-label="Нужное рядом"><div className="life-heading"><h2>Нужное рядом</h2><button onClick={categories}>Все категории<Icon name="arrow" size={18}/></button></div><div className="life-useful">{useful.map(branch=><a key={branch.name} href={branchHref(branch.name)}><Icon name={branch.icon} size={24}/><span>{branch.label}</span><Icon name="arrow" size={16}/></a>)}</div></section>
     <section className="life-business"><Icon name="shop" size={42}/><div><h2>Ваше дело — часть города</h2><p>Добавьте организацию: после проверки она появится в своём разделе каталога.</p></div><a className="home-add-organization" href={'#/add-organization?'+new URLSearchParams({city})}>Добавить организацию<Icon name="arrow" size={19}/></a></section>
    </>}
