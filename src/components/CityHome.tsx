@@ -6,7 +6,6 @@ import { Search } from './Search';
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icon';
 import { MediaImage } from './MediaImage';
-import { getCityCover } from '../data/cityCover';
 import type { DirectoryCity } from '../data/cities';
 import { matches } from '../utils/search';
 import { catalogHash, emptyCatalogFilters, hashParts, readCatalogFilters, rememberHomeSearch } from '../navigation/catalogRoute';
@@ -17,6 +16,7 @@ import {useEventClock} from '../hooks/useEventClock';
 import { homePrice, hostSectionHref } from '../home/feed';
 import '../home/home-life.css';
 import '../home/editorial.css';
+import '../home/air-background.css';
 
 // These filters remain available to existing category-panel navigation.
 function homeShortcuts():{label:string;matches:(item:Item)=>boolean}[]{return [
@@ -54,7 +54,6 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
  useEffect(()=>{const dialog=categoryDialog.current;if(categoriesOpen)dialog?.showModal();else dialog?.close();},[categoriesOpen]);
  useEffect(()=>{const sync=()=>{if(hashParts(window.location.hash).section==='home')setQuery(readCatalogFilters(window.location.hash).query);};window.addEventListener('hashchange',sync);return()=>window.removeEventListener('hashchange',sync);},[]);
  useEffect(()=>{rememberHomeSearch(city,query);},[city,query]);
- const cover=getCityCover(city,cityProfile?.cover_url);
  const {feed,loading}=useHomeFeed(city);
  const now=useEventClock();
  const cityItems=currentEvents(items.filter(item=>item.city===city),now);
@@ -72,9 +71,9 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
   {image:'coffee',title:'Кофе и встречи',text:'Найти место для разговора и небольшой паузы',category:'Где поесть',match:isFoodVenue},
   {image:'culture',title:'История и культура',text:'Узнать город через его места и истории',category:'Культура',match:isCulturalPlace},
  ].map(group=>({...group,item:cityItems.find(x=>group.match(x))}));
- return <div className="city-home home-life home-editorial">
-  <section className={`city-cover${cover?'':' city-cover--no-image'}${city.length>10?' city-cover--long-name':''}`} aria-labelledby="city-cover-title">
-   <div className={`cover-image${cover?'':' cover-image--neutral'}`}>{cover&&<MediaImage src={cover.src} alt={cover.alt} eager/>}</div><div className="cover-atmosphere" aria-hidden="true"/>
+ return <div className="city-home home-life home-editorial home-air">
+  <section className={`city-cover city-cover--no-image${city.length>10?' city-cover--long-name':''}`} aria-labelledby="city-cover-title">
+   <div className="cover-image" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}brand/backgrounds/air-night.webp`} alt="" loading="eager" decoding="async" fetchPriority="high"/></div><div className="cover-atmosphere" aria-hidden="true"/>
    <div className="city-cover-content">
     <h1 id="city-cover-title">{city}</h1>
     <p className="life-cover-tagline">Твой город. <em>Твои возможности.</em></p>
