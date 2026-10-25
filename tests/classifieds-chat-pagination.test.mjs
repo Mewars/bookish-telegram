@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {test} from 'node:test';
-import {CLASSIFIED_MESSAGE_PAGE_SIZE,getMessages,getOlderMessages} from '../src/classifieds/repository.ts';
+import {CLASSIFIED_MESSAGE_PAGE_SIZE,getMessages as reactMessages,getOlderMessages as reactOlderMessages} from '../src/classifieds/repository.ts';
+
+import {readChatMessages} from '../host-public/classifieds/messages.js';
 
 function mockMessages(items,{fail=false}={}){
   const queries=[];
@@ -48,7 +50,11 @@ const messages=Array.from({length:225},(_,i)=>({
   created_at:new Date(Date.UTC(2026,9,15,0,Math.floor(i/4),0)).toISOString(),
 }));
 
-test('all 225 messages can be read across stable newest-to-oldest pages',async()=>{
+for(const [implementation,getMessages,getOlderMessages] of [
+ ['React',reactMessages,reactOlderMessages],
+ ['host',readChatMessages,readChatMessages],
+]){
+test(implementation+' all 225 messages can be read across stable newest-to-oldest pages',async()=>{
   const {queries,client}=mockMessages([
     ...messages,
     {id:makeId(999),conversation_id:'other-chat',sender_id:makeId(999),
@@ -67,7 +73,7 @@ test('all 225 messages can be read across stable newest-to-oldest pages',async()
   assert.equal(queries.filter(q=>q.filter!==null).length,2);
 });
 
-test('older requests resist malformed PostgREST cursor injection and network errors',async()=>{
+test(implementation+' older requests resist malformed PostgREST cursor injection and network errors',async()=>{
   const {client}=mockMessages(messages);
   await assert.rejects(getOlderMessages(client,'first-chat',{
     id:'not-an-id',created_at:'2026-10-15T00:00:00Z',
@@ -78,9 +84,11 @@ test('older requests resist malformed PostgREST cursor injection and network err
   const failed=mockMessages(messages,{fail:true});
   await assert.rejects(
     getOlderMessages(failed.client,'first-chat',messages[150]),
-    /Операция не выполнена/,
+    error=>/Операция не выполнена|network failed/.test(error.message),
   );
 });
+
+}
 
 test('older-history UI has safe session refresh and retry without exposing beta',async()=>{
   const [page,app]=await Promise.all([

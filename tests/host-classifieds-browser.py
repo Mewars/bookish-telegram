@@ -1,4 +1,6 @@
 """Real deployed-module UI with synthetic SDK; no hosted database writes."""
+import os
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright, expect
@@ -6,7 +8,7 @@ from playwright.sync_api import sync_playwright, expect
 origin='http://127.0.0.1:4176'
 sdk=Path('tests/host-classifieds-sdk.mjs').read_text()
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True)
+    browser=p.chromium.launch(headless=True,executable_path=os.getenv('PLAYWRIGHT_CHROMIUM_EXECUTABLE'))
     for scenario in ['draft','rejected','published','zero']:
         context=browser.new_context(viewport={'width':390,'height':844})
         context.route('**/*',lambda route: route.continue_() if urlparse(route.request.url).netloc=='127.0.0.1:4176' else route.abort())
@@ -34,5 +36,40 @@ with sync_playwright() as p:
         assert all('city' not in call and 'author_id' not in call for call in calls)
         if scenario=='published':assert any(call.get('rpc')=='begin_classified_revision' for call in calls)
         print('PASS host editor:',scenario)
+        context.close()
+    for width in (390,1440):
+        context=browser.new_context(viewport={'width':width,'height':900})
+        context.route('**/*',lambda route: route.continue_() if urlparse(route.request.url).netloc=='127.0.0.1:4176' else route.abort())
+        context.add_init_script('window.hostChatTest=true;window.hostOlderFailures=1')
+        page=context.new_page()
+        page.route('**/classifieds/supabase-client.js',lambda route:route.fulfill(status=200,content_type='application/javascript',body=sdk))
+        page.route('**/notifications/widget.js*',lambda route:route.fulfill(status=200,content_type='application/javascript',body=''))
+        page.goto(origin+'/classifieds/')
+        page.get_by_role('button',name='Сообщения',exact=True).click()
+        page.get_by_role('button',name=re.compile('Тестовый стол ·')).click()
+        bubbles=page.locator('.messages .bubble')
+        expect(bubbles).to_have_count(100)
+        expect(bubbles.last.locator('div')).to_have_text('Сообщение 225')
+        previous=page.get_by_role('button',name='Показать предыдущие сообщения',exact=True)
+        previous.click()
+        expect(page.locator('#alert')).to_contain_text('Synthetic history retry required')
+        expect(bubbles).to_have_count(100)
+        previous.click()
+        expect(bubbles).to_have_count(200)
+        previous.click()
+        expect(bubbles).to_have_count(225)
+        expect(previous).to_be_hidden()
+        bodies=bubbles.locator('div').all_text_contents()
+        assert bodies==['Сообщение '+str(i) for i in range(1,226)]
+        page.get_by_role('button',name='Обновить переписку',exact=True).click()
+        expect(bubbles).to_have_count(225)
+        page.get_by_placeholder('Напишите сообщение…').fill('Новое сообщение после 225')
+        page.get_by_role('button',name='Отправить',exact=True).click()
+        expect(bubbles).to_have_count(226)
+        expect(bubbles.last.locator('div')).to_have_text('Новое сообщение после 225')
+        page.wait_for_function("window.hostCalls.some(call=>call.rpc==='mark_classified_messages_read'&&call.p_message_id.startsWith('00000226-'))")
+        assert all(call['p_conversation_id']=='11111111-1111-4111-8111-111111111111'
+                   for call in page.evaluate('window.hostCalls') if call.get('rpc')=='mark_classified_messages_read')
+        print('PASS host chat: latest of 225, tied timestamps, full history, retry, refresh, send and read receipt:',width)
         context.close()
     browser.close()

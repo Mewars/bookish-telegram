@@ -1,4 +1,5 @@
 import {verifyHuman} from '/security/antispam.js?v=20261022spam2';
+import {MESSAGE_PAGE_SIZE,readChatMessages} from './messages.js?v=20261025chat1';
 import {readCityPins,sortPinnedClassifieds} from './pins.js?v=20261021pins1';
 import {createPhotoPlaceholder} from '/catalog/photoFallback.js?v=20261021catalog1';
 import { c as createClient } from './supabase-client.js';
@@ -208,7 +209,32 @@ async function inbox(){if(!requireAuth()){pad(empty('Войдите, чтобы 
  }pad(elem('section','panel',[h2('Ваши диалоги'),list]))}
 async function chat(){if(!requireAuth()){pad(empty('Необходимо войти','Переписка приватная.'));return}loadMark();const id=state.chat;if(!id)return goto('inbox');const {data:c,error:ce}=await sb.from('classified_conversations').select('id,listing_id,buyer_id,seller_id').eq('id',id).maybeSingle();if(ce)throw ce;if(!c){pad(empty('Диалог недоступен','Вы не участник этой переписки.'));return}const {data:a}=await sb.from('classifieds').select('title').eq('id',c.listing_id).maybeSingle();const isSeller=c.seller_id===state.user.id;
  const panel=elem('section','panel chat',[h2('Переписка · '+(a?.title||'Объявление')),
-  note(isSeller?'Вы автор объявления. Здесь можно отвечать на отклики.':'Вы откликнулись на объявление. Здесь можно написать его автору.')]);const msgs=elem('div','messages');const sendForm=elem('form','chat-send');const message=document.createElement('textarea');message.maxLength=2000;message.required=true;message.placeholder='Напишите сообщение…';const send=elem('button','btn',['Отправить']);send.type='submit';sendForm.append(message,send);sendForm.onsubmit=async(event)=>{event.preventDefault();const body=message.value.trim();if(!body)return;send.disabled=true;try{await rpc('send_classified_message',{p_conversation_id:id,p_body:body});message.value='';await updateChat()}catch(e){show(errorText(e),true)}finally{send.disabled=false}};panel.append(msgs,sendForm,
+  note(isSeller?'Вы автор объявления. Здесь можно отвечать на отклики.':'Вы откликнулись на объявление. Здесь можно написать его автору.')]);const msgs=elem('div','messages');
+ const actor=state.user.id;
+ let history=[],hasOlder=true,latestLoading=false,olderLoading=false;
+ const active=()=>state.view==='chat'&&state.chat===id&&state.user?.id===actor&&panel.isConnected;
+ const older=btn('Показать предыдущие сообщения',()=>act(async()=>{
+  if(olderLoading||!history.length)return;
+  olderLoading=true;older.disabled=true;
+  try{
+   const data=await readChatMessages(sb,id,history[0]);
+   if(!active())return;
+   hasOlder=data.length===MESSAGE_PAGE_SIZE;mergeMessages(data,true);
+  }finally{olderLoading=false;older.disabled=false;}
+ }),'btn secondary small');
+ function mergeMessages(data,prepend=false){
+  const height=msgs.scrollHeight,top=msgs.scrollTop;
+  const atBottom=height-top-msgs.clientHeight<40;
+  const known=new Map(history.map(message=>[message.id,message]));
+  for(const message of data)known.set(message.id,message);
+  history=[...known.values()].sort((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
+  msgs.replaceChildren();
+  for(const m of history)msgs.append(elem('div','bubble'+(m.sender_id===actor?' self':''),[elem('div','',[m.body]),elem('time','',[datetime(m.created_at)])]));
+  if(hasOlder&&history.length)msgs.before(older);else older.remove();
+  if(prepend)msgs.scrollTop=top+msgs.scrollHeight-height;
+  else msgs.scrollTop=atBottom?msgs.scrollHeight:top;
+ }
+ const sendForm=elem('form','chat-send');const message=document.createElement('textarea');message.maxLength=2000;message.required=true;message.placeholder='Напишите сообщение…';const send=elem('button','btn',['Отправить']);send.type='submit';sendForm.append(message,send);sendForm.onsubmit=async(event)=>{event.preventDefault();const body=message.value.trim();if(!body)return;send.disabled=true;try{await rpc('send_classified_message',{p_conversation_id:id,p_body:body});message.value='';await updateChat()}catch(e){show(errorText(e),true)}finally{send.disabled=false}};panel.append(msgs,sendForm,
   elem('div','form-actions',[
    btn('Все сообщения',()=>goto('inbox'),'btn secondary small'),
    btn('Обновить переписку',()=>act(updateChat),'btn secondary small')
@@ -216,7 +242,19 @@ async function chat(){if(!requireAuth()){pad(empty('Необходимо вой�
  await updateChat();
  stopChatTimer();
  chatTimer=setInterval(()=>{if(!document.hidden&&state.view==='chat'&&state.chat===id)void updateChat().catch(()=>{});},12000);
- async function updateChat(){const {data,error}=await sb.from('classified_messages').select('id,sender_id,body,created_at').eq('conversation_id',id).order('created_at',{ascending:true}).limit(200);if(error)throw error;msgs.replaceChildren();for(const m of data||[]){msgs.append(elem('div','bubble'+(m.sender_id===state.user.id?' self':''),[elem('div','',[m.body]),elem('time','',[datetime(m.created_at)])]))}msgs.scrollTop=msgs.scrollHeight;if(data?.length){const last=data[data.length-1];await rpc('mark_classified_messages_read',{p_conversation_id:id,p_message_id:last.id})}}}
+ async function updateChat(){
+  if(latestLoading||!active())return;
+  latestLoading=true;
+  try{
+   const data=await readChatMessages(sb,id);
+   if(!active())return;
+   if(!history.length)hasOlder=data.length===MESSAGE_PAGE_SIZE;
+   mergeMessages(data);
+   if(data.length)await rpc('mark_classified_messages_read',{p_conversation_id:id,p_message_id:data[data.length-1].id});
+  }finally{latestLoading=false;}
+ }
+}
+
 async function moderatorHide(ad){
  if(!window.confirm('Снять объявление «'+ad.title+'» с публикации? Оно исчезнет из поиска, но сохранится в архиве модерации.'))return;
  await rpc('moderator_hide_classified',{p_listing_id:ad.id});
