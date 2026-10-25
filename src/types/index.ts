@@ -11,5 +11,6 @@ export interface Item extends SourceMetadata {
   real?: boolean; phone?: string;
   // Licensed image metadata. Stock photos must never be mistaken for an actual venue.
   photoIllustrative?: boolean; photoCredit?: string; photoSourceUrl?: string; photoLicenseUrl?: string;
+  eventStart?: string; eventEnd?: string; eventTimeZone?: string;
   dateOffset?: number; time?: string; label?: string;
 }

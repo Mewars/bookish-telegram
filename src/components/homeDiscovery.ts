@@ -80,12 +80,9 @@ export function weekdayInCity(date: Date, timeZone = 'Asia/Krasnoyarsk'): number
   return (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as const).indexOf(day as 'Sun');
 }
 
-export function isTodayRecommendation(item: Item, weekday: number): boolean {
-  if (item.kind === 'events') return item.dateOffset === 0;
-  if (item.kind !== 'places') return false;
-  // Hotel accommodation is not a recommendation to go out for an event/visit.
-  if (leadingCategory(item).includes('гостиниц')) return false;
-  return hasDeclaredScheduleToday(item.hours, weekday);
+export function isTodayRecommendation(item: Item): boolean {
+  // Today is an events agenda, never a directory of businesses that might be open.
+  return item.kind === 'events' && item.dateOffset === 0;
 }
 
 export const EDITORIAL_ENISEYSK_IDS = [

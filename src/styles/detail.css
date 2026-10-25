@@ -111,3 +111,9 @@
 .detail-content-grid.detail-content-basic {grid-template-columns:minmax(0,1fr);}
 .detail-content-basic .detail-contact-tiles {grid-template-columns:repeat(3,minmax(0,1fr));}
 @media(max-width:699px){.detail-content-basic .detail-contact-tiles{grid-template-columns:minmax(0,1fr);}}
+
+.guide-detail--event .detail-cover .place-media-frame{height:auto;aspect-ratio:4/3;max-height:700px;}
+.guide-detail--event .detail-cover .place-media-frame img{object-fit:contain;}
+.guide-detail--event .detail-cover::after{display:none;}
+.guide-detail--event .detail-cover .detail-heading{position:relative;left:auto;right:auto;bottom:auto;padding:24px;background:#0d2434;}
+.guide-detail--event #detail-about>p{white-space:pre-line;}

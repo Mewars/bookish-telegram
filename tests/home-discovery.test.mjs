@@ -33,7 +33,7 @@ test('food, culture, shopping and services do not mix their primary categories',
   assert.equal(isService(item('services','Доставка еды')), false);
 });
 
-test('today requires a real date or explicitly documented weekly schedule, never guesses from plain hours', () => {
+test('today agenda contains only dated events, not open organizations', () => {
   // Monday = 1; Wednesday = 3; Sunday = 0.
   assert.equal(hasDeclaredScheduleToday('10:00–18:00, вторник–воскресенье',3), true);
   assert.equal(hasDeclaredScheduleToday('10:00–18:00, вторник–воскресенье',1), false);
@@ -44,10 +44,10 @@ test('today requires a real date or explicitly documented weekly schedule, never
   assert.equal(hasDeclaredScheduleToday('12:00–21:00',3), false);
   assert.equal(hasDeclaredScheduleToday('Временно закрыто, ежедневно 10:00–18:00',3), false);
   assert.equal(hasDeclaredScheduleToday(undefined,3), false);
-  assert.equal(isTodayRecommendation(item('events','Кино',{dateOffset:0}),3), true);
-  assert.equal(isTodayRecommendation(item('events','Кино',{dateOffset:1}),3), false);
-  assert.equal(isTodayRecommendation(item('places','Гостиницы',{hours:'ежедневно, 10:00–20:00'}),3), false);
-  assert.equal(isTodayRecommendation(item('places','Музеи',{hours:'вторник–воскресенье, 10:00–18:00'}),3), true);
+  assert.equal(isTodayRecommendation(item('events','Кино',{dateOffset:0})), true);
+  assert.equal(isTodayRecommendation(item('events','Кино',{dateOffset:1})), false);
+  assert.equal(isTodayRecommendation(item('places','Гостиницы',{hours:'ежедневно, 10:00–20:00'})), false);
+  assert.equal(isTodayRecommendation(item('places','Музеи',{hours:'вторник–воскресенье, 10:00–18:00'})), false);
 });
 test('today computes city weekday in Krasnoyarsk timezone, independent of visitor timezone', () => {
   assert.equal(weekdayInCity(new Date('2026-10-14T12:00:00Z')),3);

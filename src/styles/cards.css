@@ -16,3 +16,7 @@
 .card[data-kind]:not([data-kind=events]) .card-meta a{color:var(--primary-ink);text-underline-offset:3px;}
 .card[data-kind]:not([data-kind=events]) .card-footer>span{display:flex;align-items:flex-start;gap:7px;}
 .card[data-kind]:not([data-kind=events]) .card-body :is(.card-meta,.card-footer) svg{margin-top:3px;}
+
+/* Posters retain the full artwork, including event dates and ticket details. */
+.card[data-kind=events] .card-image>img{object-fit:contain;}
+.card[data-kind=events] .card-body :is(.card-meta,.card-footer){display:flex;gap:8px;margin-top:10px;font-size:12px;color:var(--muted);}

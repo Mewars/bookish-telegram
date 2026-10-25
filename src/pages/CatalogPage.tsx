@@ -1,3 +1,5 @@
+import {currentEvents} from '../utils/events';
+import {useEventClock} from '../hooks/useEventClock';
 import { categoryParts, foodSubcategories, beautySections } from '../../public/catalog/taxonomy.js';
 import type { Item, Kind } from '../types';
 import { categories, sectionTitles } from '../data/catalog';
@@ -7,6 +9,8 @@ import { EmptyState } from '../components/EmptyState';
 import { matches } from '../utils/search';
 import { emptyCatalogFilters, matchesCatalogFilters, type CatalogFilters } from '../navigation/catalogRoute';
 export function CatalogPage({ kind, city, filters, onFiltersChange, items: cityItems, addOrganization, catalogStatus, retryCatalog, ...actions }: CardActions & { kind: Kind; city: string; filters: CatalogFilters; onFiltersChange: (value: CatalogFilters) => void; items: Item[]; addOrganization?: () => void; catalogStatus?: 'loading' | 'ready' | 'fallback'; retryCatalog?: () => void }) {
+ const now=useEventClock();
+ cityItems=currentEvents(cityItems.filter(item=>item.city===city),now);
  const {query,category,subcategory,when}=filters;
  const change=(patch:Partial<CatalogFilters>)=>onFiltersChange({...filters,...patch});
  const setQuery=(value:string)=>change({query:value});
@@ -14,7 +18,7 @@ export function CatalogPage({ kind, city, filters, onFiltersChange, items: cityI
  const setWhen=(value:string)=>change({when:value});
  const subtitles: Record<Kind,string>={events:`Подтверждённые события города ${city}.`,places:`Места и организации города ${city}.`,services:`Полезные организации и услуги города ${city}.`};
  const hasPublishedItems = cityItems.some(item => item.kind === kind);
- const items = cityItems.filter(item => item.kind === kind && matchesCatalogFilters(item,filters) && matches(item,query));
+ const items = cityItems.filter(item => item.kind === kind && matchesCatalogFilters(item,filters,now) && matches(item,query)).sort((a,b)=>kind==='events'?(a.dateOffset??0)-(b.dateOffset??0)||(a.time??'').localeCompare(b.time??''):0);
  const availableCategories = hasPublishedItems ? [...new Set([...categories[kind], ...cityItems.filter(item => item.kind === kind).map(item => categoryParts(item).category)])] : ['Все'];
  const subcategories=category==='Красота'?[...beautySections.map(sub=>sub.name),'Салоны красоты','Брови и ресницы']:category==='Кафе'?foodSubcategories.map(sub=>sub.name):[...new Set(cityItems.filter(item=>item.kind===kind && (category==='Все'||categoryParts(item).category===category)).map(item=>categoryParts(item).subcategory).filter(Boolean))];
  const reset = () => onFiltersChange({...emptyCatalogFilters});
