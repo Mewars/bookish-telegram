@@ -194,13 +194,18 @@ try {
         assert(await vk.isVisible(), 'Owner VK contact link missing');
         result.checks.push('Owner contacts page and VK link');
         await page.screenshot({ path: `${folder}/${scenario.name}-contacts.png`, fullPage: true, animations: 'disabled' });
-        // Unreviewed community and classified beta must never open against
-        // production Supabase, even if someone guesses the hash URL.
+        // The legacy classifieds hash redirects to the approved host module.
+        // Await that redirect instead of racing it against the old beta placeholder.
         await page.goto(`${base}/#/community`, { waitUntil: 'domcontentloaded' });
         await page.getByRole('heading', { name: 'Городская лента готовится' }).waitFor();
         await page.goto(`${base}/#/classifieds`, { waitUntil: 'domcontentloaded' });
-        await page.getByRole('heading', { name: 'Объявления готовятся' }).waitFor();
-        result.checks.push('Classified and community betas remain disabled in production');
+        await page.waitForURL(`${base}/classifieds/`);
+        await page.getByRole('heading', {name:'Объявления рядом',exact:true}).waitFor();
+        await page.getByRole('link',{name:'Войти / зарегистрироваться',exact:true}).waitFor();
+        assert.equal(await page.locator('#mod-tab').isVisible(),false,'Guest must not see moderation');
+        await page.getByRole('button',{name:'Подать объявление',exact:true}).click();
+        await page.getByRole('heading',{name:'Требуется вход в аккаунт',exact:true}).waitFor();
+        result.checks.push('Legacy classifieds link opens the approved module; guest submission requires login and moderation is hidden');
       }
       await page.goto(`${base}/#/profile`, { waitUntil: 'domcontentloaded' });
       await page.getByRole('heading', { name: /^(Вы не вошли в аккаунт|Войдите в аккаунт)$/ }).waitFor({ state: 'visible', timeout: 15000 });
