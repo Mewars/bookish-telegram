@@ -29,7 +29,7 @@ with sync_playwright() as p:
   assert page.locator('.guide-detail a[href^="https://"]').count()==0
   expect(page.get_by_text('Скрытое расширенное описание',exact=True)).to_have_count(0)
   expect(page.locator('#detail-about')).to_have_count(0)
-  expect(page.locator('.detail-contact-tiles').get_by_text('Тестовый город, Тестовая улица, 1',exact=True)).to_be_visible()
+  expect(page.locator('.detail-contact-tiles').get_by_text('Тестовая улица, 1',exact=True)).to_be_visible()
   expect(page.locator('.card').get_by_text('Тестовая улица, 1',exact=True)).to_be_visible()
   assert page.locator('a[href^="tel:"]').count()==2
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')

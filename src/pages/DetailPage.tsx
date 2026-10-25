@@ -110,12 +110,12 @@ export function DetailPage({
           ? <a className="detail-contact-tile detail-contact-tile--link" href={maps.mapsUrl} target="_blank" rel="noopener noreferrer">
               <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
               <span className="detail-contact-label">Адрес · открыть на карте</span>
-              <strong>{item.city}, {item.address}</strong>
+              <strong>{basic ? item.address : `${item.city}, ${item.address}`}</strong>
               <span className="detail-contact-action">Открыть на карте <Icon name="arrow" size={15}/></span>
             </a>
           : <div className="detail-contact-tile">
               <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
-              <span className="detail-contact-label">Адрес</span><strong>{item.city}, {item.address}</strong>
+              <span className="detail-contact-label">Адрес</span><strong>{basic ? item.address : `${item.city}, ${item.address}`}</strong>
             </div>)}
         {basic && !item.address && <div className="detail-contact-tile"><span className="detail-contact-label">Адрес</span><strong>Адрес уточняется</strong></div>}
         {basic && !item.phone && <div className="detail-contact-tile"><span className="detail-contact-label">Телефон</span><strong>Не указан</strong></div>}
