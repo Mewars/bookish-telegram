@@ -29,11 +29,15 @@ with sync_playwright() as p:
   page.add_init_script(FAKE_AUDIO)
   page.goto(ORIGIN+'/#/home')
   page.locator('.city-home').wait_for()
-  # Production bundles inline the legacy SVGs: none may remain as card photos.
-  assert page.locator('.card-image img[src^="data:image/svg"]').count()==0
-  expect(page.locator('.card-image .photo-placeholder').first).to_be_visible()
   cookies=page.get_by_role('button',name='Только необходимые',exact=True)
   if cookies.is_visible():cookies.click()
+  # Organization cards now live in the catalog; Home has editorial navigation images.
+  page.get_by_role('button',name='Места',exact=True).click()
+  expect(page.locator('.app-shell')).to_have_attribute('data-section','places')
+  assert page.locator('.card-image img[src^="data:image/svg"]').count()==0
+  expect(page.locator('.card-image .photo-placeholder').first).to_be_visible()
+  page.get_by_role('button',name='Главная',exact=True).click()
+  page.locator('.city-home').wait_for()
   page.add_script_tag(path='host-public/ui/site-shell.js')
   assert page.evaluate('window.__testAudio.length')==0
   expect(page.locator('#music-player')).to_have_count(0)
