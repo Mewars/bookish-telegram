@@ -7,7 +7,7 @@ import { PlaceMap } from '../components/places/PlaceMap';
 import { Icon } from '../components/Icon';
 import { Card } from '../components/Card';
 import { PlaceMedia } from '../components/MediaImage';
-import { eventDate } from '../utils/date';
+import { itemEventDate } from '../utils/events';
 import { hoursDisclaimer, phoneHref, suppliedDate } from '../utils/place';
 
 function externalUrl(value?: string, vk = false) {
@@ -60,7 +60,7 @@ export function DetailPage({
   const mappedDesktop = desktop && hasMap && item.kind !== 'events';
   const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  return <article className={mappedDesktop ? "guide-detail guide-detail--mapped" : "guide-detail"}>
+  return <article className={item.kind==='events'?"guide-detail guide-detail--event":mappedDesktop ? "guide-detail guide-detail--mapped" : "guide-detail"}>
     <div className="detail-breadcrumb">
       <button className="back-link" onClick={goBack}>
         <Icon name="back" size={18}/>
@@ -104,7 +104,7 @@ export function DetailPage({
         {item.kind === 'events' && <div className="detail-contact-tile">
           <span className="detail-contact-icon"><Icon name="events" size={20}/></span>
           <span className="detail-contact-label">Когда</span>
-          <strong>{eventDate(item.dateOffset, true)}{item.time ? ` · ${item.time}` : ''}</strong>
+          <strong>{itemEventDate(item, true)}{item.time ? ` · ${item.time}` : ''}</strong>
         </div>}
         {item.address && (!basic && maps.mapsUrl
           ? <a className="detail-contact-tile detail-contact-tile--link" href={maps.mapsUrl} target="_blank" rel="noopener noreferrer">
@@ -137,7 +137,7 @@ export function DetailPage({
         </div>}
         {website && <a className="detail-contact-tile detail-contact-tile--link" href={website} target="_blank" rel="noopener noreferrer">
           <span className="detail-contact-icon"><Icon name="arrow" size={20}/></span>
-          <span className="detail-contact-label">Официальный сайт</span>
+          <span className="detail-contact-label">{item.kind==='events'?'Купить билеты':'Официальный сайт'}</span>
           <strong>Перейти на сайт</strong>
           <span className="detail-contact-action">Открыть <Icon name="arrow" size={15}/></span>
         </a>}

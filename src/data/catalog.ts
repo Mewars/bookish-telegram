@@ -1,4 +1,5 @@
 import type { Item, Kind } from '../types';
+import { reviewedEvents } from './events';
 import { places } from './places';
 import { verifiedEniseyskPlaces, verifiedEniseyskServices } from './verifiedEniseysk';
 
@@ -9,7 +10,7 @@ export const categories: Record<Kind, string[]> = {
 };
 
 // Published baseline: user-supplied places and researched directory entries with source links.
-// The events section stays empty until actual dates and sources are available.
-export const catalog: Item[] = [...places, ...verifiedEniseyskPlaces, ...verifiedEniseyskServices];
+// Reviewed events carry fixed dates and owner-supplied posters.
+export const catalog: Item[] = [...places, ...verifiedEniseyskPlaces, ...verifiedEniseyskServices, ...reviewedEvents];
 
 export const sectionTitles: Record<Kind, string> = { events: 'Афиша', places: 'Места', services: 'Услуги' };

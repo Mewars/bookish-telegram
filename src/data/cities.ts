@@ -1,6 +1,7 @@
 export interface DirectoryCity {
   name: string;
   region: string;
+  timeZone?: string;
   cover_url?: string | null;
   tagline?: string;
   summary?: string;
@@ -9,8 +10,8 @@ export interface DirectoryCity {
 // Public fallback cities. The city-directory table can add more without a redeploy
 // after its additive migration and deployment flag have been enabled.
 export const availableCities: DirectoryCity[] = [
-  { name: 'Енисейск', region: 'Красноярский край' },
-  { name: 'Лесосибирск', region: 'Красноярский край' },
+  { name: 'Енисейск', region: 'Красноярский край', timeZone: 'Asia/Krasnoyarsk' },
+  { name: 'Лесосибирск', region: 'Красноярский край', timeZone: 'Asia/Krasnoyarsk' },
 ];
 
 export const defaultCity = availableCities[0].name;

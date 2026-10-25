@@ -1,3 +1,5 @@
+import {currentEvents} from './utils/events';
+import {useEventClock} from './hooks/useEventClock';
 import { BusinessPage } from './business/BusinessPage';
 import { CityWeather } from './weather/CityWeather';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
@@ -89,7 +91,8 @@ export default function App() {
  const openFriendsIntro = () => { if (friendsEnabled) setFriendsIntroOpen(true); };
  const organizationCatalog = useOrganizations(organizationsEnabled || adminEnabled);
  const photoCatalog = useDirectoryPhotos(organizationCatalog.items, photoEnabled);
- const cityItems = filterByCity(photoCatalog.items, city);
+ const eventNow=useEventClock();
+ const cityItems = currentEvents(filterByCity(photoCatalog.items, city),eventNow);
  const favoritesCount = cityItems.filter(entry => favorites.includes(entry.id)).length;
  const mainRef = useRef<HTMLElement>(null);
  const item = id ? cityItems.find(x => x.id === id) : undefined;

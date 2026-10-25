@@ -1,3 +1,4 @@
+import {eventOnDay} from '../utils/events';
 import { categoryParts, catalogGroups, matchesParent, matchesLeaf } from '../../public/catalog/taxonomy.js';
 import type { Item, Kind } from '../types';
 
@@ -76,12 +77,12 @@ export function detailHash(kind:Kind,id:string,city:string,fromHash:string):stri
   params.set('return',back);
   return '#/'+kind+'/'+encodeURIComponent(id)+'?'+params.toString();
 }
-export function matchesCatalogFilters(item:Item,filters:CatalogFilters):boolean {
+export function matchesCatalogFilters(item:Item,filters:CatalogFilters,now=new Date()):boolean {
   const {category,subcategory}=categoryParts(item);
   const parent=catalogGroups.flatMap(group=>group.items).find(branch=>branch.name===filters.category);
   const leaves=(branches:typeof catalogGroups[number]['items']):typeof branches=>branches.flatMap(branch=>branch.subs?.length?leaves(branch.subs):[branch]);
   const leaf=parent?leaves(parent.subs||[]).find(branch=>branch.name===filters.subcategory):undefined;
   return (filters.category==='Все'||category===filters.category||(!!parent&&matchesParent(item,parent))) &&
     (filters.subcategory==='Все'||subcategory===filters.subcategory||(!!parent&&!!leaf&&matchesLeaf(item,leaf,parent))) &&
-    (item.kind!=='events'||filters.when==='Все даты'||item.dateOffset===(filters.when==='Сегодня'?0:1));
+    (item.kind!=='events'||filters.when==='Все даты'||eventOnDay(item,filters.when==='Сегодня'?0:1,now));
 }
