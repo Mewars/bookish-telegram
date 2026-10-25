@@ -34,7 +34,7 @@ class Extensions(HTMLParser):
         if tag == 'script' and url.path == '/ui/site-shell.js':
             attrs['src'] = '/ui/site-shell.js?v=20261021music2'
         if tag == 'script' and url.path in ('/categories/panel.js','/admin/catalog.js'):
-            attrs['src'] = url.path+'?v=20261022admin1'
+            attrs['src'] = url.path+('?v=20261025basic1' if url.path == '/categories/panel.js' else '?v=20261022admin1')
             attrs['type'] = 'module'
         if tag == 'link' and url.path == '/admin/catalog.css':
             attrs['href'] = '/admin/catalog.css?v=20261022admin1'

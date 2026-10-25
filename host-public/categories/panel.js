@@ -155,6 +155,11 @@ function render(){
  mainHeading.setAttribute('tabindex','-1');
 }
 function choose(item,parent=activeParent){
+ if(item.name==='Красота'||parent?.name==='Красота'){
+  const params=new URLSearchParams({city:sectionCity(),category:'Красота'});
+  if(item.name!=='Красота')params.set('subcategory',item.name);
+  close();location.hash='#/services?'+params.toString();return;
+ }
  if(item.subs?.length){activeNested=item;activeInfo=null;searchInput.value='';render();return}
  if(item.info){activeInfo=item;activeNested=null;searchInput.value='';render();return}
  const city=sectionCity();close();

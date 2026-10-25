@@ -12,6 +12,8 @@ with sync_playwright() as p:
   page.goto(ORIGIN+'/tests/basic-catalog-fixture.html')
   expect(page.locator('.card')).to_have_count(5)
   expect(page.get_by_role('heading',name='Чужой салон',exact=True)).to_have_count(0)
+  expect(page.locator('.card').first.locator('.card-meta').first).to_be_visible()
+  expect(page.locator('.card').first.locator('.card-footer')).to_be_visible()
   assert page.locator('.card-body').get_by_text('Скрытое расширенное описание',exact=True).count()==0
   group=page.get_by_role('group',name='Подкатегории',exact=True)
   for label,title in [('Уход за лицом','Лицо'),('Уход за волосами','Волосы'),('Уход за телом','Тело'),('Ногтевые услуги','Ногти')]:
@@ -27,7 +29,8 @@ with sync_playwright() as p:
   assert page.locator('.guide-detail a[href^="https://"]').count()==0
   expect(page.get_by_text('Скрытое расширенное описание',exact=True)).to_have_count(0)
   expect(page.locator('#detail-about')).to_have_count(0)
-  expect(page.get_by_text('Тестовая улица, 1',exact=True).first).to_be_visible()
+  expect(page.locator('.detail-contact-tiles').get_by_text('Тестовый город, Тестовая улица, 1',exact=True)).to_be_visible()
+  expect(page.locator('.card').get_by_text('Тестовая улица, 1',exact=True)).to_be_visible()
   assert page.locator('a[href^="tel:"]').count()==2
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   page.screenshot(path=f'qa-screenshots/basic-organization-{width}.png',full_page=True)
