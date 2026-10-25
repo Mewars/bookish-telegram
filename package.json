@@ -37,7 +37,7 @@
     "test:friends": "node --test tests/friends-nearby-security.test.mjs && node --loader ./tests/typescript-loader.mjs --test tests/friends-nearby-client.test.mjs && node --test tests/friends-entry.test.mjs",
     "test:navigation": "node --loader ./tests/typescript-loader.mjs tests/public-catalog-navigation.test.mjs",
     "test:music": "node --loader ./tests/typescript-loader.mjs --test tests/music-player.test.mjs",
-    "test:catalog-polish": "node --loader ./tests/typescript-loader.mjs --test tests/catalog-polish.test.mjs"
+    "test:catalog-polish": "node --loader ./tests/typescript-loader.mjs --test tests/catalog-polish.test.mjs tests/catalog-batch.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

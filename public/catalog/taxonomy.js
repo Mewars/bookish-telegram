@@ -629,6 +629,10 @@ export const catalogGroups = [
             "name": "Экскурсии",
             "hint": "гиды музейные маршруты",
             "term": "экскурси"
+          },
+          {
+            "name": "Усадьбы и дома-музеи",
+            "term": "усадьб"
           }
         ],
         "term": "музе"
@@ -719,6 +723,10 @@ export const catalogGroups = [
             "name": "Управляющие компании",
             "hint": "Управляющие компании",
             "term": "управляющ"
+          },
+          {
+            "name": "Электроснабжение",
+            "term": "электроснабж"
           }
         ]
       },
@@ -737,6 +745,14 @@ export const catalogGroups = [
             "name": "Автовокзалы и автостанции",
             "term": "автовокзал",
             "hint": "Автовокзалы и автостанции"
+          },
+          {
+            "name": "Парковки",
+            "term": "парковк"
+          },
+          {
+            "name": "Автотранспортные предприятия",
+            "term": "автотранспорт"
           }
         ]
       },
@@ -762,32 +778,35 @@ export const catalogGroups = [
         "name": "Красота",
         "description": "Салоны, парикмахерские и мастера",
         "icon": "beauty",
-        "hint": "Красота Салоны, парикмахерские и мастера Парикмахерские и барбершопы барбершоп стрижка  Маникюр и педикюр ногти педикюр  Брови и ресницы ресницы  Косметологи уход за кожей  Массаж и СПА спа spa ",
+        "hint": "Красота Салоны, парикмахерские и мастера Парикмахерские и барбершопы барбершоп стрижка  Маникюр и педикюр ногти педикюр  Брови и ресницы ресницы  Косметологи уход за кожей  Массаж и СПА спа spa  Уход за лицом Уход за волосами Уход за телом Ногтевые услуги Салоны красоты",
         "subs": [
           {
-            "name": "Парикмахерские и барбершопы",
-            "hint": "барбершоп стрижка",
-            "term": "парикмахер"
+            "name": "Салоны красоты",
+            "term": "салон красоты"
           },
           {
-            "name": "Маникюр и педикюр",
-            "hint": "ногти педикюр",
-            "term": "маникюр"
+            "name": "Уход за лицом",
+            "term": "косметолог",
+            "beautyKey": "face"
+          },
+          {
+            "name": "Уход за волосами",
+            "term": "парикмахер",
+            "beautyKey": "hair"
+          },
+          {
+            "name": "Уход за телом",
+            "term": "массаж",
+            "beautyKey": "body"
+          },
+          {
+            "name": "Ногтевые услуги",
+            "term": "маникюр",
+            "beautyKey": "nails"
           },
           {
             "name": "Брови и ресницы",
-            "hint": "ресницы",
             "term": "бров"
-          },
-          {
-            "name": "Косметологи",
-            "hint": "уход за кожей",
-            "term": "косметолог"
-          },
-          {
-            "name": "Массаж и СПА",
-            "hint": "спа spa",
-            "term": "массаж"
           }
         ],
         "term": "салон"
@@ -827,6 +846,10 @@ export const catalogGroups = [
             "name": "Такси и перевозки",
             "hint": "перевозка грузоперевозки",
             "term": "такси"
+          },
+          {
+            "name": "Дорожные службы",
+            "term": "дорожн"
           }
         ],
         "term": "авто"
@@ -995,6 +1018,7 @@ export function matchesParent(item,parent){
  return !!parentPatterns[parent.name]?.test(normalizeCategory(item.category));
 }
 export function matchesLeaf(item,leaf,parent){
+ if(parent.name==='Красота'&&leaf.beautyKey)return beautyMatches(item,leaf.beautyKey);
  if(parent.name==='Где поесть')return foodSubcategory(item)?.foodKey===leaf.foodKey;
  if(parent.name==='Гостиницы')return lodgingSubcategory(item)?.name===leaf.name;
  if(leaf.subs?.length)return leaf.subs.some(child=>matchesLeaf(item,child,parent));
@@ -1006,3 +1030,8 @@ export function catalogCounts(items){
  const published=items.filter(item=>item.status==='published').length;
  return {total:items.length,published,unpublished:items.length-published};
 }
+
+// Only supplied category/service labels establish an offering; names and marketing prose do not.
+const beautyPatterns={face:/уход за лицом|косметолог/,hair:/уход за волосами|парикмахер|барбершоп/,body:/уход за телом|массаж|спа|spa/,nails:/ногтев|маникюр|педикюр/};
+export const beautySections=catalogGroups.flatMap(g=>g.items).find(p=>p.name==='Красота').subs.filter(s=>s.beautyKey);
+export function beautyMatches(item,key){return !!beautyPatterns[key]?.test(normalizeCategory(item.category));}
