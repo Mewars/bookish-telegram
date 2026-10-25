@@ -31,5 +31,5 @@ export function useOrganizations(enabled: boolean) {
   const items = enabled && status === 'ready'
     ? mergePublished(catalog, remote, cityImage, true)
     : catalog;
-  return { items, status, retry: () => { setStatus('loading'); setAttempt(value => value + 1); } };
+  return { items:items.map(item=>item.kind==='events'?item:{...item,website:undefined,vkUrl:undefined}), status, retry: () => { setStatus('loading'); setAttempt(value => value + 1); } };
 }

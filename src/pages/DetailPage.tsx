@@ -45,9 +45,10 @@ export function DetailPage({
   item, saved, toggle, goBack, favoritesBusy = false, desktop = false,
   relatedItems = [], favorites = [], openRelated,
 }: DetailPageProps) {
+  const basic = item.kind !== 'events';
   const maps = placeMapLinks(item);
-  const website = externalUrl(item.website);
-  const vkUrl = externalUrl(item.vkUrl, true);
+  const website = basic ? undefined : externalUrl(item.website);
+  const vkUrl = basic ? undefined : externalUrl(item.vkUrl, true);
   const sourceUrl = externalUrl(item.sourceUrl);
   const realPlace = item.real && item.kind === 'places';
   const related = realPlace
@@ -55,7 +56,7 @@ export function DetailPage({
       && entry.kind === item.kind && entry.category.split(' / ')[0] === item.category.split(' / ')[0]).slice(0, 3)
     : [];
   const title = item.kind === 'events' ? 'О событии' : item.kind === 'services' ? 'Об услуге' : 'О месте';
-  const hasMap = Boolean(item.coordinates);
+  const hasMap = !basic && Boolean(item.coordinates);
   const mappedDesktop = desktop && hasMap && item.kind !== 'events';
   const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -79,14 +80,14 @@ export function DetailPage({
     </div>
 
     <nav className="detail-quick-tabs" aria-label="Разделы карточки">
-      <button type="button" onClick={() => scrollToSection('detail-about')}>Обзор</button>
+      {!basic && <button type="button" onClick={() => scrollToSection('detail-about')}>Обзор</button>}
       <button type="button" onClick={() => scrollToSection('detail-photos')}>Фото</button>
       <button type="button" onClick={() => scrollToSection('detail-contacts')}>Контакты</button>
       {hasMap && <button type="button" onClick={() => scrollToSection('detail-map')}>Карта</button>}
-      {maps.routeUrl && <a href={maps.routeUrl} target="_blank" rel="noopener noreferrer"><Icon name="pin" size={15}/> Маршрут в Яндекс Картах</a>}
+      {!basic && maps.routeUrl && <a href={maps.routeUrl} target="_blank" rel="noopener noreferrer"><Icon name="pin" size={15}/> Маршрут в Яндекс Картах</a>}
     </nav>
-    <div className="detail-content-grid">
-      <section className="detail-info-tile" id="detail-about" aria-labelledby="detail-about-heading">
+    <div className={`detail-content-grid ${basic ? 'detail-content-basic' : ''}`}>
+      {!basic && <section className="detail-info-tile" id="detail-about" aria-labelledby="detail-about-heading">
         <span className="detail-tile-kicker"><Icon name="places" size={16}/> ИНФОРМАЦИЯ</span>
         <h2 id="detail-about-heading">{title}</h2>
         <p>{publicDetails(item.details ?? item.description)}</p>
@@ -97,7 +98,7 @@ export function DetailPage({
           {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener noreferrer">Проверить источник <Icon name="arrow" size={13}/></a>}
         </div>}
         {!item.real && <p className="detail-demo-notice">Бронирование и оплата через сервис пока не доступны.</p>}
-      </section>
+      </section>}
 
       <section className="detail-contact-tiles" id="detail-contacts" aria-label="Адрес, контакты и полезная информация">
         {item.kind === 'events' && <div className="detail-contact-tile">
@@ -105,7 +106,7 @@ export function DetailPage({
           <span className="detail-contact-label">Когда</span>
           <strong>{eventDate(item.dateOffset, true)}{item.time ? ` · ${item.time}` : ''}</strong>
         </div>}
-        {item.address && (maps.mapsUrl
+        {item.address && (!basic && maps.mapsUrl
           ? <a className="detail-contact-tile detail-contact-tile--link" href={maps.mapsUrl} target="_blank" rel="noopener noreferrer">
               <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
               <span className="detail-contact-label">Адрес · открыть на карте</span>
@@ -116,6 +117,9 @@ export function DetailPage({
               <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
               <span className="detail-contact-label">Адрес</span><strong>{item.city}, {item.address}</strong>
             </div>)}
+        {basic && !item.address && <div className="detail-contact-tile"><span className="detail-contact-label">Адрес</span><strong>Адрес уточняется</strong></div>}
+        {basic && !item.phone && <div className="detail-contact-tile"><span className="detail-contact-label">Телефон</span><strong>Не указан</strong></div>}
+        {basic && !item.hours && <div className="detail-contact-tile"><span className="detail-contact-label">Режим работы</span><strong>Уточняется</strong></div>}
         {item.phone && <a className="detail-contact-tile detail-contact-tile--link" href={phoneHref(item.phone)}>
           <span className="detail-contact-icon"><Icon name="phone" size={20}/></span>
           <span className="detail-contact-label">Телефон · позвонить</span>
@@ -127,7 +131,7 @@ export function DetailPage({
           <strong>{item.hours}</strong>
           {item.real && <small>{hoursDisclaimer}</small>}
         </div>}
-        {item.price && <div className="detail-contact-tile">
+        {!basic && item.price && <div className="detail-contact-tile">
           <span className="detail-contact-icon"><Icon name="services" size={20}/></span>
           <span className="detail-contact-label">Стоимость</span><strong>{item.price}</strong>
         </div>}

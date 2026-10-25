@@ -4,6 +4,7 @@ import type { ApplicationDraft, ApplicationRow, OrganizationRow } from './model'
 import {prepareAdminImage,adminImageExtension} from '../photos/adminImage';
 
 export const ORGANIZATION_COLUMNS = 'id,kind,city,title,category,description,address,phone,hours,website,vk_url,latitude,longitude,source_type,source_url,verified_at,status,created_at,updated_at,image_url';
+const PUBLIC_ORGANIZATION_COLUMNS = 'id,kind,city,title,category,description,address,phone,hours,latitude,longitude,source_type,source_url,verified_at,status,created_at,updated_at,image_url';
 export const APPLICATION_COLUMNS = 'id,applicant_id,client_request_id,title,city,category,address,phone,hours,description,website,vk_url,source_note,status,created_at,review_message,organization_id,photo_path';
 export const CONNECTION_MESSAGE = 'Не удалось соединиться с сервисом организаций. Попробуйте позже.';
 function clientOrThrow(client: SupabaseClient | null): SupabaseClient {
@@ -26,7 +27,7 @@ export async function readPublished(client: SupabaseClient | null): Promise<Orga
   const rows: OrganizationRow[] = [];
   // PostgREST defaults to 1000 rows. Fetch bounded pages, rather than silently losing records.
   for (let offset = 0; offset < 10000; offset += 500) {
-    const { data, error } = await withDeadline(signal => db.from('organizations').select(ORGANIZATION_COLUMNS).eq('status', 'published').order('id').range(offset, offset + 499).abortSignal(signal));
+    const { data, error } = await withDeadline(signal => db.from('organizations').select(PUBLIC_ORGANIZATION_COLUMNS).eq('status', 'published').order('id').range(offset, offset + 499).abortSignal(signal));
     if (error || !Array.isArray(data)) throw new Error(CONNECTION_MESSAGE);
     rows.push(...data as OrganizationRow[]);
     if (data.length < 500) return rows;

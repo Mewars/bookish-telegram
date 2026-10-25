@@ -58,6 +58,14 @@ with sync_playwright() as p:
   expect(page.get_by_role('group',name='Подкатегории',exact=True).get_by_role('button',name='Бургерные и стритфуд',exact=True)).to_have_attribute('aria-pressed','true')
   expect(page.get_by_role('heading',name='Бургерная «Мясорубка»',exact=True)).to_be_visible()
   expect(page.get_by_role('heading',name='Кафе «Домино»',exact=True)).to_have_count(0)
+  # Beauty leaves open the public city/category list instead of an unfiltered Home search.
+  page.goto(ORIGIN+'/#/home')
+  page.add_script_tag(url=ORIGIN+'/host-public/categories/panel.js',type='module')
+  page.locator('#ryadom-category-trigger').click()
+  page.get_by_role('button',name='Раздел «Красота», открыть подразделы',exact=True).click()
+  page.get_by_role('button',name=re.compile('^Уход за волосами')).click()
+  page.wait_for_function("decodeURIComponent(location.hash).includes('/services?')&&decodeURIComponent(location.hash).includes('subcategory=Уход+за+волосами')")
+  expect(page.get_by_role('group',name='Подкатегории',exact=True).get_by_role('button',name='Уход за волосами',exact=True)).to_have_attribute('aria-pressed','true')
   # The real React admin owns a single shared tree and opens photo cards immediately.
   admin_fixture=True
   page.goto(ORIGIN+'/tests/admin-photo-fixture.html')

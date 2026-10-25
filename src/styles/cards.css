@@ -11,3 +11,8 @@
 
 /* Clearly distinguish free-use illustrative photos from actual local venues. */
 .card-photo-disclaimer { position:absolute; bottom:12px; left:12px; z-index:2; max-width:calc(100% - 90px); padding:6px 10px; font-size:10px; line-height:1.4; color:#fff8e9; background:rgba(7,22,34,.88); border:1px solid rgba(255,255,255,.32); border-radius:999px; backdrop-filter:blur(8px); pointer-events:none; }
+
+.card[data-kind]:not([data-kind=events]) .card-body .card-meta,.card[data-kind]:not([data-kind=events]) .card-body .card-footer{display:flex;align-items:flex-start;gap:7px;margin-top:10px;color:var(--muted);font-size:12px;line-height:1.6;overflow-wrap:anywhere;}
+.card[data-kind]:not([data-kind=events]) .card-meta a{color:var(--primary-ink);text-underline-offset:3px;}
+.card[data-kind]:not([data-kind=events]) .card-footer>span{display:flex;align-items:flex-start;gap:7px;}
+.card[data-kind]:not([data-kind=events]) .card-body :is(.card-meta,.card-footer) svg{margin-top:3px;}

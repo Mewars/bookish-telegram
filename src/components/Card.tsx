@@ -1,5 +1,6 @@
 import { isLegacyIllustration } from '../components/mediaSource';
 import type { Item } from '../types';
+import {phoneHref} from '../utils/place';
 import { eventDate } from '../utils/date';
 import { Icon } from './Icon';
 import { MediaImage } from './MediaImage';
@@ -14,10 +15,11 @@ export function Card({ item, favorites, toggle, open, favoritesBusy = false, com
       {item.kind === 'events' && <>{' '}<span className="date-label">{eventDate(item.dateOffset)} <span>· {item.time}</span></span></>}
     </div></button>
     <button className={`favorite-button ${saved ? 'saved' : ''}`} disabled={favoritesBusy} onClick={() => toggle(item.id)} aria-pressed={saved} aria-label={`${saved ? 'Удалить из избранного' : 'В избранное'}: ${item.title}`}><Icon name="heart" size={19} filled={saved}/></button></div>
-    <div className="card-body"><button className="card-title-button" onClick={() => open(item)} aria-label={`Открыть: ${item.title}`}><h3>{item.title}</h3>{featured && <span className="card-title-arrow" aria-hidden="true"><Icon name="arrow" size={18}/></span>}</button><p>{item.description}</p>
+    <div className="card-body"><button className="card-title-button" onClick={() => open(item)} aria-label={`Открыть: ${item.title}`}><h3>{item.title}</h3>{featured && <span className="card-title-arrow" aria-hidden="true"><Icon name="arrow" size={18}/></span>}</button>{item.kind === 'events' && <p>{item.description}</p>}
       {address && <div className="card-meta"><Icon name="pin" size={14}/><span>{address}</span></div>}
-      {item.kind === 'services' && item.provider && item.provider !== item.title && <div className="card-meta"><Icon name="profile" size={14}/><span>{item.provider}</span></div>}
-      {(item.price || item.hours || (!item.real && item.rating)) && <div className="card-footer">{item.price && <strong>{item.price}</strong>}{item.hours && <span><Icon name="clock" size={13}/>{item.hours}</span>}{!item.real && item.rating && <span><Icon name="star" size={13} filled/>{item.rating}</span>}</div>}
+      {item.kind !== 'events' && <div className="card-meta"><Icon name="phone" size={14}/>{item.phone ? <a href={phoneHref(item.phone)}>{item.phone}</a> : <span>Телефон не указан</span>}</div>}
+      {(item.hours || (item.kind === 'events' && (item.price || item.rating))) && <div className="card-footer">{item.kind === 'events' && item.price && <strong>{item.price}</strong>}{item.hours && <span><Icon name="clock" size={13}/>{item.hours}</span>}{item.kind === 'events' && !item.real && item.rating && <span><Icon name="star" size={13} filled/>{item.rating}</span>}</div>}
+      {item.kind !== 'events' && !item.hours && <div className="card-meta"><Icon name="clock" size={14}/><span>Время работы уточняется</span></div>}
     </div>
   </article>;
 }

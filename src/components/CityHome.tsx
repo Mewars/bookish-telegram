@@ -35,7 +35,7 @@ function SectionHeading({title,href,label='Смотреть все'}:{title:stri
 function PlacePreview({item,open}:Pick<CardActions,'open'>&{item:Item}){
  return <button className="life-place" onClick={()=>open(item)} aria-label={`Подробнее: ${item.title}`}>
   <span className="life-place-image"><MediaImage src={item.image} alt={item.title}/>{item.photoIllustrative&&<small className="life-photo-label">Фото-иллюстрация</small>}</span>
-  <span className="life-place-body"><small>{item.category}</small><strong>{item.title}</strong><span>{item.kind==='events'?`${eventDate(item.dateOffset)}${item.time?' · '+item.time:''}`:item.address||item.description}</span><Icon name="arrow" size={18}/></span>
+  <span className="life-place-body"><small>{item.category}</small><strong>{item.title}</strong><span>{item.kind==='events'?`${eventDate(item.dateOffset)}${item.time?' · '+item.time:''}`:item.address||'Адрес уточняется'}</span><Icon name="arrow" size={18}/></span>
  </button>;
 }
 export function CityHome({city,cityProfile,items,navigate,...actions}:CardActions&{city:string;cityProfile?:DirectoryCity;items:Item[];navigate:(section:Section)=>void}){

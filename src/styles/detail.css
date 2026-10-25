@@ -107,3 +107,7 @@
 .detail-quick-tabs a {display:inline-flex;align-items:center;gap:6px;flex:none;min-height:44px;padding:8px 15px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:750;background:var(--primary);color:var(--primary-text);}
 .detail-quick-tabs a:hover {background:var(--primary-hover);}
 .detail-quick-tabs a:focus-visible {outline:3px solid var(--primary);outline-offset:2px;}
+
+.detail-content-grid.detail-content-basic {grid-template-columns:minmax(0,1fr);}
+.detail-content-basic .detail-contact-tiles {grid-template-columns:repeat(3,minmax(0,1fr));}
+@media(max-width:699px){.detail-content-basic .detail-contact-tiles{grid-template-columns:minmax(0,1fr);}}
