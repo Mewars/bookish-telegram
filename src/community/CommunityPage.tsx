@@ -1,3 +1,4 @@
+import {WallBody} from './WallBody';
 import { useEffect,useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -172,7 +173,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
       </div>
       :<div className="community-list">{shown.map(post=><article className="community-card" key={post.id}>
         <div className="community-card-meta"><span>{postTypeNames[post.post_type]}</span><time dateTime={post.created_at}>{formatDate(post.created_at)}</time></div>
-        <h2>{post.title}</h2><p>{post.body}</p>
+        <h2>{post.title}</h2><WallBody value={post.body}/>
         {view==='mine'&&<div className="community-card-actions">
           {post.status==='rejected'&&post.review_reason&&<p>Причина отказа: {post.review_reason}</p>}
           <small>Статус: {({draft:'Черновик',pending:'На проверке',published:'Опубликовано',rejected:'Отклонено',archived:'Скрыто'} as Record<string,string>)[post.status]}</small>
@@ -209,7 +210,7 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
           {selectedPost===post.id&&<>
             {commentsFor!==post.id?<p>Загружаем комментарии…</p>
               :comments.length===0?<p>Пока нет одобренных комментариев.</p>
-              :<ul>{comments.map(c=><li key={c.id}><p>{c.body}</p><small>{formatDate(c.created_at)}</small></li>)}</ul>}
+              :<ul>{comments.map(c=><li key={c.id}><WallBody value={c.body}/><small>{formatDate(c.created_at)}</small></li>)}</ul>}
             {userId?<form onSubmit={event=>{event.preventDefault();const text=commentBody;
               void doAction(()=>sendCommunityComment(supabase,post.id,text),()=>{
                 setCommentBody('');setFeedback('Комментарий отправлен на модерацию.');
@@ -228,9 +229,9 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
           <div className="community-comment-context" aria-label="Публикация, к которой относится комментарий">
             <small>{postTypeNames[comment.community_posts.post_type]} · {comment.community_posts.city}</small>
             <h3>{comment.community_posts.title}</h3>
-            <p>{comment.community_posts.body}</p>
+            <WallBody value={comment.community_posts.body}/>
           </div>
-          <h2>Комментарий жителя</h2><p>{comment.body}</p>
+          <h2>Комментарий жителя</h2><WallBody value={comment.body}/>
           <div className="community-card-actions">
             {mayModerateCommunityMaterial(userId,comment.author_id)?<>
               <button disabled={busy} onClick={()=>void doAction(()=>reviewCommunityComment(supabase,comment.id,true))}>Одобрить</button>

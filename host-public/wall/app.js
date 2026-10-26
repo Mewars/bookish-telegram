@@ -1,3 +1,4 @@
+import {attachExpressionPicker,renderWallBody} from './expressions.js?v=20261026stickers1';
 import {verifyHuman} from '/security/antispam.js?v=20261022spam2';
 import {c as createClient} from './supabase-client.js';
 import {rejectWallPost,loadReviewReasons,saveWallDraft} from './moderation.js?v=20261020a';
@@ -296,7 +297,7 @@ async function makePost(post,photos=[],likes=null,scope='feed',video=null,author
  const official=post.post_type==='news';
  head.append(makeAvatar(author,official),el('div','',[
   el('div','post-person',[official?'Администрация города':(author?.display_name|| (post.author_id===s.user?.id?'Ваша запись':'Житель города'))]),
-  el('div','post-meta',[(TYPES[post.post_type]||'Запись')+' · '+post.city+' · '+safeTime(post.created_at)])]));if(post.pinned_at)head.append(el('span','pin',['📌 Закреплено']));card.append(head,el('h3','post-title',[post.title]),el('p','post-body',[post.body]));
+  el('div','post-meta',[(TYPES[post.post_type]||'Запись')+' · '+post.city+' · '+safeTime(post.created_at)])]));if(post.pinned_at)head.append(el('span','pin',['📌 Закреплено']));card.append(head,el('h3','post-title',[post.title]),renderWallBody(post.body,'post-body'));
  if(post.status!=='published')card.append(badge(post.status));const images=await imageList(photos,video);if(images)card.append(images);
  const actions=el('div','post-actions');
  if(scope==='feed'){
@@ -361,17 +362,18 @@ function editPublishedPostInline(card,post){
  const body=document.createElement('textarea');body.required=true;
  body.minLength=10;body.maxLength=5000;body.rows=7;body.value=post.body;
  cleanPastedText(title);cleanPastedText(body);
+ const expressions=attachExpressionPicker(body);
  const buttons=el('div','btnrow');
  const save=btn('Сохранить изменения',()=>{},'btn small');save.type='submit';
  const cancel=btn('Отмена',()=>form.remove(),'btn small secondary');
  buttons.append(save,cancel);
- form.append(makeField('Заголовок',title,true),makeField('Текст записи',body,true),
+ form.append(makeField('Заголовок',title,true),makeField('Текст записи',body,true),expressions.element,
   el('p','draft-help',['Редактирование доступно только владельцу платформы. Автор, город, лайки и закрепление не меняются.']),buttons);
  form.addEventListener('submit',event=>{event.preventDefault();void act(async()=>{
   save.disabled=true;
   try{
    await rpc('owner_edit_community_post',{
-    p_post_id:post.id,p_title:cleanMarkdownPaste(title.value.trim()),p_body:cleanMarkdownPaste(body.value.trim())
+    p_post_id:post.id,p_title:cleanMarkdownPaste(title.value.trim()),p_body:cleanMarkdownPaste(expressions.value().trim())
    });
    await render();
    flash('Запись обновлена на городской стене.');
@@ -384,8 +386,8 @@ async function commentSection(postId){const section=el('section','comments');con
  if(!(data||[]).length)section.append(info('Пока нет комментариев. Начните обсуждение!'));
  const authors=await getAuthorCards((data||[]).map(x=>x.author_id));
  for(const c of data||[]){const line=el('div','comment'),content=el('div','');const person=authors.get(c.author_id);
- content.append(el('div','comment-info',[person?.display_name|| (c.author_id===s.user?.id?'Вы':'Житель города'),' · ',safeTime(c.created_at)]),el('p','comment-text',[c.body]));if(isStaff(s.city))content.append(btn('Скрыть',()=>act(async()=>{if(!confirm('Скрыть комментарий?'))return;await rpc('hide_community_comment',{p_id:c.id});s.expanded=postId;await renderFeed()}),'btn ghost small'));line.append(makeAvatar(person,false),content);section.append(line)}
- const form=el('form','comment-form');const field=document.createElement('textarea');field.maxLength=2000;field.minLength=2;field.required=true;field.placeholder='Написать комментарий…';cleanPastedText(field);const send=btn('Отправить',()=>{});send.type='submit';form.append(field,send);form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');await rpc('submit_community_comment',{p_post_id:postId,p_body:cleanMarkdownPaste(field.value.trim())});s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});section.append(form);return section;}
+ content.append(el('div','comment-info',[person?.display_name|| (c.author_id===s.user?.id?'Вы':'Житель города'),' · ',safeTime(c.created_at)]),renderWallBody(c.body,'comment-text'));if(isStaff(s.city))content.append(btn('Скрыть',()=>act(async()=>{if(!confirm('Скрыть комментарий?'))return;await rpc('hide_community_comment',{p_id:c.id});s.expanded=postId;await renderFeed()}),'btn ghost small'));line.append(makeAvatar(person,false),content);section.append(line)}
+ const form=el('form','comment-form');const field=document.createElement('textarea');field.maxLength=2000;field.minLength=2;field.required=true;field.placeholder='Написать комментарий…';field.setAttribute('aria-label','Написать комментарий');cleanPastedText(field);const expressions=attachExpressionPicker(field);const send=btn('Отправить',()=>{});send.type='submit';form.append(el('div','wall-comment-editor',[field,expressions.element]),send);form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');await rpc('submit_community_comment',{p_post_id:postId,p_body:cleanMarkdownPaste(expressions.value().trim())});s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});section.append(form);return section;}
 async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),settings()]);
  const requested=new URLSearchParams(location.search).get('post');
  if(requested && /^[0-9a-f-]{36}$/i.test(requested) && !posts.some(p=>p.id===requested)){
@@ -425,10 +427,11 @@ async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(
    body.value=cached.body.slice(0,5000);
   }
  }
+ const expressions=attachExpressionPicker(body);expressions.element.classList.add('field','full');body.closest('label').after(expressions.element);
  const saveStatus=el('div','draft-status',[cached?'Восстановлен сохранённый черновик. Текст сохраняется автоматически.':'Текст сохраняется автоматически в этом браузере.']);
  const save=()=>{
   if(!form.isConnected)return;
-  const state={type:typ.value,title:title.value,body:body.value};
+  const state={type:typ.value,title:title.value,body:expressions.value()};
   const okay=writeDraft(key,state);
   saveStatus.textContent=okay?'Черновик сохранён на этом устройстве.':'Не удалось сохранить черновик. Проверьте настройки браузера.';
  };
@@ -440,7 +443,7 @@ async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(
  form.append(el('div','field full',[saveStatus,
   btn('Очистить черновик',()=>{
    if(!confirm('Удалить сохранённый черновик этой записи?'))return;
-   removeDraft(key);title.value='';body.value='';if(!existing)typ.value='post';
+   removeDraft(key);title.value='';body.value='';expressions.clear();if(!existing)typ.value='post';
    saveStatus.textContent='Черновик удалён. Можно начать заново.';
   },'btn ghost small')
  ]));
@@ -460,8 +463,8 @@ async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(
    if(videoFile&&(!videoType||videoFile.size>52428800))throw Error('Видео должно быть MP4, WebM или MOV размером до 50 МБ.');
    if(!existing)await verifyHuman(sb,'wall_post',savedPostId);
    let postId;
-   if(savedPostId){await saveWallDraft(sb,savedPostId,s.user.id,cleanMarkdownPaste(title.value.trim()),cleanMarkdownPaste(body.value.trim()));postId=savedPostId;
-   }else{postId=await rpc('create_community_post',{p_city:s.city,p_type:typ.value,p_title:cleanMarkdownPaste(title.value.trim()),p_body:cleanMarkdownPaste(body.value.trim())});savedPostId=postId;}
+   if(savedPostId){await saveWallDraft(sb,savedPostId,s.user.id,cleanMarkdownPaste(title.value.trim()),cleanMarkdownPaste(expressions.value().trim()));postId=savedPostId;
+   }else{postId=await rpc('create_community_post',{p_city:s.city,p_type:typ.value,p_title:cleanMarkdownPaste(title.value.trim()),p_body:cleanMarkdownPaste(expressions.value().trim())});savedPostId=postId;}
    if(photos.length){const current=await getPhotos([postId]);const taken=new Set((current.get(postId)||[]).map(p=>p.slot));
     const free=[0,1,2,3].filter(x=>!taken.has(x));
     if(photos.length>free.length)throw Error('В записи можно хранить до четырёх фотографий. Уже добавлено: '+taken.size);
@@ -490,13 +493,13 @@ async function renderMine(){if(!s.user){ui.content.replaceChildren(panel(heading
 async function renderAdmin(){if(!isStaff()){goto('feed');return}await settings();ui.content.replaceChildren();const top=panel(heading('Управление стеной · '+s.city),info('Предложенные записи и комментарии жителей. Настройки действуют только в этом городе.'));
  const form=el('form','admin-grid');const postsMode=document.createElement('select'),commentsMode=document.createElement('select');[['review','Через модерацию']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;postsMode.append(o)});[['open','Комментарии сразу'],['review','Комментарии после проверки']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;commentsMode.append(o)});postsMode.value='review';postsMode.disabled=true;commentsMode.value=s.settings.comments_mode;
  form.append(makeField('Публикация записей',postsMode),makeField('Комментарии',commentsMode));form.append(el('div','field full',[btn('Сохранить настройки',()=>act(async()=>{await rpc('set_community_wall_settings',{p_city:s.city,p_posts_mode:postsMode.value,p_comments_mode:commentsMode.value});await settings();flash('Настройки стены сохранены для города '+s.city+'.')}),'btn small')]));top.append(form);
- const news=el('details','');const summary=el('summary','',['Опубликовать новость от администрации']);summary.style.cursor='pointer';news.append(summary);const newsForm=el('form','form-grid');const ntitle=document.createElement('input'),nbody=document.createElement('textarea');ntitle.placeholder='Заголовок новости';ntitle.maxLength=160;ntitle.minLength=5;ntitle.required=true;nbody.placeholder='Текст новости…';nbody.minLength=10;nbody.maxLength=5000;nbody.required=true;cleanPastedText(ntitle);cleanPastedText(nbody);const nbutton=btn('Опубликовать новость',()=>{});nbutton.type='submit';newsForm.append(makeField('Заголовок',ntitle,true),makeField('Текст',nbody,true),el('div','field full',[nbutton]));newsForm.onsubmit=e=>{e.preventDefault();void act(async()=>{await rpc('publish_city_news',{p_city:s.city,p_title:cleanMarkdownPaste(ntitle.value.trim()),p_body:cleanMarkdownPaste(nbody.value.trim())});flash('Новость опубликована.');await renderAdmin()})};news.append(newsForm);top.append(el('hr','sep'),news);ui.content.append(top);
+ const news=el('details','');const summary=el('summary','',['Опубликовать новость от администрации']);summary.style.cursor='pointer';news.append(summary);const newsForm=el('form','form-grid');const ntitle=document.createElement('input'),nbody=document.createElement('textarea');ntitle.placeholder='Заголовок новости';ntitle.maxLength=160;ntitle.minLength=5;ntitle.required=true;nbody.placeholder='Текст новости…';nbody.minLength=10;nbody.maxLength=5000;nbody.required=true;cleanPastedText(ntitle);cleanPastedText(nbody);const newsExpressions=attachExpressionPicker(nbody);newsExpressions.element.classList.add('field','full');const nbutton=btn('Опубликовать новость',()=>{});nbutton.type='submit';newsForm.append(makeField('Заголовок',ntitle,true),makeField('Текст',nbody,true),newsExpressions.element,el('div','field full',[nbutton]));newsForm.onsubmit=e=>{e.preventDefault();void act(async()=>{await rpc('publish_city_news',{p_city:s.city,p_title:cleanMarkdownPaste(ntitle.value.trim()),p_body:cleanMarkdownPaste(newsExpressions.value().trim())});flash('Новость опубликована.');await renderAdmin()})};news.append(newsForm);top.append(el('hr','sep'),news);ui.content.append(top);
  const modes=el('nav','subtabs');for(const [v,label] of [['pending','Предложенные'],['published','Опубликованные'],['hidden','Скрытые']])modes.append(btn(label,()=>{s.adminMode=v;void renderAdmin()},s.adminMode===v?'selected':''));ui.content.append(modes);
  const posts=await postsQuery(true);
  const [photos,videos,authors]=await Promise.all([
   getPhotos(posts.map(p=>p.id)),getVideos(posts.map(p=>p.id)),getAuthorCards(posts.map(p=>p.author_id))
  ]);if(!posts.length)ui.content.append(el('div','empty',[heading('Записей в этой очереди нет')]));for(const p of posts)ui.content.append(await makePost(p,photos.get(p.id),null,'admin',videos.get(p.id),authors.get(p.author_id)));
- const {data:comments,error}=await sb.from('community_comments').select('id,post_id,author_id,body,status,created_at,community_posts!inner(city,title)').eq('status','pending').eq('community_posts.city',s.city).order('created_at',{ascending:true}).limit(50);if(!error&&comments?.length){ui.content.append(heading('Комментарии на проверке'));for(const c of comments){const row=panel(el('div','post-person',[c.community_posts?.title||'Комментарий']),el('p','post-body',[c.body]));row.append(el('div','btnrow',[btn('Разрешить',()=>act(async()=>{await rpc('review_community_comment',{p_id:c.id,p_approve:true});await renderAdmin()}),'btn small'),btn('Отклонить',()=>act(async()=>{await rpc('review_community_comment',{p_id:c.id,p_approve:false});await renderAdmin()}),'btn ghost small')]));ui.content.append(row)}}
+ const {data:comments,error}=await sb.from('community_comments').select('id,post_id,author_id,body,status,created_at,community_posts!inner(city,title)').eq('status','pending').eq('community_posts.city',s.city).order('created_at',{ascending:true}).limit(50);if(!error&&comments?.length){ui.content.append(heading('Комментарии на проверке'));for(const c of comments){const row=panel(el('div','post-person',[c.community_posts?.title||'Комментарий']),renderWallBody(c.body,'post-body'));row.append(el('div','btnrow',[btn('Разрешить',()=>act(async()=>{await rpc('review_community_comment',{p_id:c.id,p_approve:true});await renderAdmin()}),'btn small'),btn('Отклонить',()=>act(async()=>{await rpc('review_community_comment',{p_id:c.id,p_approve:false});await renderAdmin()}),'btn ghost small')]));ui.content.append(row)}}
 }
 async function boot(){try{await cities();await auth();await settings();ui.city.addEventListener('change',async()=>{s.city=ui.city.value;localStorage.setItem('ryadom.wall.city',s.city);s.expanded=null;await settings();goto('feed')});ui.tabs.addEventListener('click',e=>{const v=e.target.closest('[data-view]')?.dataset.view;if(v)goto(v)});sb.auth.onAuthStateChange((event,session)=>{if(event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION'||(event==='SIGNED_IN'&&session?.user?.id===s.user?.id))return;setTimeout(()=>{saveCurrentComposer();void auth().then(()=>render()).catch(e=>flash(errMsg(e),true))},0)});if(s.view==='admin'&&!isStaff())s.view='feed';for(const b of ui.tabs.querySelectorAll('[data-view]'))b.classList.toggle('active',b.dataset.view===s.view);await render()}catch(e){ui.content.replaceChildren(el('div','empty',['Не удалось загрузить стену.']));flash(errMsg(e),true)}}
 boot();
