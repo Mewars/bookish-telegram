@@ -1,0 +1,27 @@
+[
+  {
+    "domain": "rodinaenis",
+    "city": "Енисейск",
+    "name": "Кинотеатр «Родина»",
+    "category": "Кино",
+    "address": "Кинотеатр «Родина»",
+    "timeZone": "Asia/Krasnoyarsk",
+    "scheduleTitle": "Кино в «Родине»"
+  },
+  {
+    "domain": "gdk_e",
+    "city": "Енисейск",
+    "name": "Городской дом культуры",
+    "category": "Мероприятия",
+    "address": "ул. Ленина, 44",
+    "timeZone": "Asia/Krasnoyarsk"
+  },
+  {
+    "domain": "kulturnyy.centr",
+    "city": "Енисейск",
+    "name": "Культурный центр",
+    "category": "Мероприятия",
+    "address": "ул. Ленина, 130",
+    "timeZone": "Asia/Krasnoyarsk"
+  }
+]

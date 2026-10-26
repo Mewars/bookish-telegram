@@ -81,3 +81,6 @@
 .home-editorial .official-news-item>span{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:4px;color:var(--life-gold);font-size:12px;}
 .home-editorial .official-news-empty{color:var(--life-muted);font-size:14px;line-height:1.6;}
 @media(max-width:699px){.home-editorial .official-news-grid{grid-template-columns:1fr;gap:10px;}.home-editorial .official-news-item{padding:16px;gap:8px;}}
+
+.city-home.home-editorial .life-city-today .life-heading h2::after{display:none}
+.city-home .life-suggest-news{display:inline-flex;align-items:center;min-height:42px;padding:9px 16px;margin:0 0 16px;border:1px solid #f4ca7b55;border-radius:22px;color:var(--life-gold);background:#f4ca7b0d;font-weight:600;text-decoration:none}

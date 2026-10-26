@@ -3,11 +3,11 @@ const initial={posts:[{id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',city:'Енис�
 const read=()=>JSON.parse(localStorage.getItem('wall-test-db')||JSON.stringify(initial));
 const write=db=>localStorage.setItem('wall-test-db',JSON.stringify(db));
 function query(table){
- const filters=[];let change=null,single=false;
+ const filters=[];let change=null,single=false,withCount=false,ordering=null,cap=Infinity;
  const q={
- select(){return q},eq(key,value){filters.push(row=>row[key]===value);return q},
+ select(fields=''){withCount=fields.includes('community_comments(count)');return q},eq(key,value){if(!key.includes('.'))filters.push(row=>row[key]===value);return q},
  in(key,values){filters.push(row=>values.includes(row[key]));return q},
- order(){return q},limit(){return q},update(value){change=value;return q},
+ order(key,options){ordering={key,...options};return q},limit(value){cap=value;return q},update(value){change=value;return q},
  maybeSingle(){single=true;return Promise.resolve(run())},
  then(resolve,reject){return Promise.resolve(run()).then(resolve,reject)}
  };
@@ -22,6 +22,9 @@ function query(table){
    community_post_review_reasons:db.reasons.filter(r=>who==='owner'||db.posts.some(p=>p.id===r.post_id&&p.author_id===who))
   };
   let rows=(tables[table]||[]).filter(row=>filters.every(filter=>filter(row)));
+  if(withCount)rows=rows.map(row=>({...row,community_comments:[{count:(db.comments||[]).filter(c=>c.post_id===row.id&&c.status==='published').length}]}));
+  if(ordering)rows.sort((a,b)=>String(a[ordering.key]).localeCompare(String(b[ordering.key]))*(ordering.ascending===false?-1:1));
+  rows=rows.slice(0,cap);
   if(change){
    rows=rows.filter(p=>p.author_id===who&&['draft','rejected'].includes(p.status));
    if(localStorage.getItem('wall-zero-update'))rows=[];

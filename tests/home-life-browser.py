@@ -1,5 +1,7 @@
 """Synthetic homepage scenarios; no real users, writes or external traffic."""
 import base64
+import datetime
+import json
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright,expect
@@ -14,6 +16,7 @@ with sync_playwright() as p:
   def route(r):
    u=urlparse(r.request.url)
    if u.path=='/src/lib/supabase.ts':r.fulfill(content_type='text/javascript',body="import {c} from '/tests/home-life-sdk.mjs';export const supabase=c();")
+   elif u.path=='/feeds/calendar-ru.json':r.fulfill(content_type='application/json',body=json.dumps({'sourceUrl':'https://www.calend.ru/holidays/russtate/','checkedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'items':[{'title':'Тестовый российский праздник','date':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7))).date().isoformat(),'sourceUrl':'https://www.calend.ru/holidays/0/0/3998/'}]}))
    elif u.path=='/news/eniseysk.json':news_requests.append(r.request.url);r.fulfill(status=404,body='News paused')
    elif u.path=='/tests/photo-valid.png':r.fulfill(content_type='image/png',body=PNG)
    elif r.request.url.startswith(ORIGIN+'/'):r.continue_()
@@ -31,6 +34,12 @@ with sync_playwright() as p:
   expect(page.get_by_role('button',name='Сегодня',exact=True)).to_be_visible()
   for link in page.locator('a[href^="/classifieds/"],a[href^="/wall/"],a[href^="#/add-organization"]').all():
    assert parse_qs(urlparse(link.get_attribute('href').replace('#/','/')).query).get('city')==['Город А']
+  expect(page.get_by_role('link',name='+ Предложить новость',exact=True)).to_be_visible()
+  expect(page.get_by_role('link',name='Добавить бесплатно',exact=True)).to_have_count(0)
+  assert page.get_by_role('heading',name='Город сегодня',exact=True).evaluate('(el)=>getComputedStyle(el,"::after").display')=='none'
+  page.get_by_role('button',name='Сегодня',exact=True).click()
+  expect(page.get_by_role('heading',name='Тестовый российский праздник',exact=True)).to_be_visible()
+  page.get_by_role('button',name='Сбросить',exact=True).click()
   page.locator('#ryadom-category-trigger').click()
   dialog=page.get_by_role('dialog',name='Все категории',exact=True);expect(dialog).to_be_visible()
   page.keyboard.press('Escape');expect(dialog).not_to_be_visible()

@@ -2,7 +2,7 @@ name: City Homepage
 on:
   pull_request:
     branches: [mewars]
-    paths: ['src/components/CityHome.tsx', 'src/utils/events.ts', 'src/hooks/useEventClock.ts', 'src/data/events.ts', 'public/events/**', 'tests/events*', 'src/components/Search.tsx', 'src/home/**', 'src/business/**', 'src/organizations/**', 'src/pages/DetailPage.tsx', 'src/pages/CatalogPage.tsx', 'src/components/Card.tsx', 'src/styles/**', 'public/catalog/**', 'public/brand/categories/**', 'public/brand/discovery/**', 'tests/basic-catalog*', 'tests/business*', 'tests/home-life*', 'tests/home-feed*', 'tests/home-shortcuts*', '.github/workflows/home-life-browser.yml']
+    paths: ['src/events/**', 'data/afisha-sources.json', 'src/components/CityHome.tsx', 'src/utils/events.ts', 'src/hooks/useEventClock.ts', 'src/data/events.ts', 'public/events/**', 'tests/events*', 'src/components/Search.tsx', 'src/home/**', 'src/business/**', 'src/organizations/**', 'src/pages/DetailPage.tsx', 'src/pages/CatalogPage.tsx', 'src/components/Card.tsx', 'src/styles/**', 'public/catalog/**', 'public/brand/categories/**', 'public/brand/discovery/**', 'tests/basic-catalog*', 'tests/business*', 'tests/home-life*', 'tests/home-feed*', 'tests/home-shortcuts*', '.github/workflows/home-life-browser.yml']
 permissions:
   contents: read
 jobs:
