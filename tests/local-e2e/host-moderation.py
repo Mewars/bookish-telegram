@@ -190,6 +190,26 @@ with sync_playwright() as p:
   assert records(None,table,title)[0]['status']=='published'
   guest.goto(origin+'/host/'+module+'/')
   expect(guest.get_by_role('heading',name=title,exact=True)).to_be_visible()
+  if module=='wall':
+   rpc('owner','set_community_wall_settings',{'p_city':'Енисейск','p_posts_mode':'review','p_comments_mode':'open'})
+   resident.goto(origin+'/host/wall/')
+   resident_post=resident.locator('article.post').filter(has=resident.get_by_role('heading',name=title,exact=True))
+   expect(resident_post.get_by_label('Написать комментарий',exact=True)).to_be_visible()
+   resident_post.get_by_label('Написать комментарий',exact=True).fill('Собственный комментарий для проверки удаления.')
+   resident_post.get_by_role('button',name='Отправить',exact=True).click()
+   comment=resident_post.locator('.comment').filter(has_text='Собственный комментарий для проверки удаления.')
+   expect(comment.get_by_role('button',name='Удалить свой комментарий',exact=True)).to_be_visible()
+   code,comments=api('seller','GET',f'/rest/v1/community_comments?select=id&post_id=eq.{first_id}&status=eq.published')
+   assert code==200 and len(comments)==1,(code,comments)
+   rpc('buyer','remove_own_community_comment',{'p_id':comments[0]['id']},403)
+   guest.reload()
+   expect(guest.get_by_role('button',name='Удалить свой комментарий',exact=True)).to_have_count(0)
+   resident.once('dialog',lambda dialog:dialog.accept())
+   comment.get_by_role('button',name='Удалить свой комментарий',exact=True).click()
+   expect(resident_post.get_by_text('Собственный комментарий для проверки удаления.',exact=True)).to_have_count(0)
+   guest.reload()
+   expect(guest.get_by_text('Собственный комментарий для проверки удаления.',exact=True)).to_have_count(0)
+   passed('resident writes without expanding comments; only author can remove; deletion disappears for guest')
   if module=='classifieds':
    for role in ['seller','editor','foreign_editor']:
     rpc(role,'owner_pin_classified',{'p_id':first_id,'p_pin':True},403)
