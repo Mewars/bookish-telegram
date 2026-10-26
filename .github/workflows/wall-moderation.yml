@@ -22,7 +22,7 @@ jobs:
       - name: Validate standalone module and private reason permissions
         run: |
           node --check host-public/wall/app.js
-          node --test tests/host-wall-moderation.test.mjs
+          node --test tests/host-wall-moderation.test.mjs tests/wall-expressions.test.mjs
           node --test tests/community-review-reasons.test.mjs
       - name: Install isolated browser runner
         run: |

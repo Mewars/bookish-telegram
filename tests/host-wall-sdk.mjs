@@ -17,6 +17,7 @@ function query(table){
    city_directory:[{name:'Енисейск',active:true},{name:'Лесосибирск',active:true},{name:'Новый город',active:true}],
    city_admin_access:who==='owner'?[{user_id:who,city:'*',role:'owner',active:true}]:[],
    community_wall_settings:[{city:'Енисейск',posts_mode:'review',comments_mode:'open'},{city:'Лесосибирск',posts_mode:'review',comments_mode:'open'}],
+   community_comments:(db.comments||[]).filter(c=>c.status==='published'||c.author_id===who||who==='owner'),
    community_posts:db.posts.filter(p=>p.status==='published'||p.author_id===who||who==='owner'),
    community_post_review_reasons:db.reasons.filter(r=>who==='owner'||db.posts.some(p=>p.id===r.post_id&&p.author_id===who))
   };
@@ -57,6 +58,10 @@ export function c(){
     if(window.wallSubmitFailures>0){window.wallSubmitFailures--;return {data:null,error:{message:'Synthetic retry required'}};}
     if(!post||post.author_id!==who||!['draft','rejected'].includes(post.status))return denied();
     post.status='pending';write(db);return {data:'pending',error:null};
+   }
+   if(name==='submit_community_comment'){
+    if(!post||post.status!=='published')return denied();
+    db.comments??=[];const id=crypto.randomUUID();db.comments.push({id,post_id:post.id,author_id:who,body:args.p_body,status:'published',created_at:new Date().toISOString()});write(db);return {data:id,error:null};
    }
    if(name==='create_community_post'){
     const id=crypto.randomUUID();
