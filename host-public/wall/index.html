@@ -8,8 +8,8 @@
 <main class="layout">
 <section class="hero"><div><p class="eyebrow">ГОРОДСКОЕ СООБЩЕСТВО</p><h1>Стена РЯДОМ</h1><p class="subheading">Спросите у соседей, поделитесь новостью или предложите свою запись.</p></div></section>
 <div id="flash" class="flash" role="status" aria-live="polite" hidden></div>
-<div class="utility"><label>Город <select id="city"><option>Загрузка…</option></select></label><div id="session" class="session"></div></div>
-<nav id="tabs" class="tabs" aria-label="Разделы стены"><button type="button" data-view="feed" class="active">Лента</button><button type="button" data-view="write">Предложить запись</button><button type="button" data-view="mine">Мои записи</button><button type="button" data-view="admin" id="adminTab" hidden>Модерация</button></nav>
+<div class="utility"><label>Город <select id="city" disabled><option>Загрузка…</option></select></label><div id="session" class="session"></div></div>
+<nav id="tabs" class="tabs" inert aria-busy="true" aria-label="Разделы стены"><button type="button" data-view="feed" class="active">Лента</button><button type="button" data-view="write">Предложить запись</button><button type="button" data-view="mine">Мои записи</button><button type="button" data-view="admin" id="adminTab" hidden>Модерация</button></nav>
 <div class="bodygrid"><div id="content" class="content"><div class="empty">Загружаем записи…</div></div>
 <aside class="sidebar"><div class="asidecard"><div class="aside-title">Что здесь можно?</div><p>Задать вопрос, предложить идею, найти соседей или поделиться новостью.</p><div class="aside-points"><span>💬 Обсуждения</span><span>📌 Важные записи</span><span>🤝 Город рядом</span></div></div><div class="asidecard"><div class="aside-title">Уважайте друг друга</div><p>Без спама, оскорблений и публикации чужих личных данных. Городская команда может скрывать нарушающие правила сообщения.</p></div></aside></div>
 </main>

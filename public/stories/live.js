@@ -115,6 +115,6 @@ export function mountCityStories(root,{city,client:sb}){
  }
  function reset(){available=true;dirty=false;generation++;for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();root.hidden=true;root.style.display='none';user=null;staff=false;owner=false;note.textContent='';setTimeout(()=>void refresh(),0);}
  const auth=sb.auth.onAuthStateChange(event=>{if(['SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(event))reset();});
- const focus=()=>{if(!root.contains(document.activeElement))void refresh();};window.addEventListener('focus',focus);interval=setInterval(()=>{if(!document.hidden&&!root.contains(document.activeElement))void refresh();},30000);void refresh();
+ const focus=()=>{if(!root.contains(document.activeElement))void refresh();};window.addEventListener('focus',focus);interval=setInterval(()=>{if(!document.hidden&&(!root.contains(document.activeElement)||items.some(s=>Date.parse(s.expires_at)<=Date.now())))void refresh();},30000);void refresh();
  return ()=>{alive=false;generation++;clearInterval(interval);window.removeEventListener('focus',focus);auth.data.subscription.unsubscribe();for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();root.hidden=false;root.style.removeProperty('display');};
 }
