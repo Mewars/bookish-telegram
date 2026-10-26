@@ -128,20 +128,26 @@ INSERT INTO storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 -- No object signing/listing. Every download rechecks row visibility and expiry.
 -- Restrictive guard also prevents unrelated permissive bucket policies from widening access.
 CREATE POLICY stories_read_guard ON storage.objects AS RESTRICTIVE FOR SELECT TO anon,authenticated USING(
- bucket_id<>'ryadom-stories' OR(storage.allow_only_operation('object.get_authenticated') AND EXISTS(
- SELECT 1 FROM public.city_stories WHERE object_path=storage.objects.name)));
+ bucket_id<>'ryadom-stories' OR EXISTS(
+ SELECT 1 FROM public.city_stories WHERE object_path=storage.objects.name AND (
+ storage.allow_only_operation('object.get_authenticated') OR (
+ (storage.allow_only_operation('object.delete') OR storage.allow_only_operation('object.delete_many'))
+ AND author_id=(SELECT auth.uid()) AND status IN ('draft','rejected','removed')))));
 CREATE POLICY stories_download ON storage.objects FOR SELECT TO anon,authenticated USING(
- bucket_id='ryadom-stories' AND storage.allow_only_operation('object.get_authenticated') AND EXISTS(
- SELECT 1 FROM public.city_stories WHERE object_path=storage.objects.name));
-CREATE POLICY stories_upload_guard ON storage.objects AS RESTRICTIVE FOR INSERT TO authenticated WITH CHECK(
- bucket_id<>'ryadom-stories' OR EXISTS(SELECT 1 FROM public.city_stories WHERE object_path=storage.objects.name
- AND author_id=(SELECT auth.uid()) AND status='draft'));
+ bucket_id='ryadom-stories' AND EXISTS(
+ SELECT 1 FROM public.city_stories WHERE object_path=storage.objects.name AND (
+ storage.allow_only_operation('object.get_authenticated') OR (
+ (storage.allow_only_operation('object.delete') OR storage.allow_only_operation('object.delete_many'))
+ AND author_id=(SELECT auth.uid()) AND status IN ('draft','rejected','removed')))));
+CREATE POLICY stories_upload_guard ON storage.objects AS RESTRICTIVE FOR INSERT TO anon,authenticated WITH CHECK(
+ bucket_id<>'ryadom-stories' OR(storage.allow_only_operation('object.upload') AND EXISTS(SELECT 1 FROM public.city_stories WHERE object_path=storage.objects.name
+ AND author_id=(SELECT auth.uid()) AND status='draft')));
 CREATE POLICY stories_upload ON storage.objects FOR INSERT TO authenticated WITH CHECK(
  bucket_id='ryadom-stories' AND EXISTS(SELECT 1 FROM public.city_stories WHERE object_path=storage.objects.name
  AND author_id=(SELECT auth.uid()) AND status='draft'));
-CREATE POLICY stories_no_update ON storage.objects AS RESTRICTIVE FOR UPDATE TO authenticated
+CREATE POLICY stories_no_update ON storage.objects AS RESTRICTIVE FOR UPDATE TO anon,authenticated
  USING(bucket_id<>'ryadom-stories') WITH CHECK(bucket_id<>'ryadom-stories');
-CREATE POLICY stories_delete_guard ON storage.objects AS RESTRICTIVE FOR DELETE TO authenticated USING(
+CREATE POLICY stories_delete_guard ON storage.objects AS RESTRICTIVE FOR DELETE TO anon,authenticated USING(
  bucket_id<>'ryadom-stories' OR EXISTS(SELECT 1 FROM public.city_stories WHERE object_path=storage.objects.name
  AND author_id=(SELECT auth.uid()) AND status IN ('draft','rejected','removed')));
 CREATE POLICY stories_delete ON storage.objects FOR DELETE TO authenticated USING(

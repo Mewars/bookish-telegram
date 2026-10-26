@@ -84,3 +84,6 @@
 
 .city-home.home-editorial .life-city-today .life-heading h2::after{display:none}
 .city-home .life-suggest-news{display:inline-flex;align-items:center;min-height:42px;padding:9px 16px;margin:0 0 16px;border:1px solid #f4ca7b55;border-radius:22px;color:var(--life-gold);background:#f4ca7b0d;font-weight:600;text-decoration:none}
+
+.city-home.home-editorial .life-section+.life-stories-slot{margin-top:clamp(32px,4vw,46px);}
+.city-home.home-editorial .life-section+.life-stories-slot[hidden]+.life-city-row{margin-top:clamp(32px,4vw,46px);}
