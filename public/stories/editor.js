@@ -1,7 +1,7 @@
 // Native canvas/MediaRecorder editor. Everything stays on the device until Send.
 const el=(tag,text='')=>{const n=document.createElement(tag);n.textContent=text;return n;};
 const button=(text,fn)=>{const n=el('button',text);n.type='button';n.className='rs-button';n.onclick=fn;return n;};
-const field=(name,input)=>{const l=el('label',name);l.className='rs-field';l.append(input);return l;};
+const field=(name,input)=>{input.setAttribute('aria-label',name);const l=el('label',name);l.className='rs-field';l.append(input);return l;};
 export function recordingType(){return typeof MediaRecorder==='undefined'?'':['video/mp4','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';}
 export function mountStoryEditor(root,{videoEnabled=false,onChange=()=>{}}={}){
  const canvas=el('canvas');canvas.width=720;canvas.height=1280;canvas.className='rs-edit-canvas';canvas.setAttribute('aria-label','Предпросмотр истории');
@@ -52,7 +52,7 @@ export function mountStoryEditor(root,{videoEnabled=false,onChange=()=>{}}={}){
  const overlay=el('details');overlay.append(el('summary','Надписи и стикеры'),field('Текст на истории',text),field('Цвет текста',color),field('Размер текста',size),addText,stickerButton,choices,field('Выбранный элемент',layersSelect),field('Положение по горизонтали',x),field('Положение по вертикали',y),field('Масштаб элемента',scale),remove);
  const cameraActions=el('div');cameraActions.className='rs-edit-actions';cameraActions.append(cameraOpen,record,stop,cameraClose);cameraActions.hidden=!videoEnabled;
  root.classList.add('rs-editor');root.append(field(videoEnabled?'Фото или видео · до 30 секунд':'Фото · JPG, PNG или WebP, до 10 МБ',file),cameraActions,cameraPreview,canvas,sourceControls,overlay,music,status);
- function lock(value){busy=value;for(const n of root.querySelectorAll('input,textarea,select,button'))n.disabled=value;}
+ function lock(value){busy=value;for(const n of root.querySelectorAll('input,textarea,select,button'))n.disabled=value;if(!value){record.disabled=!camera||cameraRecorder?.state==='recording';stop.disabled=cameraRecorder?.state!=='recording';}}
  async function prepare(){
   if(prepared)return prepared;if(!source)throw Error('Выберите фото или запишите видео.');stopCamera();clearInterval(renderTimer);source.pause?.();play.textContent='Просмотреть видео';lock(true);const stamp=revision;
   try{const animated=source.tagName==='VIDEO'||selectedAudio;

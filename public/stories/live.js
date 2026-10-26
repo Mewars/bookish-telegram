@@ -76,7 +76,7 @@ export function mountCityStories(root,{city,client:sb}){
   const cl=el('label','rs-field','Подпись');cl.append(caption);error.setAttribute('role','alert');let draft=null,encoded=null,uploaded=false,sent=false;
   const editor=mountStoryEditor(editorRoot,{videoEnabled,onChange:()=>{encoded=null;}});
   const send=el('button','rs-button rs-gold','Отправить на модерацию');send.type='submit';const cancel=btn('Отмена',()=>d.close());
-  form.append(el('h2','','Ваша история'),el('p','rs-note','Фото, видео и оформление видны всем после модерации — в течение 24 часов. До 5 историй за сутки.'),editorRoot,cl,error,send,cancel);d.append(form);
+  form.append(el('h2','','Ваша история'),el('p','rs-note',videoEnabled?'Фото, видео и оформление видны всем после модерации — в течение 24 часов. До 5 историй за сутки.':'Фото с оформлением видны всем после модерации — в течение 24 часов. До 5 историй за сутки.'),editorRoot,cl,error,send,cancel);d.append(form);
   d.addEventListener('close',()=>{editor.dispose();if(draft&&!sent)void call('remove_city_story',{p_id:draft.id}).then(()=>sb.storage.from('ryadom-stories').remove([storyPath(draft)])).catch(()=>{});},{once:true});
   form.onsubmit=async e=>{e.preventDefault();if(send.disabled)return;error.textContent='';send.disabled=true;caption.disabled=true;
    try{if(!encoded)encoded=await editor.prepare();editor.lock(true);if(!alive||stamp!==generation||!d.open)return;
