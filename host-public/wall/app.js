@@ -298,7 +298,7 @@ async function makePost(post,photos=[],likes=null,scope='feed',video=null,author
  const official=post.post_type==='news';
  head.append(makeAvatar(author,official),el('div','',[
   el('div','post-person',[official?'Администрация города':(author?.display_name|| (post.author_id===s.user?.id?'Ваша запись':'Житель города'))]),
-  el('div','post-meta',[(TYPES[post.post_type]||'Запись')+' · '+post.city+' · '+safeTime(post.created_at)])]));if(post.pinned_at)head.append(el('span','pin',['📌 Закреплено']));card.append(head,el('h3','post-title',[post.title]),renderWallBody(post.body,'post-body'));
+  el('div','post-meta',[(TYPES[post.post_type]||'Запись')+' · '+post.city+' · '+safeTime(post.created_at)])]));if(scope==='feed'&&!official&&post.author_id!==s.user?.id){const friend=el('a','btn ghost small','Добавить в друзья');friend.href='/#/friends?city='+encodeURIComponent(post.city)+'&peer='+encodeURIComponent(post.author_id);head.append(friend);}if(post.pinned_at)head.append(el('span','pin',['📌 Закреплено']));card.append(head,el('h3','post-title',[post.title]),renderWallBody(post.body,'post-body'));
  if(post.status!=='published')card.append(badge(post.status));const images=await imageList(photos,video);if(images)card.append(images);
  const actions=el('div','post-actions');
  if(scope==='feed'){
@@ -352,7 +352,7 @@ async function makePost(post,photos=[],likes=null,scope='feed',video=null,author
   actions.append(btn('✏️ Редактировать',()=>editPublishedPostInline(card,post),'btn small secondary'));
  }
  if(actions.childNodes.length)card.append(actions);
- if(scope==='feed'){const toggle=[...actions.querySelectorAll('button')].find(b=>b.textContent.startsWith('💬'));toggle?.setAttribute('aria-label',toggle.textContent);toggle?.setAttribute('aria-expanded',String(s.expanded===post.id));if(s.expanded===post.id)card.append(await commentSection(post.id));else if(commentPreview.length){const preview=el('section','comments comment-preview');preview.setAttribute('aria-label','Последние комментарии');for(const comment of commentPreview)preview.append(commentLine(comment,commentAuthors.get(comment.author_id)));card.append(preview);}}return card;
+ if(scope==='feed'){const toggle=[...actions.querySelectorAll('button')].find(b=>b.textContent.startsWith('💬'));toggle?.setAttribute('aria-label',toggle.textContent);toggle?.setAttribute('aria-expanded',String(s.expanded===post.id));if(s.expanded===post.id)card.append(await commentSection(post.id));else if(commentPreview.length){const preview=el('section','comments comment-preview');preview.setAttribute('aria-label','Последние комментарии');for(const comment of commentPreview)preview.append(commentLine(comment,commentAuthors.get(comment.author_id)));card.append(preview);}if(s.expanded!==post.id)card.append(commentComposer(post.id));}return card;
 }
 function editPublishedPostInline(card,post){
  if(!s.user||!s.isOwner||post.status!=='published')return;
@@ -386,7 +386,9 @@ async function gotoAsync(view){s.view=view;await render()}
 function commentLine(c,person){
  const line=el('div','comment'),content=el('div','');
  content.append(el('div','comment-info',[person?.display_name||(c.author_id===s.user?.id?'Вы':'Житель города'),' · ',safeTime(c.created_at)]),renderWallBody(c.body,'comment-text'));
- if(isStaff(s.city))content.append(btn('Скрыть',()=>act(async()=>{if(!confirm('Скрыть комментарий?'))return;await rpc('hide_community_comment',{p_id:c.id});s.expanded=c.post_id;await renderFeed()}),'btn ghost small'));
+ if(c.author_id===s.user?.id)content.append(btn('Удалить свой комментарий',()=>act(async()=>{if(!confirm('Удалить свой комментарий из обсуждения?'))return;await rpc('remove_own_community_comment',{p_id:c.id});s.expanded=c.post_id;await renderFeed();flash('Комментарий удалён из обсуждения.')}),'btn ghost small'));
+ else if(isStaff(s.city))content.append(btn('Скрыть',()=>act(async()=>{if(!confirm('Скрыть комментарий?'))return;await rpc('hide_community_comment',{p_id:c.id});s.expanded=c.post_id;await renderFeed()}),'btn ghost small'));
+ if(c.author_id&&c.author_id!==s.user?.id){const a=el('a','btn ghost small','Добавить в друзья');a.href='/#/friends?city='+encodeURIComponent(s.city)+'&peer='+encodeURIComponent(c.author_id);content.append(a);}
  line.append(makeAvatar(person,false),content);return line;
 }
 async function getCommentPreviews(ids){
@@ -403,7 +405,10 @@ async function commentSection(postId){
  if(data?.length===80)section.append(info('Показаны последние 80 комментариев.'));
  const authors=await getAuthorCards((data||[]).map(x=>x.author_id));
  for(const comment of [...data||[]].reverse())section.append(commentLine(comment,authors.get(comment.author_id)));
- const form=el('form','comment-form');const field=document.createElement('textarea');field.maxLength=2000;field.minLength=2;field.required=true;field.placeholder='Написать комментарий…';field.setAttribute('aria-label','Написать комментарий');cleanPastedText(field);const expressions=attachExpressionPicker(field);const send=btn('Отправить',()=>{});send.type='submit';form.append(el('div','wall-comment-editor',[field,expressions.element]),send);form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');await rpc('submit_community_comment',{p_post_id:postId,p_body:cleanMarkdownPaste(expressions.value().trim())});s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});section.append(form);return section;}
+ section.append(commentComposer(postId));return section;
+}
+function commentComposer(postId){
+ const form=el('form','comment-form');const field=document.createElement('textarea');field.maxLength=2000;field.minLength=2;field.required=true;field.placeholder='Написать комментарий…';field.setAttribute('aria-label','Написать комментарий');cleanPastedText(field);const expressions=attachExpressionPicker(field);const send=btn('Отправить',()=>{});send.type='submit';form.append(el('div','wall-comment-editor',[field,expressions.element]),send);form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');await rpc('submit_community_comment',{p_post_id:postId,p_body:cleanMarkdownPaste(expressions.value().trim())});s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});return form;}
 let clearStoriesPreview=null;
 async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),settings()]);
  const requested=new URLSearchParams(location.search).get('post');

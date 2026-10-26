@@ -26,6 +26,8 @@ final class NearbyStore {
           first_id TEXT REFERENCES profiles(user_id) ON DELETE CASCADE,second_id TEXT REFERENCES profiles(user_id) ON DELETE CASCADE,
           requester_id TEXT NOT NULL,accepted INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,
           PRIMARY KEY(first_id,second_id),CHECK(first_id<second_id),CHECK(requester_id IN(first_id,second_id)));
+          CREATE TABLE IF NOT EXISTS social_directory(user_id TEXT PRIMARY KEY REFERENCES profiles(user_id) ON DELETE CASCADE,city TEXT NOT NULL);
+          CREATE INDEX IF NOT EXISTS social_directory_city ON social_directory(city);
           CREATE INDEX IF NOT EXISTS friendships_second ON friendships(second_id);
           CREATE TABLE IF NOT EXISTS blocks (
           blocker_id TEXT REFERENCES profiles(user_id) ON DELETE CASCADE,blocked_id TEXT NOT NULL,
@@ -74,6 +76,16 @@ final class NearbyStore {
             $this->db->exec('COMMIT');
         } catch(Throwable $e){$this->db->exec('ROLLBACK');throw $e;}
     }
+    private static function city($value): string {
+        if(!is_string($value)||!preg_match('//u',$value)||preg_match('/[\x00-\x1f\x7f]/u',$value)||strlen(trim($value))<1||strlen($value)>200)throw new NearbyFailure('22023');
+        return trim($value);
+    }
+    private function invitationRate(string $u,int $now): void {
+            $profile=$this->query('SELECT invite_started,invite_requests FROM request_limits WHERE user_id=?',[$u])->fetch();
+            if($profile['invite_started']<=$now-86400)$this->query('UPDATE request_limits SET invite_started=?,invite_requests=0 WHERE user_id=?',[$now,$u]);
+            elseif($profile['invite_requests']>=10)throw new NearbyFailure('54000',429);
+            $this->query('UPDATE request_limits SET invite_requests=invite_requests+1 WHERE user_id=?',[$u]);
+    }
     public function call(string $uid,string $method,array $p=[],?int $now=null) {
         $uid=self::uuid($uid); $now=$now??time();
         $this->rate($uid,$now);
@@ -93,8 +105,38 @@ final class NearbyStore {
               WHERE (f.first_id=:u OR f.second_id=:u) AND NOT EXISTS(SELECT 1 FROM blocks b WHERE (b.blocker_id=:u AND b.blocked_id=p.user_id) OR (b.blocker_id=p.user_id AND b.blocked_id=:u)) ORDER BY f.created_at',['u'=>$u,'now'=>$now])->fetchAll();
             foreach($friends as &$f){$f['accepted']=(bool)$f['accepted'];$f['incoming']=$f['requester_id']!==$u;unset($f['requester_id']);$f['updated_at']=self::iso($f['updated_at']);$f['expires_at']=self::iso($f['expires_at']);}
             unset($f);
-            return ['self'=>['display_name'=>$self['display_name']??'Друг','invite_code'=>$self['invite_code']??null,'invite_expires'=>self::iso($self['invite_expires']??null),'latitude'=>$self['latitude']??null,'longitude'=>$self['longitude']??null,'expires_at'=>self::iso($self['expires_at']??null)],
+            return ['directory_enabled'=>true,'self'=>['public_city'=>$this->query('SELECT city FROM social_directory WHERE user_id=?',[$u])->fetchColumn()?:null,'display_name'=>$self['display_name']??'Друг','invite_code'=>$self['invite_code']??null,'invite_expires'=>self::iso($self['invite_expires']??null),'latitude'=>$self['latitude']??null,'longitude'=>$self['longitude']??null,'expires_at'=>self::iso($self['expires_at']??null)],
               'friends'=>$friends,'blocked'=>$this->query('SELECT b.blocked_id AS id,coalesce(p.display_name,\'Пользователь\') AS name FROM blocks b LEFT JOIN profiles p ON p.user_id=b.blocked_id WHERE b.blocker_id=?',[$u])->fetchAll()];
+        }
+        if($method==='nearby_directory_opt_in') {
+            if(!is_bool($p['p_enabled']??null))throw new NearbyFailure('22023');
+            if(!$p['p_enabled']){$this->query('DELETE FROM social_directory WHERE user_id=?',[$u]);return null;}
+            $name=self::name($p['p_name']??null);$city=self::city($p['p_city']??null);
+            $this->profile($u,$now);$this->query('UPDATE profiles SET display_name=? WHERE user_id=?',[$name,$u]);
+            $this->query('INSERT INTO social_directory VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET city=excluded.city',[$u,$city]);return null;
+        }
+        if($method==='nearby_directory') {
+            $city=self::city($p['p_city']??null);$search=$p['p_search']??'';$peer=$p['p_peer']??'';
+            if(!is_string($search)||strlen($search)>160||preg_match('/[\x00-\x1f\x7f]/u',$search))throw new NearbyFailure('22023');
+            if($peer!=='')$peer=self::uuid($peer);
+            $pattern='%'.str_replace(['\\','%','_'],['\\\\','\\%','\\_'],trim($search)).'%';
+            $rows=$this->query("SELECT p.user_id AS id,p.display_name AS name,d.city,f.accepted,f.requester_id
+              FROM social_directory d JOIN profiles p ON p.user_id=d.user_id
+              LEFT JOIN friendships f ON f.first_id=min(:u,p.user_id) AND f.second_id=max(:u,p.user_id)
+              WHERE d.city=:city AND p.user_id<>:u AND p.display_name LIKE :pattern ESCAPE '\\'
+              AND (:peer='' OR p.user_id=:peer)
+              AND NOT EXISTS(SELECT 1 FROM blocks b WHERE (b.blocker_id=:u AND b.blocked_id=p.user_id) OR (b.blocker_id=p.user_id AND b.blocked_id=:u))
+              ORDER BY p.display_name,p.user_id LIMIT 25",['u'=>$u,'city'=>$city,'pattern'=>$pattern,'peer'=>$peer])->fetchAll();
+            foreach($rows as &$row){$row['relation']=$row['accepted']===null?'none':($row['accepted']?'accepted':($row['requester_id']===$u?'outgoing':'incoming'));unset($row['accepted'],$row['requester_id']);}unset($row);return $rows;
+        }
+        if($method==='nearby_request_person') {
+            $peer=self::uuid($p['p_peer']??null);$name=self::name($p['p_name']??null);
+            if($peer===$u||$this->blocked($u,$peer)||!$this->query('SELECT 1 FROM social_directory WHERE user_id=?',[$peer])->fetchColumn())throw new NearbyFailure('42501',403);
+            $this->profile($u,$now);$this->query('UPDATE profiles SET display_name=? WHERE user_id=?',[$name,$u]);
+            $a=min($u,$peer);$b=max($u,$peer);
+            if($this->query('SELECT 1 FROM friendships WHERE first_id=? AND second_id=?',[$a,$b])->fetchColumn())return null;
+            $this->invitationRate($u,$now);
+            $this->query('INSERT INTO friendships VALUES(?,?,?,0,?)',[$a,$b,$u,$now]);return null;
         }
         if($method==='nearby_invite') {
             $name=self::name($p['p_name']??null); $this->profile($u,$now); $code=bin2hex(random_bytes(16));
@@ -108,10 +150,7 @@ final class NearbyStore {
             $this->profile($u,$now);$this->query('UPDATE profiles SET display_name=? WHERE user_id=?',[$name,$u]);
             $a=min($u,$peer);$b=max($u,$peer);
             if($this->query('SELECT 1 FROM friendships WHERE first_id=? AND second_id=?',[$a,$b])->fetchColumn())return null;
-            $profile=$this->query('SELECT invite_started,invite_requests FROM request_limits WHERE user_id=?',[$u])->fetch();
-            if($profile['invite_started']<=$now-86400)$this->query('UPDATE request_limits SET invite_started=?,invite_requests=0 WHERE user_id=?',[$now,$u]);
-            elseif($profile['invite_requests']>=10)throw new NearbyFailure('54000',429);
-            $this->query('UPDATE request_limits SET invite_requests=invite_requests+1 WHERE user_id=?',[$u]);
+            $this->invitationRate($u,$now);
             $this->query('INSERT INTO friendships VALUES(?,?,?,0,?)',[$a,$b,$u,$now]);return null;
         }
         if($method==='nearby_respond'||$method==='nearby_disconnect') {

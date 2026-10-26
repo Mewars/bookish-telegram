@@ -6,6 +6,7 @@ import type { NearbyState } from './repository';
 import { FriendsMap } from './FriendsMap';
 import { createHostNearbyClient } from './hostClient';
 import './friends.css';
+import {ResidentDirectory} from './ResidentDirectory';
 const nearby=import.meta.env.VITE_FRIENDS_BACKEND==='host'?createHostNearbyClient(supabase,`${import.meta.env.BASE_URL}api/friends.php`):supabase;
 
 const message=(reason:unknown)=>reason instanceof Error?reason.message:'Не удалось выполнить действие.';
@@ -108,7 +109,8 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
           <button disabled={busy||!/^[a-fA-F0-9]{32}$/.test(code.trim())||displayName.length<2||displayName.length>40}>Отправить заявку</button>
         </form>
       </section>
-      {pending.length>0&&<section className="friends-card"><h2>Приглашения</h2>{pending.map(friend=><article className="friend-row" key={friend.id}><h3>{friend.name}</h3><p>{friend.incoming?'Хочет добавить вас в друзья':'Ожидает подтверждения'}</p>
+      {data?.directory_enabled&&<ResidentDirectory key={city} client={nearby} city={city} name={displayName} publicCity={data.self.public_city??null} refresh={refresh} openRequests={()=>document.getElementById('friends-incoming')?.scrollIntoView({behavior:'smooth'})}/>}
+      {pending.length>0&&<section id="friends-incoming" className="friends-card"><h2>Приглашения</h2>{pending.map(friend=><article className="friend-row" key={friend.id}><h3>{friend.name}</h3><p>{friend.incoming?'Хочет добавить вас в друзья':'Ожидает подтверждения'}</p>
         {friend.incoming?<><button disabled={busy} onClick={()=>void run(()=>nearbyCall(nearby,'nearby_respond',{p_peer:friend.id,p_accept:true}))}>Принять</button><button className="friends-secondary" disabled={busy} onClick={()=>void run(()=>nearbyCall(nearby,'nearby_respond',{p_peer:friend.id,p_accept:false}))}>Отклонить</button></>:<button className="friends-secondary" disabled={busy} onClick={()=>void run(()=>nearbyCall(nearby,'nearby_disconnect',{p_peer:friend.id,p_block:false}))}>Отменить заявку</button>}
       </article>)}</section>}
       <section className="friends-card"><div className="friends-list-heading"><h2>Мои друзья · {friends.length}</h2><button className="friends-secondary" disabled={busy} onClick={()=>void run(async()=>{})}>Обновить</button></div>

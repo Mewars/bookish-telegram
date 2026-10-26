@@ -2,7 +2,7 @@ export type NearbyClient={rpc:(name:string,params?:Record<string,unknown>)=>Prom
 
 export type NearbyPoint={latitude:number|null;longitude:number|null;expires_at:string|null};
 export type NearbyFriend=NearbyPoint&{id:string;name:string;accepted:boolean;incoming:boolean;updated_at:string|null};
-export type NearbyState={self:NearbyPoint&{display_name:string;invite_code:string|null;invite_expires:string|null};friends:NearbyFriend[];blocked:{id:string;name:string}[]};
+export type NearbyState={directory_enabled?:boolean;self:NearbyPoint&{public_city?:string|null;display_name:string;invite_code:string|null;invite_expires:string|null};friends:NearbyFriend[];blocked:{id:string;name:string}[]};
 
 export async function nearbyCall<T=void>(client:NearbyClient|null,name:string,params?:Record<string,unknown>):Promise<T> {
   if(!client)throw Error('Сервис друзей пока не подключён.');
@@ -11,6 +11,7 @@ export async function nearbyCall<T=void>(client:NearbyClient|null,name:string,pa
     if(error.code==='unauthorized')throw Error('Войдите в аккаунт ещё раз, чтобы открыть друзей.');
     if(error.code==='42900')throw Error('Слишком много запросов. Попробуйте через минуту.');
     if(error.code==='54000')throw Error('На сегодня достаточно приглашений. Попробуйте завтра.');
+    if(name==='nearby_request_person'&&error.code==='42501')throw Error('Житель не принимает заявки через поиск или уже недоступен.');
     if(name==='nearby_request'&&error.code==='42501')throw Error('Код недействителен или приглашение уже недоступно. Попросите друга создать новый код.');
     throw Error('Не удалось выполнить действие. Проверьте соединение и повторите.');
   }
