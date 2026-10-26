@@ -1,4 +1,4 @@
-/* global window, Blob, fetch, crypto, structuredClone */
+/* global window, Blob, fetch, crypto, structuredClone, URLSearchParams */
 const ids={resident:'33333333-3333-4333-8333-333333333333',editor:'22222222-2222-4222-8222-222222222222',owner:'11111111-1111-4111-8111-111111111111'};
 let actor='guest';const listeners=new Set(),files=new Map(),rows=[{id:crypto.randomUUID(),city:'Город А',author_id:ids.owner,author_label:'Открытая история',caption:'Фото города',status:'published',object_path:'fixture/visible.webp',created_at:new Date().toISOString(),published_at:new Date().toISOString(),expires_at:new Date(Date.now()+86400000).toISOString()}];
 const user=()=>ids[actor]?{id:ids[actor]}:null;
