@@ -17,7 +17,7 @@ with sync_playwright() as p:
    else:r.abort()
   context.route('**/*',route)
   page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
-  page.goto(ORIGIN+'/stories-preview/?city=Лесосибирск')
+  page.goto(ORIGIN+'/stories-preview/index.html?city=Лесосибирск')
   expect(page.get_by_role('heading',name='Истории рядом')).to_be_visible()
   expect(page.locator('.rs-card')).to_have_count(4)
   assert 'Лесосибирск' in page.locator('#on-home').get_attribute('href') or '%D0%9B' in page.locator('#on-home').get_attribute('href')
