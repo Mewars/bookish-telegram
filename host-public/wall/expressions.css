@@ -21,5 +21,4 @@
 .wall-expression-status{margin:6px 0 0;font-size:13px}.wall-expression-status:empty{display:none}
 .wall-comment-editor{flex:1;min-width:0}.wall-comment-editor textarea{box-sizing:border-box;width:100%}
 .wall-comment-editor .wall-expression-panel{width:100%}
-.life-post .wall-sticker{width:96px;margin:4px 0}.life-post .wall-expression-body{font-size:14px;max-height:150px;overflow:hidden}
 @media(max-width:480px){.wall-sticker-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.wall-expression-panel{padding:8px}.wall-expression-preview .wall-sticker{width:110px}}
