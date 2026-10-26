@@ -1,7 +1,5 @@
 """Synthetic homepage scenarios; no real users, writes or external traffic."""
 import base64
-import json
-from datetime import datetime,timezone
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright,expect
@@ -12,10 +10,11 @@ with sync_playwright() as p:
  browser=p.chromium.launch()
  for width,height in [(360,740),(390,664),(390,844),(768,1024),(1440,900)]:
   context=browser.new_context(viewport={'width':width,'height':height},locale='ru-RU',reduced_motion='reduce')
+  news_requests=[]
   def route(r):
    u=urlparse(r.request.url)
    if u.path=='/src/lib/supabase.ts':r.fulfill(content_type='text/javascript',body="import {c} from '/tests/home-life-sdk.mjs';export const supabase=c();")
-   elif u.path=='/news/eniseysk.json':r.fulfill(content_type='application/json',body=json.dumps({'city':'Енисейск','sourceUrl':'https://eniseysk.gosuslugi.ru/dlya-zhiteley/novosti-i-reportazhi/','checkedAt':datetime.now(timezone.utc).isoformat(),'items':[{'title':'Тестовая официальная новость','date':'2026-10-25','url':'https://eniseysk.gosuslugi.ru/dlya-zhiteley/novosti-i-reportazhi/novosti_123.html'}]}))
+   elif u.path=='/news/eniseysk.json':news_requests.append(r.request.url);r.fulfill(status=404,body='News paused')
    elif u.path=='/tests/photo-valid.png':r.fulfill(content_type='image/png',body=PNG)
    elif r.request.url.startswith(ORIGIN+'/'):r.continue_()
    else:r.abort()
@@ -50,7 +49,8 @@ with sync_playwright() as p:
   expect(page.get_by_role('heading',name='Куда сходить',exact=True)).to_have_count(0)
   page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
   expect(page.get_by_role('heading',name='Новость Енисейск',exact=True)).to_be_visible()
-  expect(page.get_by_role('heading',name='Тестовая официальная новость',exact=True)).to_be_visible()
+  expect(page.get_by_role('heading',name='Новости города',exact=True)).to_have_count(0)
+  assert not news_requests,news_requests
   tiles=page.locator('.life-collection')
   expect(tiles).to_have_count(3)
   assert page.locator('.life-collection h3').all_text_contents()==['На прогулку','Кофе и встречи','История и культура']
@@ -61,7 +61,7 @@ with sync_playwright() as p:
   page.wait_for_function("[...document.querySelectorAll('.life-collection img')].every(img=>img.complete&&img.naturalWidth>0)")
   expect(page.locator('.life-collection .life-art-label')).to_have_count(0)
   order=page.locator('.life-content').evaluate("el=>[...el.children].map(node=>node.getAttribute('aria-label')||(node.classList.contains('life-city-row')?'wall':node.classList.contains('life-business')?'business':''))")
-  assert order.index('Открывай город по-новому')<order.index('Новости администрации')<order.index('wall')<order.index('Афиша города')<order.index('Свежие объявления'),order
+  assert order.index('Открывай город по-новому')<order.index('wall')<order.index('Афиша города')<order.index('Свежие объявления'),order
   assert order[-1]=='Свежие объявления',order
   boxes=[tiles.nth(i).bounding_box() for i in range(3)]
   assert page.locator('.life-city-row').bounding_box()['y']-max(box['y']+box['height'] for box in boxes)>=31

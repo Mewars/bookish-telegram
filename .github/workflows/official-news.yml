@@ -1,4 +1,5 @@
-name: Update official city news
+name: Official city news paused
+# Collection is paused by the owner: no schedule or manual collection trigger.
 on:
   push:
     branches: [mewars]
@@ -6,9 +7,6 @@ on:
   pull_request:
     branches: [mewars]
     paths: ['scripts/update-official-news.php', 'tests/official-news.php', '.github/workflows/official-news.yml']
-  schedule:
-    - cron: '17 * * * *'
-  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -21,10 +19,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: php -l scripts/update-official-news.php && php tests/official-news.php
-  update:
+  withdraw:
     timeout-minutes: 5
     needs: parser
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/mewars'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/mewars'
     runs-on: ubuntu-latest
     env:
       SPRINTHOST_HOST: ${{ secrets.SPRINTHOST_SSH_HOST }}
@@ -40,7 +38,20 @@ jobs:
           printf '%s\n' "$SPRINTHOST_SSH_PRIVATE_KEY" > "$HOME/.ssh/news-key"
           printf '%s\n' "$SPRINTHOST_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/news-key" "$HOME/.ssh/known_hosts"
-      - name: Refresh public headlines from the hosting server
+      - name: Withdraw the public feed without contacting the source
         run: |
           ssh -i "$HOME/.ssh/news-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
-            "$SPRINTHOST_USER@$SPRINTHOST_HOST" php < scripts/update-official-news.php
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" 'bash -s' <<'PAUSE'
+          set -euo pipefail
+          root=/home/mewars/domains/ryadomcity.ru/public_html
+          test "$(cd "$root" && pwd -P)" = "$root"
+          if test -f "$root/news/eniseysk.json"; then
+            test ! -L "$root/news/eniseysk.json"
+            umask 077
+            backup=/home/mewars/.ryadom-news-paused
+            mkdir -p "$backup"
+            mv "$root/news/eniseysk.json" "$backup/eniseysk-$(date +%Y%m%d%H%M%S).json"
+          fi
+          test ! -e "$root/news/eniseysk.json"
+          echo 'Public feed withdrawn. No requests to the municipal site were made.'
+          PAUSE
