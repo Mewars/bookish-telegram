@@ -20,6 +20,7 @@ with sync_playwright() as p:
   page.get_by_role('button',name='Добавить историю',exact=True).click()
   form=page.get_by_role('dialog',name='Добавить историю',exact=True)
   form.get_by_label('Фото · JPG, PNG или WebP, до 10 МБ',exact=True).set_input_files('public/brand/discovery/park.webp')
+  expect(form.get_by_text('Фото готово. Добавьте надпись или стикеры.',exact=True)).to_be_visible()
   form.get_by_label('Подпись',exact=True).fill('Моя история <script>без HTML</script>')
   form.get_by_role('button',name='Отправить на модерацию',exact=True).click()
   expect(form).to_have_count(0)
