@@ -106,7 +106,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)saveCurrent
 function goto(view,params={}){saveCurrentComposer();s.draftSave=null;s.view=view;s.expanded=null;s.editing=params.edit||null;hideFlash();const u=new URL(location.href);if(view==='admin')u.searchParams.set('view','admin');else if(view==='write'&&!params.edit)u.searchParams.set('view','write');else u.searchParams.delete('view');history.replaceState(null,'',u);for(const b of ui.tabs.querySelectorAll('[data-view]'))b.classList.toggle('active',b.dataset.view===view);void render().catch(e=>flash(errMsg(e),true));}
 function panel(...children){return el('section','panel',children)}
 function badge(v){return el('span','badge '+v,[STATUS[v]||v])}
-async function render(){ui.content.replaceChildren(el('div','empty',['Загружаем…']));if(s.view==='feed')return renderFeed();if(s.view==='write')return renderComposer();if(s.view==='mine')return renderMine();if(s.view==='admin')return renderAdmin()}
+async function render(){if(clearStoriesPreview){clearStoriesPreview();clearStoriesPreview=null;}ui.content.replaceChildren(el('div','empty',['Загружаем…']));if(s.view==='feed')return renderFeed();if(s.view==='write')return renderComposer();if(s.view==='mine')return renderMine();if(s.view==='admin')return renderAdmin()}
 async function postsQuery(moderation=false){let q=sb.from('community_posts').select('id,city,author_id,title,body,post_type,status,created_at,pinned_at'+(!moderation?',community_comments(count)':''));if(!moderation)q=q.eq('status','published').eq('community_comments.status','published');else if(s.adminMode==='pending')q=q.eq('status','pending');else if(s.adminMode==='published')q=q.eq('status','published');else q=q.in('status',['archived','rejected']);q=q.eq('city',s.city).order('created_at',{ascending:false}).limit(60);const r=await q;if(r.error)throw r.error;const arr=r.data||[];return moderation?arr:arr.sort((a,b)=>Number(Boolean(b.pinned_at))-Number(Boolean(a.pinned_at))||Date.parse(b.created_at)-Date.parse(a.created_at))}
 async function getPhotos(postIds){const m=new Map();if(!postIds.length)return m;const {data,error}=await sb.from('community_post_photos').select('post_id,slot,object_path').in('post_id',postIds).order('slot',{ascending:true});if(error)throw error;for(const ph of data||[]){const a=m.get(ph.post_id)||[];a.push(ph);m.set(ph.post_id,a)}return m}
 async function getLikes(ids){const m=new Map();if(!ids.length)return m;try{const data=await rpc('community_like_summary',{p_ids:ids.slice(0,50)});for(const item of data||[])m.set(item.post_id,item);}catch{/* Reactions are not essential to reading */}return m}
@@ -403,6 +403,7 @@ async function commentSection(postId){
  const authors=await getAuthorCards((data||[]).map(x=>x.author_id));
  for(const comment of [...data||[]].reverse())section.append(commentLine(comment,authors.get(comment.author_id)));
  const form=el('form','comment-form');const field=document.createElement('textarea');field.maxLength=2000;field.minLength=2;field.required=true;field.placeholder='Написать комментарий…';field.setAttribute('aria-label','Написать комментарий');cleanPastedText(field);const expressions=attachExpressionPicker(field);const send=btn('Отправить',()=>{});send.type='submit';form.append(el('div','wall-comment-editor',[field,expressions.element]),send);form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');await rpc('submit_community_comment',{p_post_id:postId,p_body:cleanMarkdownPaste(expressions.value().trim())});s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});section.append(form);return section;}
+let clearStoriesPreview=null;
 async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),settings()]);
  const requested=new URLSearchParams(location.search).get('post');
  if(requested && /^[0-9a-f-]{36}$/i.test(requested) && !posts.some(p=>p.id===requested)){
@@ -411,7 +412,14 @@ async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),setti
  }
  s.posts=posts;const ids=posts.map(x=>x.id),[photos,likes,videos,previews]=await Promise.all([
  getPhotos(ids),getLikes(ids),getVideos(ids),getCommentPreviews(ids)
- ]);const authors=await getAuthorCards([...posts.map(x=>x.author_id),...[...previews.values()].flat().map(c=>c.author_id)]);ui.content.replaceChildren();if(!posts.length){ui.content.append(el('div','empty',[heading('Пока нет записей'),info('Предложите первую запись для жителей '+s.city+'.'),btn('Предложить запись',()=>goto('write'))]));return}
+ ]);const authors=await getAuthorCards([...posts.map(x=>x.author_id),...[...previews.values()].flat().map(c=>c.author_id)]);ui.content.replaceChildren();
+ if(clearStoriesPreview){clearStoriesPreview();clearStoriesPreview=null;}
+ if(new URLSearchParams(location.search).get('stories')==='preview'){
+  const city=s.city,root=el('section');ui.content.append(root);
+  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=20261026a';css.dataset.storiesPreviewStyle='';document.head.append(css);}
+  import('/stories/preview.js?v=20261026a').then(({mountStoriesPreview})=>{if(root.isConnected&&s.city===city)clearStoriesPreview=mountStoriesPreview(root,{city});}).catch(()=>{root.textContent='Не удалось открыть пример историй.';});
+ }
+ if(!posts.length){ui.content.append(el('div','empty',[heading('Пока нет записей'),info('Предложите первую запись для жителей '+s.city+'.'),btn('Предложить запись',()=>goto('write'))]));return}
  for(const p of posts)ui.content.append(await makePost(p,photos.get(p.id),likes.get(p.id),'feed',videos.get(p.id),authors.get(p.author_id),previews.get(p.id)||[],authors));
  const requestedPost=new URLSearchParams(location.search).get('post');
  if(requestedPost && /^[0-9a-f-]{36}$/i.test(requestedPost)){

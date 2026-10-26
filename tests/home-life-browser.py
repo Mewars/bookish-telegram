@@ -24,6 +24,7 @@ with sync_playwright() as p:
   context.route('**/*',route)
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto(ORIGIN+'/tests/home-life-fixture.html#/home?city='+ 'Город А')
+  expect(page.get_by_role('heading',name='Истории рядом',exact=True)).to_have_count(0)
   expect(page.get_by_role('heading',name='Новость Город А',exact=True)).to_be_visible()
   expect(page.get_by_role('heading',name='Объявление Город А',exact=True)).to_be_visible()
   page.wait_for_function("document.querySelector('.life-listing-image img')?.naturalWidth>0")
@@ -79,5 +80,22 @@ with sync_playwright() as p:
   assert not errors,errors
   page.screenshot(path=f'qa-screenshots/home-life-{width}-{height}.png',full_page=True)
   print('PASS',width,'city isolation, links, search, category focus, hero, local photos, section order, no overflow, empty city')
+  if width==390 and height==844:
+   page.goto(ORIGIN+'/tests/home-life-fixture.html?stories=preview#/home?city=Город А')
+   expect(page.get_by_role('heading',name='Истории рядом',exact=True)).to_be_visible()
+   expect(page.locator('.rs-card')).to_have_count(4)
+   assert page.locator('.rs-preview').bounding_box()['y']<page.locator('.life-city-row').bounding_box()['y']
+   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
+   page.locator('.rs-preview').scroll_into_view_if_needed()
+   page.screenshot(path='qa-screenshots/stories-on-home-mobile.png',full_page=True)
+   page.get_by_role('button',name='Открыть историю: На прогулке',exact=True).click()
+   expect(page.get_by_role('dialog',name='Просмотр истории')).to_contain_text('Город А')
+   page.keyboard.press('Escape')
+   page.get_by_label('Тестовый город',exact=True).select_option('Город Б')
+   expect(page.get_by_role('heading',name='Новость Город Б',exact=True)).to_be_visible()
+   page.get_by_role('button',name='Открыть историю: На прогулке',exact=True).click()
+   expect(page.get_by_role('dialog',name='Просмотр истории')).to_contain_text('Город Б')
+   page.keyboard.press('Escape')
+   assert not errors,errors
   context.close()
  browser.close()
