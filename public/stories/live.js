@@ -14,7 +14,7 @@ export async function prepareStoryPhoto(file){
 }
 export function mountCityStories(root,{city,client:sb}){
  let alive=true,generation=0,user=null,staff=false,owner=false,items=[],interval=null,observer=null;
- const dialogs=new Set(),urls=new Map(),pending=new Map();root.replaceChildren();
+ const dialogs=new Set(),urls=new Map(),pending=new Map();root.replaceChildren();root.hidden=true;root.style.display='none';
  const call=async(name,args)=>{const r=await sb.rpc(name,args);if(r.error)throw r.error;return r.data;};
  const note=el('p','rs-note');note.setAttribute('role','status');
  function message(t,error=false){if(!alive)return;note.textContent=t;note.classList.toggle('rs-error',error);}
@@ -101,7 +101,7 @@ export function mountCityStories(root,{city,client:sb}){
  }
  async function refresh(){
   if(!alive||dialogs.size)return;const stamp=++generation;disposeMedia();
-  try{const r=await sb.rpc('list_city_stories',{p_city:city});if(!alive||stamp!==generation)return;if(r.error){root.replaceChildren();return;}items=r.data||[];
+  try{const r=await sb.rpc('list_city_stories',{p_city:city});if(!alive||stamp!==generation)return;if(r.error){root.replaceChildren();root.hidden=true;root.style.display='none';return;}items=r.data||[];
    const session=await sb.auth.getSession();if(!alive||stamp!==generation)return;user=session.data?.session?.user||null;staff=false;owner=false;
    if(user){const access=await sb.from('city_admin_access').select('city,role').eq('user_id',user.id).eq('active',true);if(!alive||stamp!==generation)return;owner=(access.data||[]).some(a=>a.city==='*'&&a.role==='owner');staff=owner||(access.data||[]).some(a=>a.city===city&&['owner','editor'].includes(a.role));}
    root.classList.add('rs-preview');const heading=el('div','rs-heading');heading.append(el('h2','','Истории рядом'),el('span','rs-live-label','24 часа'));
@@ -109,11 +109,11 @@ export function mountCityStories(root,{city,client:sb}){
    const strip=el('div','rs-strip');strip.setAttribute('aria-label','Истории города '+city);
    if(typeof IntersectionObserver!=='undefined')observer=new IntersectionObserver(entries=>{for(const e of entries)if(e.isIntersecting){observer.unobserve(e.target);e.target._loadStoryPhoto?.();}},{rootMargin:'100px'});
    const add=btn('',compose,'rs-card rs-add');add.setAttribute('aria-label','Добавить историю');add.append(el('span','rs-plus','+'),el('strong','','Ваша история'),el('small','','Фото и подпись'));strip.append(add);for(const item of items)strip.append(card(item,()=>open(item)));
-   root.replaceChildren(heading,actions,strip,note);if(!items.length&&!note.textContent)note.textContent='Поделитесь моментом из жизни города. Истории появляются после модерации.';
-  }catch{if(alive&&stamp===generation){root.replaceChildren();}}
+   root.hidden=false;root.style.removeProperty('display');root.replaceChildren(heading,actions,strip,note);if(!items.length&&!note.textContent)note.textContent='Поделитесь моментом из жизни города. Истории появляются после модерации.';
+  }catch{if(alive&&stamp===generation){root.replaceChildren();root.hidden=true;root.style.display='none';}}
  }
- function reset(){generation++;for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();user=null;staff=false;owner=false;note.textContent='';setTimeout(()=>void refresh(),0);}
+ function reset(){generation++;for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();root.hidden=true;root.style.display='none';user=null;staff=false;owner=false;note.textContent='';setTimeout(()=>void refresh(),0);}
  const auth=sb.auth.onAuthStateChange(event=>{if(['SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(event))reset();});
  const focus=()=>void refresh();window.addEventListener('focus',focus);interval=setInterval(()=>{if(!document.hidden)void refresh();},30000);void refresh();
- return ()=>{alive=false;generation++;clearInterval(interval);window.removeEventListener('focus',focus);auth.data.subscription.unsubscribe();for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();};
+ return ()=>{alive=false;generation++;clearInterval(interval);window.removeEventListener('focus',focus);auth.data.subscription.unsubscribe();for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();root.hidden=false;root.style.removeProperty('display');};
 }
