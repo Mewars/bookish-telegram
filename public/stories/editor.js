@@ -38,7 +38,7 @@ export function mountStoryEditor(root,{videoEnabled=false,onChange=()=>{}}={}){
  const sourceControls=el('div');sourceControls.className='rs-edit-actions';
  const play=button('Просмотреть видео',async()=>{if(source?.tagName==='VIDEO'){if(source.paused){try{source.currentTime=0;await source.play();clearInterval(renderTimer);renderTimer=setInterval(draw,40);play.textContent='Остановить просмотр';}catch{status.textContent='Не удалось воспроизвести видео.';}}else{source.pause();clearInterval(renderTimer);play.textContent='Просмотреть видео';}}});sourceControls.append(play);play.hidden=true;
  async function selectSource(f,knownDuration=0){
-  if(!f||busy)return;const stamp=++revision;prepared=null;onChange();status.textContent='Подготавливаем…';
+  if(!f||busy)return;stopCamera();const stamp=++revision;prepared=null;onChange();status.textContent='Подготавливаем…';
   try{if(!['image/jpeg','image/png','image/webp','video/mp4','video/webm','video/quicktime'].includes(f.type)||f.size>(f.type.startsWith('video/')?40:10)*1024*1024)throw Error('Фото — JPG, PNG или WebP до 10 МБ. Видео — MP4, WebM или MOV до 40 МБ.');if(f.type.startsWith('video/')&&!videoEnabled)throw Error('Видео ещё не включено.');
    let next,nextURL=null;if(f.type.startsWith('image/')){next=await createImageBitmap(f);if(next.width*next.height>40000000){next.close();throw Error('Слишком большое разрешение фото.');}}else{next=el('video');next.playsInline=true;next.preload='auto';nextURL=url(f);next.src=nextURL;await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Не удалось прочитать видео.')),15000);next.onloadeddata=()=>{clearTimeout(timer);resolve();};next.onerror=()=>{clearTimeout(timer);reject(Error('Этот формат видео не воспроизводится. Выберите MP4.'));};});if(!(knownDuration>0)&&(!Number.isFinite(next.duration)||next.duration<=0||next.duration>30.5)){next.removeAttribute('src');next.load();revoke(nextURL);throw Error('Выберите видео длительностью до 30 секунд.');}}
    if(!alive||stamp!==revision){next.close?.();if(next.tagName==='VIDEO'){next.pause();next.removeAttribute('src');next.load();}revoke(nextURL);return;}source?.pause?.();bitmap?.close();clearInterval(renderTimer);revoke(sourceURL);bitmap=f.type.startsWith('image/')?next:null;source=next;sourceDuration=knownDuration||next.duration||0;sourceURL=nextURL;play.hidden=!!bitmap;layers=[];controls();draw();status.textContent=bitmap?'Фото готово. Добавьте надпись или стикеры.':'Видео готово. Добавьте надпись или стикеры.';
@@ -71,6 +71,7 @@ export function mountStoryEditor(root,{videoEnabled=false,onChange=()=>{}}={}){
    }finally{cleanup();}
   }finally{if(alive)lock(false);}
  }
- function dispose(){alive=false;revision++;abortExport?.();stopCamera();clearInterval(renderTimer);source?.pause?.();if(source?.tagName==='VIDEO'){source.removeAttribute('src');source.load();}bitmap?.close();for(const u of objectURLs)URL.revokeObjectURL(u);objectURLs.clear();}
+ const visibility=()=>{if(document.hidden&&camera){stopCamera();status.textContent='Камера выключена, поскольку страница скрыта. Можно открыть её снова.';}};document.addEventListener('visibilitychange',visibility);
+ function dispose(){document.removeEventListener('visibilitychange',visibility);alive=false;revision++;abortExport?.();stopCamera();clearInterval(renderTimer);source?.pause?.();if(source?.tagName==='VIDEO'){source.removeAttribute('src');source.load();}bitmap?.close();for(const u of objectURLs)URL.revokeObjectURL(u);objectURLs.clear();}
  draw();return {prepare,dispose,lock};
 }

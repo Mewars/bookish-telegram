@@ -20,7 +20,7 @@ export function mountCityStories(root,{city,client:sb}){
  const call=async(name,args)=>{const r=await sb.rpc(name,args);if(r.error)throw r.error;dirty=true;return r.data;};
  const note=el('p','rs-note');note.setAttribute('role','status');
  function message(t,error=false){if(!alive)return;note.textContent=t;note.classList.toggle('rs-error',error);}
- function modal(label){const d=el('dialog','rs-dialog');d.setAttribute('aria-label',label);dialogs.add(d);document.body.append(d);const previous=document.activeElement;
+ function modal(label){for(const existing of dialogs)for(const media of existing.querySelectorAll('video'))media.pause();const d=el('dialog','rs-dialog');d.setAttribute('aria-label',label);dialogs.add(d);document.body.append(d);const previous=document.activeElement;
   d.addEventListener('close',()=>{dialogs.delete(d);d.remove();if(previous?.isConnected)previous.focus();if(!dialogs.size&&alive&&dirty){dirty=false;void refresh();}},{once:true});d.showModal();return d;
  }
  function disposeMedia(){observer?.disconnect();observer=null;for(const url of urls.values())URL.revokeObjectURL(url);urls.clear();pending.clear();}
@@ -44,7 +44,7 @@ export function mountCityStories(root,{city,client:sb}){
  function removeStory(story,done){textForm('Удалить историю','Напишите «Удалить» для подтверждения','Удалить',async value=>{if(value.toLowerCase()!=='удалить')throw Error('Confirmation');await call('remove_city_story',{p_id:story.id});await sb.storage.from('ryadom-stories').remove([storyPath(story)]).catch(()=>{});done();message('История удалена из показа.');});}
  function open(story,list=items,moderation=false,onClose=null){
   const d=modal('Просмотр истории');const opener=document.activeElement;let index=list.findIndex(x=>x.id===story.id),timer=null,elapsed=0,last=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let currentMedia=null;const stop=()=>{if(timer)clearInterval(timer);timer=null;currentMedia?.pause?.();};let frame=0;
+  let currentMedia=null,visibility=null;const stop=()=>{if(visibility)document.removeEventListener('visibilitychange',visibility);visibility=null;if(timer)clearInterval(timer);timer=null;currentMedia?.pause?.();};let frame=0;
   d.classList.add('rs-viewer');d.addEventListener('close',()=>{stop();if(alive)onClose?.();if(opener?.isConnected)opener.focus();},{once:true});
   function step(delta){const next=index+delta;if(next<0)return;if(next>=list.length){d.close();return;}index=next;show();}
   async function show(){
@@ -64,7 +64,7 @@ export function mountCityStories(root,{city,client:sb}){
      const approve=btn('Опубликовать',async()=>{approve.disabled=true;try{await call('review_city_story',{p_id:s.id,p_action:'approve',p_reason:null});d.close();message('История одобрена. Срок показа — 24 часа с этого момента.');}catch(e){error.textContent=friendly(e);approve.disabled=false;}},'rs-view-control');approval=approve;approve.disabled=true;foot.append(approve,btn('Отклонить',()=>textForm('Отклонить историю','Причина отказа','Отклонить',async reason=>{await call('review_city_story',{p_id:s.id,p_action:'reject',p_reason:reason});d.close();message('Автору будет видна причина отказа.');}),'rs-view-control'));
     }else if(s.status==='published')foot.append(btn('Скрыть историю',async()=>{try{await call('review_city_story',{p_id:s.id,p_action:'hide',p_reason:null});d.close();message('История скрыта.');}catch(e){error.textContent=friendly(e);}},'rs-view-control'));
    }
-   d.replaceChildren(image,error,bar,head,prev,next,foot);close.focus();
+   d.replaceChildren(image,error,bar,head,prev,next,foot);close.focus();if(isVideo){visibility=()=>{if(document.hidden){paused=true;image.pause();pause.textContent='▶ Продолжить';}};document.addEventListener('visibilitychange',visibility);}
    let touch=null;d.onpointerdown=e=>{touch=e.clientX;};d.onpointerup=e=>{if(touch!==null&&Math.abs(e.clientX-touch)>60)step(e.clientX<touch?1:-1);touch=null;};
    try{const url=await photo(s);if(!alive||!d.open||seq!==frame)return;currentMedia=image;if(isVideo){await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('Video load timeout')),15000);image.onloadeddata=()=>{clearTimeout(timeout);resolve();};image.onerror=()=>{clearTimeout(timeout);reject(Error('Video unavailable'));};image.src=url;});if(!paused&&!moderation)await image.play().catch(()=>{paused=true;pause.textContent='▶ Продолжить';});}else{image.src=url;await image.decode();}if(!alive||!d.open||seq!==frame)return;error.textContent='';if(approval)approval.disabled=s.author_id===user?.id&&!owner;}catch{if(d.open&&seq===frame)error.textContent='Не удалось загрузить фото. Можно открыть историю заново.';return;}
    last=performance.now();timer=setInterval(()=>{if(!moderation&&s.status==='published'&&Date.parse(s.expires_at)<=Date.now()){d.close();return;}const t=performance.now(),delta=Math.min(t-last,250);last=t;if(paused||document.hidden||dialogs.size>1||moderation)return;const duration=isVideo?(Number.isFinite(image.duration)?image.duration*1000:30000):7000;if(isVideo){if(image.paused&&!image.ended)return;elapsed=image.currentTime*1000;}else elapsed+=delta;bar.children[index].firstChild.style.width=Math.min(100,elapsed/duration*100)+'%';if(elapsed>=duration||(isVideo&&image.ended))step(1);},100);
