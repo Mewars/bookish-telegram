@@ -414,10 +414,11 @@ async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),setti
  getPhotos(ids),getLikes(ids),getVideos(ids),getCommentPreviews(ids)
  ]);const authors=await getAuthorCards([...posts.map(x=>x.author_id),...[...previews.values()].flat().map(c=>c.author_id)]);ui.content.replaceChildren();
  if(clearStoriesPreview){clearStoriesPreview();clearStoriesPreview=null;}
- if(new URLSearchParams(location.search).get('stories')==='preview'){
+ {
+  const preview=new URLSearchParams(location.search).get('stories')==='preview';
   const city=s.city,root=el('section');ui.content.append(root);
-  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=20261026a';css.dataset.storiesPreviewStyle='';document.head.append(css);}
-  import('/stories/preview.js?v=20261026a').then(({mountStoriesPreview})=>{if(root.isConnected&&s.city===city)clearStoriesPreview=mountStoriesPreview(root,{city});}).catch(()=>{root.textContent='Не удалось открыть пример историй.';});
+  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=20261026live1';css.dataset.storiesPreviewStyle='';document.head.append(css);}
+  import(preview?'/stories/preview.js?v=20261026a':'/stories/live.js?v=20261026live1').then(module=>{if(root.isConnected&&s.city===city)clearStoriesPreview=preview?module.mountStoriesPreview(root,{city}):module.mountCityStories(root,{city,client:sb});}).catch(()=>{root.replaceChildren();});
  }
  if(!posts.length){ui.content.append(el('div','empty',[heading('Пока нет записей'),info('Предложите первую запись для жителей '+s.city+'.'),btn('Предложить запись',()=>goto('write'))]));return}
  for(const p of posts)ui.content.append(await makePost(p,photos.get(p.id),likes.get(p.id),'feed',videos.get(p.id),authors.get(p.author_id),previews.get(p.id)||[],authors));

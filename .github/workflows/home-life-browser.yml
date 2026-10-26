@@ -2,7 +2,7 @@ name: City Homepage
 on:
   pull_request:
     branches: [mewars]
-    paths: ['public/stories/**', 'public/stories-preview/**', 'tests/stories-preview*', 'src/events/**', 'data/afisha-sources.json', 'src/components/CityHome.tsx', 'src/utils/events.ts', 'src/hooks/useEventClock.ts', 'src/data/events.ts', 'public/events/**', 'tests/events*', 'src/components/Search.tsx', 'src/home/**', 'src/business/**', 'src/organizations/**', 'src/pages/DetailPage.tsx', 'src/pages/CatalogPage.tsx', 'src/components/Card.tsx', 'src/styles/**', 'public/catalog/**', 'public/brand/categories/**', 'public/brand/discovery/**', 'tests/basic-catalog*', 'tests/business*', 'tests/home-life*', 'tests/home-feed*', 'tests/home-shortcuts*', '.github/workflows/home-life-browser.yml']
+    paths: ['public/stories/**', 'public/stories-preview/**', 'tests/stories-preview*', 'tests/stories-live*', 'tests/city-stories*', 'docs/sql/city-stories-v1.sql', 'src/events/**', 'data/afisha-sources.json', 'src/components/CityHome.tsx', 'src/utils/events.ts', 'src/hooks/useEventClock.ts', 'src/data/events.ts', 'public/events/**', 'tests/events*', 'src/components/Search.tsx', 'src/home/**', 'src/business/**', 'src/organizations/**', 'src/pages/DetailPage.tsx', 'src/pages/CatalogPage.tsx', 'src/components/Card.tsx', 'src/styles/**', 'public/catalog/**', 'public/brand/categories/**', 'public/brand/discovery/**', 'tests/basic-catalog*', 'tests/business*', 'tests/home-life*', 'tests/home-feed*', 'tests/home-shortcuts*', '.github/workflows/home-life-browser.yml']
 permissions:
   contents: read
 jobs:
@@ -37,6 +37,7 @@ jobs:
           python tests/events-browser.py
           python tests/home-life-browser.py
           python tests/stories-preview-browser.py
+          python tests/stories-live-browser.py
           python tests/business-browser.py
           python tests/basic-catalog-browser.py
       - uses: actions/upload-artifact@v4
