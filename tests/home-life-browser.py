@@ -45,8 +45,25 @@ with sync_playwright() as p:
   expect(page.get_by_role('heading',name='Город начинается с нас',exact=True)).to_be_visible()
   expect(page.get_by_role('heading',name='Объявления рядом',exact=True)).to_have_count(0)
   expect(page.get_by_role('heading',name='Куда сходить',exact=True)).to_have_count(0)
+  page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
+  expect(page.get_by_role('heading',name='Новость Енисейск',exact=True)).to_be_visible()
+  tiles=page.locator('.life-collection')
+  expect(tiles).to_have_count(3)
+  assert page.locator('.life-collection h3').all_text_contents()==['На прогулку','Кофе и встречи','История и культура']
+  for index,name in enumerate(['park','coffee','culture']):
+   photo=tiles.nth(index).locator('img')
+   expect(photo).to_have_attribute('src','/brand/discovery/eniseysk-'+name+'.webp')
+   photo.scroll_into_view_if_needed()
+  page.wait_for_function("[...document.querySelectorAll('.life-collection img')].every(img=>img.complete&&img.naturalWidth>0)")
+  expect(page.locator('.life-collection .life-art-label')).to_have_count(0)
+  order=page.locator('.life-content').evaluate("el=>[...el.children].map(node=>node.getAttribute('aria-label')||(node.classList.contains('life-city-row')?'wall':node.classList.contains('life-business')?'business':''))")
+  assert order.index('Открывай город по-новому')<order.index('wall')<order.index('Афиша города')<order.index('Свежие объявления'),order
+  assert order[-1]=='Свежие объявления',order
+  boxes=[tiles.nth(i).bounding_box() for i in range(3)]
+  assert max(box['height'] for box in boxes)-min(box['height'] for box in boxes)<2,boxes
+  assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   assert not errors,errors
   page.screenshot(path=f'qa-screenshots/home-life-{width}-{height}.png',full_page=True)
-  print('PASS',width,'city isolation, links, search, category focus, hero, no overflow, empty city')
+  print('PASS',width,'city isolation, links, search, category focus, hero, local photos, section order, no overflow, empty city')
   context.close()
  browser.close()

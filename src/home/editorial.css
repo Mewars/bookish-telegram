@@ -66,3 +66,7 @@
 .home-editorial .today-holiday a{display:inline-flex;gap:7px;align-items:center;margin-top:12px;color:#edc678;}
 
 .home-editorial .life-events .life-place-image img{object-fit:contain;}
+
+/* Keep the key subjects in the supplied city photos within matching tile frames. */
+.city-home.home-editorial .life-collection-local>img{object-position:center 48%;}
+.city-home.home-editorial .life-collection-culture>img{object-position:center 45%;}
