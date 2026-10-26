@@ -1,4 +1,4 @@
-import {attachExpressionPicker,renderWallBody} from './expressions.js?v=20261026stickers1';
+import {attachExpressionPicker,renderWallBody} from './expressions.js?v=20261026stickers2';
 import {verifyHuman} from '/security/antispam.js?v=20261022spam2';
 import {c as createClient} from './supabase-client.js';
 import {rejectWallPost,loadReviewReasons,saveWallDraft} from './moderation.js?v=20261020a';

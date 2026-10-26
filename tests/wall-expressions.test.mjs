@@ -9,8 +9,8 @@ test('24 unique local stickers exist; the manifest never accepts arbitrary URLs'
  assert.equal(new Set(WALL_STICKERS.map(item=>item.id)).size,24);
  assert.equal(readdirSync(new URL('../host-public/wall/stickers/',import.meta.url)).filter(file=>file.endsWith('.webp')).length,24);
  for(const sticker of WALL_STICKERS){
-  assert.match(sticker.src,/^\/wall\/stickers\/sable-\d{2}\.webp$/);
-  const bytes=readFileSync(new URL('../host-public'+sticker.src,import.meta.url));
+  assert.match(sticker.src,/^\/wall\/stickers\/sable-\d{2}\.webp\?v=20261026b$/);
+  const bytes=readFileSync(new URL('../host-public'+sticker.src.split('?')[0],import.meta.url));
   assert.equal(bytes.toString('ascii',8,12),'WEBP');
   assert.ok(bytes.length<60000);
   assert.equal(parseWallBody(stickerToken(sticker.id))[0].label,sticker.label);
