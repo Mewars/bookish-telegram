@@ -70,6 +70,7 @@ $call($e,'nearby_directory_opt_in',['p_enabled'=>true,'p_city'=>'Город А',
 $call($f,'nearby_directory_opt_in',['p_enabled'=>true,'p_city'=>'Город Б','p_name'=>'Фёдор']);
 $people=$find($d,'Город А');check(count($people)===1&&$people[0]['id']===$e,'Directory must filter cities');
 check(array_keys($people[0])===['id','name','city','relation'],'Directory cannot return coordinates, codes or friend graph');
+check(count($find($d,'Город А','елЕНА'))===1,'Russian names must match regardless of case');
 check($find($d,'Город А','%')===[],'Wildcards must be literal search text');
 $call($d,'nearby_request_person',['p_peer'=>$e,'p_name'=>'Дмитрий']);
 denied(fn()=>$call($e,'nearby_request_person',['p_peer'=>$d,'p_name'=>'Елена']),'42501');

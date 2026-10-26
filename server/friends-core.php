@@ -18,6 +18,9 @@ final class NearbyStore {
         umask(0077);
         $this->db=new PDO('sqlite:'.$directory.'/friends.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
         chmod($directory.'/friends.sqlite',0600);
+        // SQLite NOCASE folds only ASCII. Fold Russian names without requiring mbstring.
+        $fold=array_combine(preg_split('//u','АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ',-1,PREG_SPLIT_NO_EMPTY),preg_split('//u','абвгдеёжзийклмнопрстуфхцчшщъыьэюя',-1,PREG_SPLIT_NO_EMPTY));
+        $this->db->sqliteCreateFunction('ryadom_fold',static fn($value)=>strtolower(strtr((string)$value,$fold)),1,PDO::SQLITE_DETERMINISTIC);
         $this->db->exec('PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000; PRAGMA secure_delete=ON;');
         $this->db->exec('CREATE TABLE IF NOT EXISTS profiles (
           user_id TEXT PRIMARY KEY,display_name TEXT NOT NULL DEFAULT \'Друг\',invite_code TEXT UNIQUE,invite_expires INTEGER,
@@ -117,13 +120,13 @@ final class NearbyStore {
         }
         if($method==='nearby_directory') {
             $city=self::city($p['p_city']??null);$search=$p['p_search']??'';$peer=$p['p_peer']??'';
-            if(!is_string($search)||strlen($search)>160||preg_match('/[\x00-\x1f\x7f]/u',$search))throw new NearbyFailure('22023');
+            if(!is_string($search)||!preg_match('//u',$search)||strlen($search)>160||preg_match('/[\x00-\x1f\x7f]/u',$search))throw new NearbyFailure('22023');
             if($peer!=='')$peer=self::uuid($peer);
             $pattern='%'.str_replace(['\\','%','_'],['\\\\','\\%','\\_'],trim($search)).'%';
             $rows=$this->query("SELECT p.user_id AS id,p.display_name AS name,d.city,f.accepted,f.requester_id
               FROM social_directory d JOIN profiles p ON p.user_id=d.user_id
               LEFT JOIN friendships f ON f.first_id=min(:u,p.user_id) AND f.second_id=max(:u,p.user_id)
-              WHERE d.city=:city AND p.user_id<>:u AND p.display_name LIKE :pattern ESCAPE '\\'
+              WHERE d.city=:city AND p.user_id<>:u AND ryadom_fold(p.display_name) LIKE ryadom_fold(:pattern) ESCAPE '\\'
               AND (:peer='' OR p.user_id=:peer)
               AND NOT EXISTS(SELECT 1 FROM blocks b WHERE (b.blocker_id=:u AND b.blocked_id=p.user_id) OR (b.blocker_id=p.user_id AND b.blocked_id=:u))
               ORDER BY p.display_name,p.user_id LIMIT 25",['u'=>$u,'city'=>$city,'pattern'=>$pattern,'peer'=>$peer])->fetchAll();
