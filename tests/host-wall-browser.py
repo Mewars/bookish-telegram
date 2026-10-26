@@ -3,6 +3,7 @@ from playwright.sync_api import sync_playwright, expect
 
 SDK=Path('tests/host-wall-sdk.mjs').read_text()
 URL='http://127.0.0.1:4176/wall/'
+Path('qa-wall-stickers').mkdir(exist_ok=True)
 with sync_playwright() as p:
  browser=p.chromium.launch()
  for width in (390,1440):
@@ -37,6 +38,8 @@ with sync_playwright() as p:
   assert '😊' in page.get_by_label('Текст записи',exact=True).input_value()
   page.get_by_role('button',name='Стикеры',exact=True).click()
   expect(page.locator('.wall-sticker-grid button')).to_have_count(24)
+  assert page.locator('.wall-sticker-grid img').evaluate_all('(images)=>Promise.all(images.map(async image=>{image.loading="eager";await image.decode();return image.naturalWidth===256})).then(results=>results.every(Boolean))')
+  page.locator('.wall-expression-panel').screenshot(path=f'qa-wall-stickers/picker-{width}.png')
   page.get_by_role('button',name='Стикер: Кофе рядом?',exact=True).click()
   expect(page.locator('.wall-expression-preview img')).to_have_attribute('alt','Кофе рядом?')
   assert '[ryadom-sticker:' not in page.get_by_label('Текст записи',exact=True).input_value()
@@ -64,6 +67,7 @@ with sync_playwright() as p:
   expect(page.locator('.comment-text img.wall-sticker')).to_have_attribute('alt','Обнимаю!')
   assert '[ryadom-sticker:' not in page.locator('.comment-text').inner_text()
   assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+  page.locator('.post').screenshot(path=f'qa-wall-stickers/post-comment-{width}.png')
   page.locator('#city').select_option('Лесосибирск')
   expect(page.get_by_role('heading',name='Исправленная запись жителя')).to_have_count(0)
   # A new resident post is sent to review rather than appearing in the feed.

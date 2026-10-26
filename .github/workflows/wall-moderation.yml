@@ -39,3 +39,11 @@ jobs:
             sleep 1
           done
           python tests/host-wall-browser.py
+      - name: Save sticker picker and moderation screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wall-stickers-browser-qa
+          path: qa-wall-stickers/
+          retention-days: 14
+          if-no-files-found: warn

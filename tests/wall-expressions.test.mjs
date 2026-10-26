@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {URL} from 'node:url';
 import {readFileSync,readdirSync} from 'node:fs';
 import {WALL_STICKERS,EMOJI_GROUPS,parseWallBody,stickerToken,wallBodyPreview} from '../host-public/wall/expressions.js';
 
