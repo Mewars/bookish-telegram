@@ -221,6 +221,11 @@ with sync_playwright() as p:
   assert code==200
   rpc(role,'review_classified_with_reason',{'p_listing_id':listing,'p_approve':True,'p_reason':None},200 if should_review else 403)
  passed('global owner can moderate own posts and listings in a future city; city editor cannot approve own submissions')
- for context in contexts:context.close()
+ # Finish intercepted API responses before disposing the context's request client.
+ # Stop page timers first; removing the route must never allow external requests.
+ for context in contexts:
+  for page in context.pages:page.goto('about:blank',wait_until='commit')
+  context.unroute_all(behavior='wait')
+  context.close()
  browser.close()
 (args.workdir/'host-moderation-report.json').write_text(json.dumps({'backend':'disposable local Auth/PostgreSQL/PostgREST/Storage','checks':results,'cloud_writes':False},ensure_ascii=False,indent=2))
