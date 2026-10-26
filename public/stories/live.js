@@ -13,13 +13,13 @@ export async function prepareStoryPhoto(file){
  }finally{image.close();}
 }
 export function mountCityStories(root,{city,client:sb}){
- let alive=true,available=true,generation=0,user=null,staff=false,owner=false,items=[],interval=null,observer=null;
+ let alive=true,available=true,dirty=false,generation=0,user=null,staff=false,owner=false,items=[],interval=null,observer=null;
  const dialogs=new Set(),urls=new Map(),pending=new Map();root.replaceChildren();root.hidden=true;root.style.display='none';
- const call=async(name,args)=>{const r=await sb.rpc(name,args);if(r.error)throw r.error;return r.data;};
+ const call=async(name,args)=>{const r=await sb.rpc(name,args);if(r.error)throw r.error;dirty=true;return r.data;};
  const note=el('p','rs-note');note.setAttribute('role','status');
  function message(t,error=false){if(!alive)return;note.textContent=t;note.classList.toggle('rs-error',error);}
  function modal(label){const d=el('dialog','rs-dialog');d.setAttribute('aria-label',label);dialogs.add(d);document.body.append(d);const previous=document.activeElement;
-  d.addEventListener('close',()=>{dialogs.delete(d);d.remove();if(previous?.isConnected)previous.focus();if(!dialogs.size&&alive)void refresh();},{once:true});d.showModal();return d;
+  d.addEventListener('close',()=>{dialogs.delete(d);d.remove();if(previous?.isConnected)previous.focus();if(!dialogs.size&&alive&&dirty){dirty=false;void refresh();}},{once:true});d.showModal();return d;
  }
  function disposeMedia(){observer?.disconnect();observer=null;for(const url of urls.values())URL.revokeObjectURL(url);urls.clear();pending.clear();}
  async function photo(story){
@@ -113,8 +113,8 @@ export function mountCityStories(root,{city,client:sb}){
    root.hidden=false;root.style.removeProperty('display');root.replaceChildren(heading,actions,strip,note);if(!items.length&&!note.textContent)note.textContent='Поделитесь моментом из жизни города. Истории появляются после модерации.';
   }catch{if(alive&&stamp===generation){root.replaceChildren();root.hidden=true;root.style.display='none';}}
  }
- function reset(){available=true;generation++;for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();root.hidden=true;root.style.display='none';user=null;staff=false;owner=false;note.textContent='';setTimeout(()=>void refresh(),0);}
+ function reset(){available=true;dirty=false;generation++;for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();root.hidden=true;root.style.display='none';user=null;staff=false;owner=false;note.textContent='';setTimeout(()=>void refresh(),0);}
  const auth=sb.auth.onAuthStateChange(event=>{if(['SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(event))reset();});
- const focus=()=>void refresh();window.addEventListener('focus',focus);interval=setInterval(()=>{if(!document.hidden)void refresh();},30000);void refresh();
+ const focus=()=>{if(!root.contains(document.activeElement))void refresh();};window.addEventListener('focus',focus);interval=setInterval(()=>{if(!document.hidden&&!root.contains(document.activeElement))void refresh();},30000);void refresh();
  return ()=>{alive=false;generation++;clearInterval(interval);window.removeEventListener('focus',focus);auth.data.subscription.unsubscribe();for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();root.hidden=false;root.style.removeProperty('display');};
 }
