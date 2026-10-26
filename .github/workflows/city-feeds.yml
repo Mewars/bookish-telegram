@@ -1,0 +1,74 @@
+name: City afisha and Russian holidays
+on:
+  push:
+    branches: [mewars]
+    paths: ['scripts/update-city-feeds.py', 'data/afisha-sources.json', '.github/workflows/city-feeds.yml']
+  pull_request:
+    branches: [mewars]
+    paths: ['scripts/update-city-feeds.py', 'data/afisha-sources.json', 'tests/city-feeds*', '.github/workflows/city-feeds.yml']
+  schedule:
+    - cron: '23 */3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: city-afisha-feeds
+  cancel-in-progress: false
+jobs:
+  parser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python tests/city-feeds.py
+  collect:
+    needs: parser
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/mewars'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SPRINTHOST_HOST: ${{ secrets.SPRINTHOST_SSH_HOST }}
+      SPRINTHOST_USER: ${{ secrets.SPRINTHOST_SSH_USER }}
+      SPRINTHOST_SSH_PRIVATE_KEY: ${{ secrets.SPRINTHOST_SSH_PRIVATE_KEY }}
+      SPRINTHOST_SSH_KNOWN_HOSTS: ${{ secrets.SPRINTHOST_SSH_KNOWN_HOSTS }}
+      SPRINTHOST_SSH_PORT: ${{ vars.SPRINTHOST_SSH_PORT || '22' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect only Russian calendar and event posters
+        env:
+          VK_AFISHA_ACCESS_TOKEN: ${{ secrets.VK_AFISHA_ACCESS_TOKEN }}
+        run: python scripts/update-city-feeds.py --out collected
+      - name: Set up existing SSH identity
+        run: |
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SPRINTHOST_SSH_PRIVATE_KEY" > "$HOME/.ssh/feeds-key"
+          printf '%s\n' "$SPRINTHOST_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/feeds-key" "$HOME/.ssh/known_hosts"
+      - name: Publish collected static feeds without touching the database
+        run: |
+          set -euo pipefail
+          ssh -i "$HOME/.ssh/feeds-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" 'bash -s' <<'CHECK'
+          set -euo pipefail
+          root=/home/mewars/domains/ryadomcity.ru/public_html
+          test "$(cd "$root" && pwd -P)" = "$root"
+          test -f "$root/index.html"
+          umask 077
+          backup="/home/mewars/.ryadom-feed-backups/$(date +%Y%m%d%H%M%S)"
+          mkdir -p "$backup"
+          if test -d "$root/feeds"; then cp -R "$root/feeds" "$backup/"; fi
+          CHECK
+          rsync -az --delay-updates --no-perms --no-owner --no-group -e "ssh -i $HOME/.ssh/feeds-key -p $SPRINTHOST_SSH_PORT -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes" \
+            collected/public/ "$SPRINTHOST_USER@$SPRINTHOST_HOST:/home/mewars/domains/ryadomcity.ru/public_html/"
+      - name: Preserve collection report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-feed-collection-report
+          path: collected/collection-report.json
+          retention-days: 14

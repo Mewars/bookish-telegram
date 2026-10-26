@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
@@ -61,7 +62,7 @@ with sync_playwright() as p:
   expect(page.locator('.post-body img.wall-sticker')).to_have_attribute('alt','Кофе рядом?')
   # The host keeps its existing stylesheet, including a flex comment form.
   page.add_style_tag(content='.comment-form{display:flex;gap:8px}.comment-form>.btn{padding:10px 16px}')
-  page.get_by_role('button',name='💬 Комментарии',exact=True).click()
+  page.get_by_role('button',name=re.compile('^💬 Комментарии')).click()
   page.locator('.comment-form .wall-expression-picker summary').click()
   page.get_by_role('button',name='Стикеры',exact=True).click()
   assert page.locator('.comment-form>button').bounding_box()['height']<70
@@ -72,6 +73,9 @@ with sync_playwright() as p:
   assert '[ryadom-sticker:' not in page.locator('.comment-text').inner_text()
   assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
   page.locator('.post').screenshot(path=f'qa-wall-stickers/post-comment-{width}.png')
+  page.reload()
+  expect(page.get_by_role('region',name='Последние комментарии').locator('img.wall-sticker')).to_have_attribute('alt','Обнимаю!')
+  expect(page.get_by_role('button',name=re.compile('^💬 Комментарии'))).to_contain_text('1')
   page.locator('#city').select_option('Лесосибирск')
   expect(page.get_by_role('heading',name='Исправленная запись жителя')).to_have_count(0)
   # A new resident post is sent to review rather than appearing in the feed.

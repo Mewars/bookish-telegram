@@ -25,7 +25,7 @@ test('city-scoped pages do not reuse Eniseysk photos or SEO text', async () => {
   assert.match(editorial,/if \(city !== 'Енисейск'\) return \[\]/);
   assert.match(home,/city-cover--no-image/);
   assert.match(home,/cityProfile\?\.summary/);
-  assert.match(app,/const cityItems = currentEvents\(filterByCity\(photoCatalog.items, city\),eventNow\)/);
+  assert.match(app,/const cityItems = currentEvents\(filterByCity\(mergeImportedEvents\(photoCatalog.items,liveEvents\), city\),eventNow\)/);
   assert.match(app,/key=\{city\}/);
   assert.match(footer,/Административная панель/);
 });
