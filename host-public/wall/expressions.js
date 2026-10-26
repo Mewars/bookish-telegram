@@ -1,6 +1,6 @@
 // Own artwork, shared by the public wall and React previews. No user-supplied URLs.
 const captions=['Привет!','Кофе рядом?','Вот это мороз!','Спасибо!','Класс!','Пока!','Обнимаю!','Ахаха!','Спокойной ночи','Доброе утро!','Красота рядом','Пойдём гулять!','Жду автобус','Ура!','Помогу!','Как дела?','Ого!','Извини','Договорились!','Я рядом','Чай будешь?','Дома лучше','За покупками','Открывай город!'];
-export const WALL_STICKERS=Object.freeze(captions.map((label,index)=>Object.freeze({id:`sable-${String(index+1).padStart(2,'0')}`,label,src:`/wall/stickers/sable-${String(index+1).padStart(2,'0')}.webp`})));
+export const WALL_STICKERS=Object.freeze(captions.map((label,index)=>Object.freeze({id:`sable-${String(index+1).padStart(2,'0')}`,label,src:`/wall/stickers/sable-${String(index+1).padStart(2,'0')}.webp?v=20261026b`})));
 export const EMOJI_GROUPS=Object.freeze([
  ['Улыбки','😀 😃 😄 😁 😆 😅 😂 🤣 😊 🙂 🙃 😉 😍 🥰 😘 😎 🤩 🥳 😋 😛 😜 🤪 🤗 🤭 🤫 🤔 😐 😑 🙄 😏 😔 😞 😢 😭 😤 😡 🤯 😳 🥺 😱 😴 🤤 🤒 🤕 🥶 🥵 🤠 🫠 🫶'],
  ['Жесты и чувства','👍 👎 👏 🙌 🤝 👋 ✌️ 🤞 💪 🙏 🫂 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 💕 💞 💓 💖 💘 💝 💯 ✅ ❌ ❗ ❓ 💬 💭 🎉 🎊 ✨ 🔥'],
