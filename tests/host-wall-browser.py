@@ -59,10 +59,14 @@ with sync_playwright() as p:
   page.goto(URL)
   expect(page.get_by_role('heading',name='Исправленная запись жителя')).to_be_visible()
   expect(page.locator('.post-body img.wall-sticker')).to_have_attribute('alt','Кофе рядом?')
+  # The host keeps its existing stylesheet, including a flex comment form.
+  page.add_style_tag(content='.comment-form{display:flex;gap:8px}.comment-form>.btn{padding:10px 16px}')
   page.get_by_role('button',name='💬 Комментарии',exact=True).click()
   page.locator('.comment-form .wall-expression-picker summary').click()
   page.get_by_role('button',name='Стикеры',exact=True).click()
+  assert page.locator('.comment-form>button').bounding_box()['height']<70
   page.get_by_role('button',name='Стикер: Обнимаю!',exact=True).click()
+  assert page.locator('.comment-form>button').bounding_box()['height']<70
   page.locator('.comment-form').get_by_role('button',name='Отправить',exact=True).click()
   expect(page.locator('.comment-text img.wall-sticker')).to_have_attribute('alt','Обнимаю!')
   assert '[ryadom-sticker:' not in page.locator('.comment-text').inner_text()

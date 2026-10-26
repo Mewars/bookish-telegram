@@ -19,6 +19,7 @@
 .wall-sticker-grid .wall-sticker{width:100%;margin:0}
 .wall-expressions button:hover{background:#e4ecf2;color:#102b43}.wall-expressions :focus-visible{outline:3px solid #b78620;outline-offset:2px}
 .wall-expression-status{margin:6px 0 0;font-size:13px}.wall-expression-status:empty{display:none}
+.comment-form>.btn{align-self:flex-start;flex-shrink:0}
 .wall-comment-editor{flex:1;min-width:0}.wall-comment-editor textarea{box-sizing:border-box;width:100%}
 .wall-comment-editor .wall-expression-panel{width:100%}
 @media(max-width:480px){.wall-sticker-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.wall-expression-panel{padding:8px}.wall-expression-preview .wall-sticker{width:110px}}
