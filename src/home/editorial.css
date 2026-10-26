@@ -70,3 +70,5 @@
 /* Keep the key subjects in the supplied city photos within matching tile frames. */
 .city-home.home-editorial .life-collection-local>img{object-position:center 48%;}
 .city-home.home-editorial .life-collection-culture>img{object-position:center 45%;}
+.city-home.home-editorial .life-content>.life-section:first-child{margin-top:0;}
+.city-home.home-editorial .life-section+.life-city-row{margin-top:clamp(32px,4vw,46px);}

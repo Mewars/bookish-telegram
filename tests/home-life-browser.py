@@ -60,6 +60,7 @@ with sync_playwright() as p:
   assert order.index('Открывай город по-новому')<order.index('wall')<order.index('Афиша города')<order.index('Свежие объявления'),order
   assert order[-1]=='Свежие объявления',order
   boxes=[tiles.nth(i).bounding_box() for i in range(3)]
+  assert page.locator('.life-city-row').bounding_box()['y']-max(box['y']+box['height'] for box in boxes)>=31
   assert max(box['height'] for box in boxes)-min(box['height'] for box in boxes)<2,boxes
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   assert not errors,errors
