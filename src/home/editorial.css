@@ -72,3 +72,12 @@
 .city-home.home-editorial .life-collection-culture>img{object-position:center 45%;}
 .city-home.home-editorial .life-content>.life-section:first-child{margin-top:0;}
 .city-home.home-editorial .life-section+.life-city-row{margin-top:clamp(32px,4vw,46px);}
+
+.home-editorial .official-news-source{color:var(--life-muted);font-size:12px;margin:-6px 0 16px;}
+.home-editorial .official-news-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+.home-editorial .official-news-item{display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid #a6c1d22b;border-radius:14px;background:#0b2332;}
+.home-editorial .official-news-item time{color:var(--life-muted);font-size:12px;}
+.home-editorial .official-news-item h3{font-size:17px;line-height:1.5;overflow-wrap:anywhere;}
+.home-editorial .official-news-item>span{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:4px;color:var(--life-gold);font-size:12px;}
+.home-editorial .official-news-empty{color:var(--life-muted);font-size:14px;line-height:1.6;}
+@media(max-width:699px){.home-editorial .official-news-grid{grid-template-columns:1fr;gap:10px;}.home-editorial .official-news-item{padding:16px;gap:8px;}}

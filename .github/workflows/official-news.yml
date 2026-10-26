@@ -1,0 +1,46 @@
+name: Update official city news
+on:
+  push:
+    branches: [mewars]
+    paths: ['scripts/update-official-news.php', '.github/workflows/official-news.yml']
+  pull_request:
+    branches: [mewars]
+    paths: ['scripts/update-official-news.php', 'tests/official-news.php', '.github/workflows/official-news.yml']
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: official-city-news
+  cancel-in-progress: false
+jobs:
+  parser:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: php -l scripts/update-official-news.php && php tests/official-news.php
+  update:
+    timeout-minutes: 5
+    needs: parser
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/mewars'
+    runs-on: ubuntu-latest
+    env:
+      SPRINTHOST_HOST: ${{ secrets.SPRINTHOST_SSH_HOST }}
+      SPRINTHOST_USER: ${{ secrets.SPRINTHOST_SSH_USER }}
+      SPRINTHOST_SSH_PRIVATE_KEY: ${{ secrets.SPRINTHOST_SSH_PRIVATE_KEY }}
+      SPRINTHOST_SSH_KNOWN_HOSTS: ${{ secrets.SPRINTHOST_SSH_KNOWN_HOSTS }}
+      SPRINTHOST_SSH_PORT: ${{ vars.SPRINTHOST_SSH_PORT || '22' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up existing SSH identity
+        run: |
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SPRINTHOST_SSH_PRIVATE_KEY" > "$HOME/.ssh/news-key"
+          printf '%s\n' "$SPRINTHOST_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/news-key" "$HOME/.ssh/known_hosts"
+      - name: Refresh public headlines from the hosting server
+        run: |
+          ssh -i "$HOME/.ssh/news-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" php < scripts/update-official-news.php
