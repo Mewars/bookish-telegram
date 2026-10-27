@@ -29,7 +29,7 @@ export function mountCityStories(root,{city,client:sb}){
   if(urls.has(storyPath(story)))return urls.get(storyPath(story));
   if(pending.has(storyPath(story)))return pending.get(storyPath(story));
   const stamp=generation;
-  const request=(async()=>{const r=await sb.storage.from('ryadom-stories').download(storyPath(story),{cacheNonce:String(Date.now())},{cache:'no-store'});if(r.error)throw r.error;if(!alive||stamp!==generation)throw Error('Stale story');const u=URL.createObjectURL(r.data);urls.set(storyPath(story),u);while(urls.size>2){const oldest=urls.keys().next().value;URL.revokeObjectURL(urls.get(oldest));urls.delete(oldest);}return u;})();
+  const request=(async()=>{const r=await sb.storage.from('ryadom-stories').download(storyPath(story),{},{cache:'no-store'});if(r.error)throw r.error;if(!alive||stamp!==generation)throw Error('Stale story');const u=URL.createObjectURL(r.data);urls.set(storyPath(story),u);while(urls.size>2){const oldest=urls.keys().next().value;URL.revokeObjectURL(urls.get(oldest));urls.delete(oldest);}return u;})();
   pending.set(storyPath(story),request);try{return await request;}finally{if(pending.get(storyPath(story))===request)pending.delete(storyPath(story));}
  }
  function avatar(authorId,label){const wrap=el('span','rs-profile-avatar');wrap.setAttribute('aria-hidden','true');wrap.textContent=(label?.[0]||'Ж').toUpperCase();const raw=avatars.get(authorId);if(raw){try{const u=new URL(raw);if(u.protocol==='https:'&&!u.username&&!u.password){const image=el('img');image.alt='';image.referrerPolicy='no-referrer';image.loading='lazy';image.src=u.href;image.onerror=()=>image.remove();wrap.append(image);}}catch{}}return wrap;}

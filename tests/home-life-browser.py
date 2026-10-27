@@ -86,6 +86,7 @@ with sync_playwright() as p:
   print('PASS',width,'city isolation, links, search, category focus, hero, local photos, section order, no overflow, empty city')
   if width==390 and height==844:
    page.goto(ORIGIN+'/tests/home-life-fixture.html?stories=preview#/home?city=Город А')
+   page.get_by_role('region',name='Пример историй жителей',exact=True).scroll_into_view_if_needed()
    expect(page.get_by_role('heading',name='Истории рядом',exact=True)).to_be_visible()
    expect(page.locator('.rs-card')).to_have_count(4)
    assert page.locator('.rs-preview').bounding_box()['y']<page.locator('.life-city-row').bounding_box()['y']
