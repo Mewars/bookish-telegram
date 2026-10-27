@@ -22,12 +22,12 @@ export async function withDeadline<T>(operation: (signal: AbortSignal) => Promis
     ]);
   } finally { clearTimeout(timer); }
 }
-export async function readPublished(client: SupabaseClient | null): Promise<OrganizationRow[]> {
+export async function readPublished(client: SupabaseClient | null, city?: string): Promise<OrganizationRow[]> {
   const db = clientOrThrow(client);
   const rows: OrganizationRow[] = [];
   // PostgREST defaults to 1000 rows. Fetch bounded pages, rather than silently losing records.
   for (let offset = 0; offset < 10000; offset += 500) {
-    const { data, error } = await withDeadline(signal => db.from('organizations').select(PUBLIC_ORGANIZATION_COLUMNS).eq('status', 'published').order('id').range(offset, offset + 499).abortSignal(signal));
+    const { data, error } = await withDeadline(signal => {let query=db.from('organizations').select(PUBLIC_ORGANIZATION_COLUMNS).eq('status', 'published');if(city)query=query.eq('city',city);return query.order('id').range(offset, offset + 499).abortSignal(signal);});
     if (error || !Array.isArray(data)) throw new Error(CONNECTION_MESSAGE);
     rows.push(...data as OrganizationRow[]);
     if (data.length < 500) return rows;

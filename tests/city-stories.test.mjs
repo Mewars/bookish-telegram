@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-for(const version of [1,2,3])test(`v${version} real SQL: moderation, city isolation, expiry, quota and private Storage operation guards`,async()=>{
+for(const version of [1,2,3,4])test(`v${version} real SQL: moderation, city isolation, expiry, quota and private Storage operation guards`,async()=>{
  const db=new PGlite();const owner='11111111-1111-4111-8111-111111111111',editor='22222222-2222-4222-8222-222222222222',a='33333333-3333-4333-8333-333333333333',b='44444444-4444-4444-8444-444444444444';
  const as=async(role,id='')=>{await db.exec('RESET SESSION AUTHORIZATION');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('SET SESSION AUTHORIZATION '+role);};
  const rpc=(sql,args=[])=>db.query(sql,args);
@@ -17,7 +17,7 @@ for(const version of [1,2,3])test(`v${version} real SQL: moderation, city isolat
   CREATE FUNCTION storage.allow_only_operation(expected text) RETURNS boolean LANGUAGE sql STABLE AS $$SELECT replace(current_setting('storage.operation',true),'storage.','')=replace(expected,'storage.','')$$;
   GRANT USAGE ON SCHEMA public,auth,storage TO anon,authenticated;
   CREATE TABLE auth.users(id uuid PRIMARY KEY);INSERT INTO auth.users VALUES('${owner}'),('${editor}'),('${a}'),('${b}');
-  CREATE TABLE public.profiles(id uuid PRIMARY KEY,display_name text);INSERT INTO public.profiles VALUES('${a}','Житель А'),('${b}','Житель Б');
+  CREATE TABLE public.profiles(id uuid PRIMARY KEY,display_name text,avatar_url text);INSERT INTO public.profiles VALUES('${a}','Житель А','https://example.invalid/a.webp'),('${b}','Житель Б',null);
   CREATE TABLE public.city_directory(name text PRIMARY KEY,active boolean);INSERT INTO public.city_directory VALUES('Город А',true),('Город Б',true),('Закрытый',false);
   CREATE TABLE public.city_admin_access(user_id uuid,city text,role text,active boolean);
   INSERT INTO public.city_admin_access VALUES('${owner}','*','owner',true),('${editor}','Город А','editor',true);
@@ -34,6 +34,24 @@ for(const version of [1,2,3])test(`v${version} real SQL: moderation, city isolat
   await db.exec(await readFile('docs/sql/city-stories-v1.sql','utf8'));
   if(version>=2)await db.exec(await readFile('docs/sql/city-stories-video-v2.sql','utf8'));
 
+  if(version===4){
+   await db.exec(await readFile('docs/sql/city-stories-direct-v3.sql','utf8'));
+   await db.exec(await readFile('docs/sql/city-stories-members-v4.sql','utf8'));
+   await as('anon');await assert.rejects(rpc("select * from public.list_city_stories('Город А')"),/permission denied/);assert.equal((await rpc('select * from public.city_stories')).rows.length,0);await assert.rejects(rpc('select * from public.city_story_profiles($1)',[[a,b]]),/permission denied/);
+   await as('authenticated',a);const video=(await rpc("select * from public.create_city_video_story('Город А','video/mp4')")).rows[0];const path=video.object_path.replace(/\.webp$/,'.mp4');
+   await as('postgres');await rpc("insert into storage.objects(bucket_id,name,metadata) values('ryadom-stories',$1,'{\"mimetype\":\"video/mp4\",\"size\":2000000}')",[path]);
+   await as('authenticated',a);await submit(video.id);
+   await as('anon');assert.equal((await download(path)).length,0);
+   await as('authenticated',b);assert.equal((await download(path)).length,1);
+   await db.query("select set_config('storage.operation','object.get_authenticated_info',false)");assert.equal((await rpc("select name from storage.objects where bucket_id='ryadom-stories' and name=$1",[path])).rows.length,1);
+   for(const operation of ['object.list','object.sign','object.get_public','object.head_authenticated_info']){await db.query("select set_config('storage.operation',$1,false)",[operation]);assert.equal((await rpc("select name from storage.objects where bucket_id='ryadom-stories' and name=$1",[path])).rows.length,0);}
+   let profiles=(await rpc('select * from public.city_story_profiles($1)',[[a,b,owner]])).rows;assert.equal(profiles.length,2);assert.equal(profiles.find(p=>p.id===a).avatar_url,'https://example.invalid/a.webp');
+   await as('postgres');await rpc("update public.city_stories set published_at=now()-interval '25 hours',expires_at=now()-interval '1 hour' where id=$1",[video.id]);
+   await as('authenticated',b);assert.equal((await download(path)).length,0);assert.equal((await rpc("select * from public.list_city_stories('Город А')")).rows.length,0);assert.equal((await rpc('select * from public.city_story_profiles($1)',[[a]])).rows.length,0);
+   await as('authenticated',a);assert.equal((await rpc('select * from public.city_stories where id=$1',[video.id])).rows.length,1);assert.equal((await download(path)).length,1);await rpc('select public.remove_city_story($1)',[video.id]);assert.equal((await rpc("select * from public.city_stories where author_id=$1 and status='published'",[a])).rows.length,0);
+   await db.query("select set_config('storage.operation','object.delete_many',false)");assert.equal((await rpc("delete from storage.objects where bucket_id='ryadom-stories' and name=$1 returning name",[path])).rows.length,1);
+   return;
+  }
   if(version===3){
    await db.exec(await readFile('docs/sql/city-stories-direct-v3.sql','utf8'));
    await as('anon');assert.equal((await rpc('select public.city_story_capabilities() as caps')).rows[0].caps.immediate_publish,true);

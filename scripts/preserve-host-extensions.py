@@ -32,7 +32,7 @@ class Extensions(HTMLParser):
             return
         self.paths.add(url.path)
         if tag == 'script' and url.path == '/ui/site-shell.js':
-            attrs['src'] = '/ui/site-shell.js?v=20261021music2'
+            attrs['src'] = '/ui/site-shell.js?v=20261027stories4'
         if tag == 'script' and url.path in ('/categories/panel.js','/admin/catalog.js'):
             attrs['src'] = url.path+('?v=20261025basic1' if url.path == '/categories/panel.js' else '?v=20261022admin1')
             attrs['type'] = 'module'

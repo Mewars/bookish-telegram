@@ -101,3 +101,9 @@ test('status labels and private SEO screens do not invent verification or canoni
   const { pageMetadata } = await import('../src/seo/metadata.ts');
   for (const section of ['add-organization','my-applications','organization-consent']) assert.equal(pageMetadata(section).canonical, undefined);
 });
+
+ test('public organization pages filter each database page by the chosen city',async()=>{
+ const {client,calls}=fakeClient([{data:Array.from({length:500},()=>row),error:null},{data:[row],error:null}]);
+ await readPublished(client,'Будущий город');
+ assert.equal(calls.filter(call=>call[0]==='eq'&&call[1]==='city'&&call[2]==='Будущий город').length,2);
+ });

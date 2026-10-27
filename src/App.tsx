@@ -94,7 +94,7 @@ export default function App() {
  const [cityPickerOpen, setCityPickerOpen] = useState(false);
  const [friendsIntroOpen, setFriendsIntroOpen] = useState(false);
  const openFriendsIntro = () => { if (friendsEnabled) setFriendsIntroOpen(true); };
- const organizationCatalog = useOrganizations(organizationsEnabled || adminEnabled);
+ const organizationCatalog = useOrganizations(organizationsEnabled || adminEnabled,city);
  const photoCatalog = useDirectoryPhotos(organizationCatalog.items, photoEnabled);
  const eventNow=useEventClock();
  const liveEvents=useImportedEvents(eventNow);
