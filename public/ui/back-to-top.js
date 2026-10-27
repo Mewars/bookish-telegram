@@ -9,7 +9,7 @@
  const update = () => { button.hidden = window.scrollY < 400; };
  button.addEventListener('click', () => {
    window.scrollTo({top:0, behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
-   const heading = document.querySelector('main h1,main');
+   const heading = document.querySelector('main h1') || document.querySelector('main');
    if (heading) { if (!heading.hasAttribute('tabindex')) { heading.setAttribute('tabindex','-1'); heading.addEventListener('blur',()=>heading.removeAttribute('tabindex'),{once:true}); } heading.focus({preventScroll:true}); }
  });
  document.body.append(button); window.addEventListener('scroll',update,{passive:true}); update();
