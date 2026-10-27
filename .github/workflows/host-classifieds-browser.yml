@@ -28,7 +28,7 @@ jobs:
       - name: Test real live-host module with synthetic accounts only
         run: |
           cp -R public/catalog host-public/catalog
-          cp -R public/ui host-public/ui
+          cp -R public/ui/. host-public/ui/
           cp -R public/security host-public/security
           python -m http.server 4176 --bind 127.0.0.1 --directory host-public > "$RUNNER_TEMP/host-test.log" 2>&1 &
           host_pid=$!
