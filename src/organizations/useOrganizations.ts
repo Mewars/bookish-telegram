@@ -6,20 +6,20 @@ import { mergePublished } from './model';
 import type { OrganizationRow } from './model';
 import { readPublished } from './repository';
 
-export function useOrganizations(enabled: boolean) {
+export function useOrganizations(enabled: boolean, city: string) {
   const [remote, setRemote] = useState<OrganizationRow[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'fallback'>(enabled ? 'loading' : 'ready');
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!enabled) return;
     let active = true;
-    readPublished(supabase).then(rows => {
+    readPublished(supabase,city).then(rows => {
       if (active) { setRemote(rows); setStatus('ready'); }
     }).catch(() => {
       if (active) { setRemote([]); setStatus('fallback'); }
     });
     return () => { active = false; };
-  }, [enabled, attempt]);
+  }, [enabled, attempt, city]);
   useEffect(() => {
     if (!enabled) return;
     const onChange = () => { setStatus('loading'); setAttempt(value => value + 1); };
@@ -29,7 +29,7 @@ export function useOrganizations(enabled: boolean) {
   // Once the seeded database is available it becomes authoritative:
   // archived local seed cards must not reappear in the browser.
   const items = enabled && status === 'ready'
-    ? mergePublished(catalog, remote, cityImage, true)
-    : catalog;
+    ? mergePublished(catalog.filter(item=>item.city===city), remote.filter(item=>item.city===city), cityImage, true)
+    : catalog.filter(item=>item.city===city);
   return { items:items.map(item=>item.kind==='events'?item:{...item,website:undefined,vkUrl:undefined}), status, retry: () => { setStatus('loading'); setAttempt(value => value + 1); } };
 }

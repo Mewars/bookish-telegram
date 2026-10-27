@@ -136,7 +136,7 @@
         if(homePath(a.href)){
           event.preventDefault();event.stopImmediatePropagation();closeSection();
           const target=new URL(a.href,location.origin);
-          if(target.hash)location.hash=target.hash;
+          if(target.hash)location.hash=target.hash;window.scrollTo({top:0,left:0,behavior:'instant'});
         }
       },true);
     }catch(e){console.warn('RYADOM section frame navigation:',e)}
@@ -148,7 +148,7 @@
     document.removeEventListener('keydown',onEscape,true);
     if(beforeFocus instanceof HTMLElement && beforeFocus.isConnected)beforeFocus.focus({preventScroll:true});
   }
-  function onEscape(event){if(event.key==='Escape'){event.preventDefault();closeSection()}}
+  function onEscape(event){if(event.key==='Escape'){if(frame?.contentDocument?.querySelector('dialog[open]'))return;event.preventDefault();closeSection()}}
   function openSection(path){
     const dest=allowedPath(path);
     if(!dest) return false;
@@ -159,7 +159,7 @@
     overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
     overlay.setAttribute('aria-label','Городской раздел РЯДОМ');
     frame=document.createElement('iframe');frame.className='ryadom-shell-iframe';
-    frame.title='Раздел РЯДОМ';frame.src=framePath(dest);
+    frame.title='Раздел РЯДОМ';frame.allow='camera; microphone';frame.src=framePath(dest);
     frame.addEventListener('load',injectFrameSupport);
     overlay.append(frame);
     document.body.append(overlay);document.body.style.overflow='hidden';
@@ -177,8 +177,9 @@
   window.ryadomOpenSection=openSection;
   window.addEventListener('message',event=>{
     if(event.origin!==location.origin || !event.data || event.data.type!=='RYADOM_SHELL_NAVIGATE')return;
+    if(!frame||event.source!==frame.contentWindow)return;
     const path=event.data.path;
     if(allowedPath(path))openSection(path);
-    else if(homePath(path))closeSection();
+    else if(homePath(path)){closeSection();const target=new URL(path,location.origin);if(target.hash)location.hash=target.hash;window.scrollTo({top:0,left:0,behavior:'instant'});}
   });
 })();

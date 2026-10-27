@@ -55,6 +55,10 @@ with sync_playwright() as p:
   page.evaluate("window.ryadomOpenSection('/wall/')")
   dialog=page.get_by_role('dialog',name='Городской раздел РЯДОМ')
   expect(dialog).to_be_visible()
+  assert dialog.locator('iframe').get_attribute('allow')=='camera; microphone'
+  page.frame_locator('.ryadom-shell-iframe').locator('body').evaluate("b=>{const d=document.createElement('dialog');d.innerHTML='<button>Тест истории</button>';b.append(d);d.showModal();}")
+  page.frame_locator('.ryadom-shell-iframe').get_by_role('button',name='Тест истории',exact=True).press('Escape')
+  expect(dialog).to_be_visible()
   expect(dialog.get_by_text('Плеер остаётся активным',exact=False)).to_have_count(0)
   expect(dialog.get_by_role('button',name='Открыть плеер',exact=True)).to_have_count(0)
   expect(dialog.locator('.ryadom-shell-bar')).to_have_count(0)
@@ -63,6 +67,7 @@ with sync_playwright() as p:
   assert page.evaluate('window.__testAudio[0].paused') is False
   page.frame_locator('.ryadom-shell-iframe').get_by_role('link',name='Главная',exact=True).click()
   expect(dialog).to_have_count(0)
+  assert page.evaluate('scrollY')<5
   page.get_by_role('button',name='Открыть Музыку рядом',exact=True).click()
   expect(page.locator('#music-player')).to_be_visible()
   expect(page.get_by_role('slider',name='Громкость музыки')).to_have_count(0)

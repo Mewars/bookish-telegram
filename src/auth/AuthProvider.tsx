@@ -11,6 +11,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'loading', user: null, profile: null, identities: [] });
   const [error, setError] = useState<string | null>(null);
   const sessionRevision = useRef(0);
+  const loadedUser = useRef<string|null>(null);
   useEffect(() => {
     let active = true;
     const invalidateSession = () => { sessionRevision.current++; };
@@ -18,7 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const applySession = async (session: Session | null, revision: number) => {
       if (!active || revision !== sessionRevision.current) return;
       setError(null);
-      if (!session) { setState(guest); return; }
+      if (!session) { loadedUser.current=null;setState(guest); return; }
       const user = { id: session.user.id };
       setState(previous => previous.status === 'authenticated' && previous.user.id === user.id
         ? previous : { status: 'authenticated', user, profile: null, identities: [] });
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } catch { account.error = account.error ?? 'Не удалось заполнить профиль из VK ID. Ваш аккаунт остаётся доступным.'; }
         }
         if (!active || revision !== sessionRevision.current) return;
+        loadedUser.current=user.id;
         setState({ status: 'authenticated', user, profile: account.profile, identities: account.identities });
         setError(account.error);
       } catch {
@@ -49,7 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return () => { active = false; clearTimeout(timer); invalidateSession(); };
     }
     // Callback stays synchronous: Supabase calls inside it can deadlock the auth lock.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if((event==='TOKEN_REFRESHED'||event==='SIGNED_IN')&&session?.user.id===loadedUser.current)return;
       const revision = ++sessionRevision.current;
       const timer = setTimeout(() => { timers.delete(timer); void applySession(session, revision); }, 0);
       timers.add(timer);
