@@ -78,6 +78,11 @@ with sync_playwright() as p:
  for module,table,rpc_name in [('classifieds','classifieds',None),('wall','community_posts','community_submit_post')]:
   title='Проверка повторной отправки '+module
   resident.goto(origin+'/host/'+module+'/')
+  if module=='wall':
+   try:expect(resident.locator('#tabs')).not_to_have_attribute('inert','',timeout=15000)
+   except Exception:
+    print('WALL BOOT DIAGNOSTIC:',resident.locator('#flash').inner_text(),resident.locator('#content').inner_text(),flush=True)
+    raise
   if module=='classifieds':
    resident.get_by_role('button',name='Подать объявление',exact=True).click()
    resident.locator('input[name="title"]').fill(title)
