@@ -90,7 +90,7 @@ with sync_playwright() as p:
         expect(page.locator('[name="category"]')).to_have_value('Подработка')
         page.get_by_role('navigation',name='Навигация страницы',exact=True).get_by_role('button',name='← Назад',exact=True).click()
         expect(page.get_by_role('heading',name='Тестовое задание: перенести мебель',exact=True)).to_be_visible()
-        page.get_by_role('button',name='Халтура рядом',exact=True).click()
+        page.get_by_role('button',name='Все объявления',exact=True).click()
         expect(page.get_by_role('heading',name='Объявления рядом',exact=True)).to_be_visible()
         expect(page.get_by_role('heading',name='Тестовое задание: перенести мебель',exact=True)).to_have_count(1)
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
