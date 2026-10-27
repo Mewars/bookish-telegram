@@ -267,6 +267,7 @@ with sync_playwright() as p:
     expect(bob.locator(".friends-status")).to_contain_text("Вас видно до")
     # An explicit click may request public map tiles, never before consent.
     assert not tile_requests
+    expect(bob.locator(".friends-map-card")).to_have_count(1)
     bob.get_by_role("button", name="Загрузить карту OpenStreetMap", exact=True).click()
     if allow_tiles:
         try:

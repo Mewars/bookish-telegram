@@ -6,6 +6,7 @@ import type { NearbyState } from './repository';
 import { FriendsMap } from './FriendsMap';
 import { createHostNearbyClient } from './hostClient';
 import './friends.css';
+import {ResidentDirectory} from './ResidentDirectory';
 const nearby=import.meta.env.VITE_FRIENDS_BACKEND==='host'?createHostNearbyClient(supabase,`${import.meta.env.BASE_URL}api/friends.php`):supabase;
 
 const message=(reason:unknown)=>reason instanceof Error?reason.message:'Не удалось выполнить действие.';
@@ -98,7 +99,7 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
         <small>Точное положение округляется ещё до отправки. Друзья видят область примерно в один километр; публичного поиска людей нет.</small>
         {import.meta.env.VITE_FRIENDS_BACKEND==='host'&&<details><summary>Условия показа местоположения</summary><p>Нажимая «Показать друзьям на один час», вы разрешаете оператору «Рядом» обработать одну приблизительную точку и показать её всем подтверждённым друзьям. Скрыть точку и отозвать согласие можно кнопкой «Стать невидимым».</p><p>Имена для друзей, приглашения, связи и точки хранятся на сервере сайта у Спринтхост в России. Геопозиция не передаётся в Supabase. Показ прекращается через час; очистка истёкших точек запускается каждые пять минут. Подробности — в <a href="#/privacy">политике обработки данных</a>.</p></details>}
       </section>
-      {data&&<FriendsMap key={city} city={city} data={data} now={now}/>}
+      {data&&<FriendsMap key={`map-${city}`} city={city} data={data} now={now}/>}
       <section className="friends-card"><h2>Пригласить знакомого</h2><label>Как вас увидят друзья<input maxLength={40} minLength={2} placeholder="Имя или псевдоним" value={name} onChange={event=>setName(event.target.value)}/></label>
         <button disabled={busy||displayName.length<2||displayName.length>40} onClick={()=>void run(()=>nearbyCall(nearby,'nearby_invite',{p_name:displayName}),'Новый код готов. Предыдущий код больше не действует.')}>Создать личный код</button>
         {data?.self.invite_code&&<div className="friends-invite"><label>Ваш код друга<input aria-label="Ваш код друга" readOnly value={data.self.invite_code} onFocus={event=>event.target.select()}/></label>
@@ -108,7 +109,8 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
           <button disabled={busy||!/^[a-fA-F0-9]{32}$/.test(code.trim())||displayName.length<2||displayName.length>40}>Отправить заявку</button>
         </form>
       </section>
-      {pending.length>0&&<section className="friends-card"><h2>Приглашения</h2>{pending.map(friend=><article className="friend-row" key={friend.id}><h3>{friend.name}</h3><p>{friend.incoming?'Хочет добавить вас в друзья':'Ожидает подтверждения'}</p>
+      {data?.directory_enabled&&<ResidentDirectory key={`directory-${city}`} client={nearby} city={city} name={displayName} publicCity={data.self.public_city??null} refresh={refresh} openRequests={()=>document.getElementById('friends-incoming')?.scrollIntoView({behavior:'smooth'})}/>}
+      {pending.length>0&&<section id="friends-incoming" className="friends-card"><h2>Приглашения</h2>{pending.map(friend=><article className="friend-row" key={friend.id}><h3>{friend.name}</h3><p>{friend.incoming?'Хочет добавить вас в друзья':'Ожидает подтверждения'}</p>
         {friend.incoming?<><button disabled={busy} onClick={()=>void run(()=>nearbyCall(nearby,'nearby_respond',{p_peer:friend.id,p_accept:true}))}>Принять</button><button className="friends-secondary" disabled={busy} onClick={()=>void run(()=>nearbyCall(nearby,'nearby_respond',{p_peer:friend.id,p_accept:false}))}>Отклонить</button></>:<button className="friends-secondary" disabled={busy} onClick={()=>void run(()=>nearbyCall(nearby,'nearby_disconnect',{p_peer:friend.id,p_block:false}))}>Отменить заявку</button>}
       </article>)}</section>}
       <section className="friends-card"><div className="friends-list-heading"><h2>Мои друзья · {friends.length}</h2><button className="friends-secondary" disabled={busy} onClick={()=>void run(async()=>{})}>Обновить</button></div>
