@@ -47,7 +47,7 @@ with sync_playwright() as p:
         restored()
         page.locator('.card-open').first.click()
         expect(page.locator('.guide-detail')).to_be_visible()
-        page.locator('.detail-breadcrumb .back-link').click()
+        page.get_by_role('navigation',name='Навигация страницы',exact=True).get_by_role('button',name='← Назад',exact=True).click()
         restored()
         page.reload()
         restored()

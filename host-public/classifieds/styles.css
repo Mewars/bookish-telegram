@@ -27,3 +27,7 @@
 .card-rejection-reason{margin:10px 0 0;color:#ffcfba;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
 
 .listing-pin-badge {display:inline-flex;align-items:center;margin-bottom:9px;padding:5px 9px;border-radius:12px;background:#ffd166;color:#142230;font-size:12px;font-weight:800;}
+
+.haltura-mode .intro{padding-bottom:8px}.haltura-mode #content>.panel{border-color:#e4bd7055}.haltura-actions{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}.haltura-mode .card{border-top:2px solid #e4bd70}.tabs [data-haltura][aria-pressed=true]{background:#e4bd70;color:#10202c}.haltura-mode #content h2{line-height:1.25}
+
+.haltura-mode .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr))}.haltura-mode .card-main h2{font-size:20px}.haltura-mode .card-img{height:145px}.haltura-mode .haltura-actions{margin:12px 0}.haltura-mode .panel>.muted{font-size:14px}.haltura-mode .panel>.overline{font-size:11px}

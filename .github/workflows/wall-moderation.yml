@@ -31,6 +31,7 @@ jobs:
       - name: Test actual wall module with synthetic accounts
         run: |
           cp -R public/security host-public/security
+          cp -R public/ui/. host-public/ui/
           python -m http.server 4176 --bind 127.0.0.1 --directory host-public > "$RUNNER_TEMP/wall-test.log" 2>&1 &
           host_pid=$!
           trap 'kill "$host_pid" 2>/dev/null || true' EXIT
