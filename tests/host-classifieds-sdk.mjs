@@ -3,6 +3,7 @@ const user={id:'seller',email:'synthetic@example.invalid'};
 const row={id:'listing',city:'Енисейск',author_id:user.id,title:'Тестовый стол',
   description:'Полное описание синтетического объявления',deal_type:'sell',category:'Для дома',
   district:'Центр',price_rub:100,status:window.hostInitialStatus||'draft',created_at:new Date().toISOString()};
+if(window.hostGigTest){row.deal_type='gig_offer';row.category='Подработка';row.title='Тестовое задание: перенести мебель';row.status='published';}
 window.hostCalls=[];
 const threadId='11111111-1111-4111-8111-111111111111';
 const messageId=i=>String(i).padStart(8,'0')+'-1111-4111-8111-111111111111';
