@@ -1,5 +1,6 @@
 /* global location, sessionStorage */
 import assert from 'node:assert/strict';
+import {URL} from 'node:url';
 import {test} from 'node:test';
 const origin='https://ryadomcity.ru';
 const values=new Map();
