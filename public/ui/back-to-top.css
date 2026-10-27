@@ -3,3 +3,6 @@
 #ryadom-back-to-top:focus-visible{outline:3px solid #edc57b;outline-offset:4px}
 body:has(dialog[open]) #ryadom-back-to-top{display:none}
 @media(min-width:900px){#ryadom-back-to-top{right:28px;bottom:28px}}
+
+/* Standalone modules keep the existing fixed notification bell at the right edge. */
+body:not(:has(.app-shell)) #ryadom-back-to-top{right:84px}

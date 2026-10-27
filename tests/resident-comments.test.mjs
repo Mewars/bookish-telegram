@@ -13,7 +13,7 @@ test('real comment deletion, same-post replies, city moderation and deletion-pro
  CREATE TABLE auth.users(id uuid PRIMARY KEY);CREATE TABLE public.community_posts(id uuid PRIMARY KEY,city text,status text);
  CREATE TABLE public.city_admin_access(user_id uuid,city text,role text,active boolean);
  CREATE TABLE public.community_wall_settings(city text PRIMARY KEY,comments_mode text);
- CREATE TABLE public.community_comments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),post_id uuid REFERENCES public.community_posts(id) ON DELETE CASCADE,author_id uuid REFERENCES auth.users(id),status text,body text,created_at timestamptz DEFAULT now());
+ CREATE TABLE public.community_comments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),post_id uuid REFERENCES public.community_posts(id) ON DELETE CASCADE,author_id uuid REFERENCES auth.users(id),status text,body text CONSTRAINT community_comments_body_check CHECK(length(btrim(body)) BETWEEN 2 AND 2000),created_at timestamptz DEFAULT now());
  ALTER TABLE public.community_comments ENABLE ROW LEVEL SECURITY;GRANT SELECT(id,post_id,author_id,status,body,created_at) ON public.community_comments TO anon,authenticated;CREATE POLICY visible ON public.community_comments FOR SELECT USING(status='published');
  INSERT INTO auth.users VALUES ${ids.map(id=>`('${id}')`).join(',')};
  INSERT INTO public.community_posts VALUES('${postA}','Город А','published'),('${postB}','Город Б','published');
@@ -35,5 +35,11 @@ test('real comment deletion, same-post replies, city moderation and deletion-pro
   await as('authenticated',editor);await assert.rejects(remove(pending),/Not authorized/);
   await as('authenticated',owner);await remove(pending);
   await as('postgres');assert.equal((await db.query('select count(*)::int as n from public.community_comments where id in ($1,$2)',[child,pending])).rows[0].n,0);
+  await as('postgres');await db.exec(await readFile('docs/sql/resident-comment-single-emoji-v2.sql','utf8'));
+  await as('anon');await assert.rejects(create(postA,'👍'),/permission denied/);
+  await as('authenticated',b);for(const body of ['', ' ', '\n', 'а'.repeat(2001)])await assert.rejects(create(postA,body),/Invalid comment/);
+  const emoji=await create(postA,'👍'),letter=await create(postA,'Я');
+  const response=(await db.query('select public.reply_community_comment($1,$2,$3) as id',[postA,emoji,'🔥'])).rows[0].id;
+  await as('anon');assert.deepEqual((await db.query('select body from public.community_comments where id in ($1,$2,$3) order by body',[emoji,letter,response])).rows.map(r=>r.body).sort(),['👍','Я','🔥'].sort());
  }finally{await db.close();}
 });
