@@ -24,6 +24,8 @@ with sync_playwright() as p:
   page.get_by_role('heading',name='Информация',exact=True).scroll_into_view_if_needed();expect(top).to_be_visible()
   assert top.bounding_box()['y']+top.bounding_box()['height']<height-85 if width<900 else True
   page.screenshot(path=f'qa-screenshots/footer-and-top-{width}.png',full_page=False)
+  a=top.bounding_box();b=page.get_by_role('button',name='Тестовые уведомления',exact=True).bounding_box()
+  assert a['x']+a['width']<=b['x'] or b['x']+b['width']<=a['x'] or a['y']+a['height']<=b['y'] or b['y']+b['height']<=a['y'],(a,b)
   top.click();page.wait_for_function('scrollY<5');expect(top).not_to_be_visible()
   expect(page.get_by_role('heading',name='Тест страницы',exact=True)).to_be_focused()
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
