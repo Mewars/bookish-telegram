@@ -16,7 +16,7 @@ export function mountStoryEditor(root,{videoEnabled=false,onChange=()=>{}}={}){
  status.className='rs-note';status.setAttribute('role','status');cameraPreview.playsInline=true;cameraPreview.muted=true;cameraPreview.autoplay=true;cameraPreview.hidden=true;cameraPreview.className='rs-camera-preview';
  const cameraOpen=button('Открыть камеру',async()=>{
   if(!videoEnabled||busy||camera)return;
-  try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Камера недоступна. Можно выбрать готовый файл.');status.textContent='Ожидаем разрешение камеры…';const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:720},height:{ideal:1280}},audio:true});if(!alive){stream.getTracks().forEach(t=>t.stop());return;}camera=stream;cameraPreview.srcObject=stream;cameraPreview.hidden=false;await cameraPreview.play();record.disabled=false;status.textContent='Камера включена. Нажмите «Начать запись». Максимум 30 секунд.';}catch(e){stopCamera();status.textContent=e.name==='NotAllowedError'?'Доступ к камере или микрофону не разрешён. Выберите готовое видео.':e.message;}
+  try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Камера недоступна. Можно выбрать готовый файл.');status.textContent='Ожидаем разрешение камеры…';const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:720},height:{ideal:1280}},audio:true});if(!alive){stream.getTracks().forEach(t=>t.stop());return;}camera=stream;cameraPreview.srcObject=stream;cameraPreview.hidden=false;await cameraPreview.play();record.disabled=false;status.textContent='Камера включена. Нажмите «Начать запись». Максимум 30 секунд.';}catch(e){stopCamera();status.textContent=e.name==='NotAllowedError'?'Доступ к камере или микрофону не разрешён. Выберите готовое видео.':e.message;}
  });
  const record=button('Начать запись',()=>{
   if(!camera||busy)return;
@@ -73,5 +73,5 @@ export function mountStoryEditor(root,{videoEnabled=false,onChange=()=>{}}={}){
  }
  const visibility=()=>{if(document.hidden&&camera){stopCamera();status.textContent='Камера выключена, поскольку страница скрыта. Можно открыть её снова.';}};document.addEventListener('visibilitychange',visibility);
  function dispose(){document.removeEventListener('visibilitychange',visibility);alive=false;revision++;abortExport?.();stopCamera();clearInterval(renderTimer);source?.pause?.();if(source?.tagName==='VIDEO'){source.removeAttribute('src');source.load();}bitmap?.close();for(const u of objectURLs)URL.revokeObjectURL(u);objectURLs.clear();}
- draw();return {prepare,dispose,lock};
+ draw();return {prepare,dispose,lock,openCamera:()=>cameraOpen.click()};
 }

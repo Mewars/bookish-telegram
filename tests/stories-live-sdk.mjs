@@ -8,10 +8,10 @@ export function setActor(value){actor=value;for(const f of listeners)f(value==='
 export const client={
  auth:{async getSession(){return {data:{session:user()?{user:user()}:null}};},onAuthStateChange(f){listeners.add(f);return {data:{subscription:{unsubscribe(){listeners.delete(f);}}}};}},
  async rpc(name,p={}){let data=null,error=null;const s=rows.find(s=>s.id===p.p_id);try{
-  if(name==='city_story_capabilities')data={video:new URLSearchParams(window.location.search).has('video')};
+  if(name==='city_story_capabilities')data={video:new URLSearchParams(window.location.search).has('video'),immediate_publish:new URLSearchParams(window.location.search).has('instant')};
   else if(name==='list_city_stories')data=rows.filter(s=>s.city===p.p_city&&s.status==='published'&&Date.parse(s.expires_at)>Date.now());
   else if(name==='create_city_story'||name==='create_city_video_story'){if(!user())throw Error('Story not authorized');const id=crypto.randomUUID();data={id,city:p.p_city,author_id:user().id,author_label:actor==='resident'?'Житель':'Команда',status:'draft',mime_type:p.p_mime||'image/webp',caption:'',object_path:user().id+'/'+id+'.webp',created_at:new Date().toISOString()};rows.push(data);}
-  else if(name==='submit_city_story'){if(!s||s.author_id!==user()?.id)throw Error('Story not authorized');s.caption=p.p_caption;s.status='pending';}
+  else if(name==='submit_city_story'){if(!s||s.author_id!==user()?.id)throw Error('Story not authorized');s.caption=p.p_caption;s.status=new URLSearchParams(window.location.search).has('instant')?'published':'pending';if(s.status==='published'){s.published_at=new Date().toISOString();s.expires_at=new Date(Date.now()+86400000).toISOString();}}
   else if(name==='review_city_story'){if(!s||!staff(s))throw Error('Story not authorized');if(p.p_action==='approve'){s.status='published';s.published_at=new Date().toISOString();s.expires_at=new Date(Date.now()+86400000).toISOString();}else if(p.p_action==='reject'){s.status='rejected';s.review_reason=p.p_reason;}else s.status='removed';}
   else if(name==='remove_city_story'){if(!s||s.author_id!==user()?.id)throw Error('Story not authorized');s.status='removed';}
   else if(name==='report_city_story')window.storyReports=(window.storyReports||0)+1;

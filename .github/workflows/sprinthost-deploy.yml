@@ -136,3 +136,13 @@ jobs:
             "$SPRINTHOST_USER@$SPRINTHOST_HOST" \
             "grep -Fq '$GITHUB_SHA' '$DEPLOY_ROOT/version.json' && test -s '$DEPLOY_ROOT/index.html'"
           echo "Ryadom deployed successfully: $GITHUB_SHA"
+      - name: Back up private SQLite and update the reviewed friends module
+        id: friends_update
+        shell: bash
+        run: bash scripts/update-friends-social.sh
+      - name: Read-only diagnostics if the private module could not be verified
+        if: failure() && steps.friends_update.outcome == 'failure'
+        shell: bash
+        run: |
+          ssh -i "$HOME/.ssh/ryadom-deploy-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" php < scripts/probe-friends-host.php

@@ -1,0 +1,5 @@
+#ryadom-back-to-top{position:fixed;right:20px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:90;display:grid;place-items:center;width:46px;height:46px;padding:0;border:1px solid #edc57b;border-radius:50%;background:#102b3b;color:#edc57b;box-shadow:0 4px 18px #0005;cursor:pointer}
+#ryadom-back-to-top[hidden]{display:none}
+#ryadom-back-to-top:focus-visible{outline:3px solid #edc57b;outline-offset:4px}
+body:has(dialog[open]) #ryadom-back-to-top{display:none}
+@media(min-width:900px){#ryadom-back-to-top{right:28px;bottom:28px}}

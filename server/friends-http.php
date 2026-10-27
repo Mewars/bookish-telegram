@@ -42,7 +42,7 @@ function nearby_http(): void {
         $raw=file_get_contents('php://input',false,null,0,8193);
         if($raw===false||strlen($raw)>8192)throw new NearbyFailure('too_large',413);
         $body=json_decode($raw,true,16,JSON_THROW_ON_ERROR);
-        $methods=['nearby_state','nearby_invite','nearby_request','nearby_respond','nearby_disconnect','nearby_start_sharing','nearby_share','nearby_hide','nearby_forget'];
+        $methods=['nearby_directory_opt_in','nearby_directory','nearby_request_person','nearby_state','nearby_invite','nearby_request','nearby_respond','nearby_disconnect','nearby_start_sharing','nearby_share','nearby_hide','nearby_forget'];
         if(!is_array($body)||!in_array($body['name']??null,$methods,true)||!is_array($body['params']??[]))throw new NearbyFailure('22023');
         $header=$_SERVER['HTTP_AUTHORIZATION']??$_SERVER['REDIRECT_HTTP_AUTHORIZATION']??'';
         if($header===''&&function_exists('getallheaders'))foreach(getallheaders() as $name=>$value)if(strcasecmp($name,'Authorization')===0)$header=$value;

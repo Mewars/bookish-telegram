@@ -2,7 +2,7 @@ name: Friends Server Capabilities (read only)
 on:
   pull_request:
     branches: [mewars]
-    paths: ['scripts/probe-friends-host.php', 'server/**', 'public/api/friends.php', 'scripts/install-friends-host.sh', 'tests/friends-host.php', '.github/workflows/friends-host.yml']
+    paths: ['scripts/probe-friends-host.php', 'scripts/upgrade-friends-social.php', 'scripts/update-friends-social.sh', 'tests/friends-upgrade.php', 'server/**', 'public/api/friends.php', 'scripts/install-friends-host.sh', 'tests/friends-host.php', '.github/workflows/friends-host.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,6 +19,9 @@ jobs:
           php -l server/friends-cleanup.php
           php -l server/friends-cron.php
           php tests/friends-host.php
+          php -l scripts/upgrade-friends-social.php
+          php tests/friends-upgrade.php
+          bash -n scripts/update-friends-social.sh
           bash -n scripts/install-friends-host.sh
   probe:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/mewars'

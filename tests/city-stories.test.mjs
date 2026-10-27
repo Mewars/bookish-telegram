@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-for(const version of [1,2])test(`v${version} real SQL: moderation, city isolation, expiry, quota and private Storage operation guards`,async()=>{
+for(const version of [1,2,3])test(`v${version} real SQL: moderation, city isolation, expiry, quota and private Storage operation guards`,async()=>{
  const db=new PGlite();const owner='11111111-1111-4111-8111-111111111111',editor='22222222-2222-4222-8222-222222222222',a='33333333-3333-4333-8333-333333333333',b='44444444-4444-4444-8444-444444444444';
  const as=async(role,id='')=>{await db.exec('RESET SESSION AUTHORIZATION');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('SET SESSION AUTHORIZATION '+role);};
  const rpc=(sql,args=[])=>db.query(sql,args);
@@ -32,8 +32,27 @@ for(const version of [1,2])test(`v${version} real SQL: moderation, city isolatio
   CREATE POLICY unrelated_broad_update ON storage.objects FOR UPDATE TO anon,authenticated USING(true) WITH CHECK(true);
   CREATE POLICY unrelated_broad_delete ON storage.objects FOR DELETE TO anon,authenticated USING(true);`);
   await db.exec(await readFile('docs/sql/city-stories-v1.sql','utf8'));
-  if(version===2)await db.exec(await readFile('docs/sql/city-stories-video-v2.sql','utf8'));
+  if(version>=2)await db.exec(await readFile('docs/sql/city-stories-video-v2.sql','utf8'));
 
+  if(version===3){
+   await db.exec(await readFile('docs/sql/city-stories-direct-v3.sql','utf8'));
+   await as('anon');assert.equal((await rpc('select public.city_story_capabilities() as caps')).rows[0].caps.immediate_publish,true);
+   await assert.rejects(submit('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),/permission denied/);
+   await as('authenticated',a);const story=await create('Город А');await assert.rejects(submit(story.id),/photo missing/);await object(story);
+   await as('authenticated',b);await assert.rejects(submit(story.id),/not authorized/);
+   await as('authenticated',a);await submit(story.id);const original=(await rpc('select * from public.city_stories where id=$1',[story.id])).rows[0];assert.equal(original.status,'published');
+   await submit(story.id);assert.equal((await rpc('select published_at from public.city_stories where id=$1',[story.id])).rows[0].published_at.getTime(),original.published_at.getTime());
+   await assert.rejects(submit(story.id,'Другая подпись'),/not authorized/);
+   await as('anon');assert.equal((await rpc("select * from public.list_city_stories('Город А')")).rows.length,1);assert.equal((await rpc("select * from public.list_city_stories('Город Б')")).rows.length,0);assert.equal((await download(story.object_path)).length,1);
+   await as('authenticated',a);const video=(await rpc("select * from public.create_city_video_story('Город Б','video/mp4')")).rows[0];const path=video.object_path.replace(/\.webp$/,'.mp4');
+   await as('postgres');await rpc("insert into storage.objects(bucket_id,name,metadata) values('ryadom-stories',$1,'{\"mimetype\":\"video/mp4\",\"size\":3000000}')",[path]);
+   await as('authenticated',a);await submit(video.id);await as('anon');assert.equal((await download(path)).length,1);
+   await as('authenticated',editor);await assert.rejects(review(video.id,'hide'),/not authorized/);await review(story.id,'hide');
+   await as('authenticated',a);await assert.rejects(submit(story.id),/not authorized/);assert.equal((await rpc('select status from public.city_stories where id=$1',[story.id])).rows[0].status,'removed');
+   for(let i=0;i<3;i++)await create('Город А');await assert.rejects(create('Город А'),/daily limit/);
+   await as('postgres');await rpc("update public.city_stories set published_at=now()-interval '25 hours',expires_at=now()-interval '1 hour' where id=$1",[video.id]);await as('anon');assert.equal((await download(path)).length,0);
+   return;
+  }
   if(version===2){
    await as('anon');await assert.rejects(rpc("select public.create_city_video_story('Город А','video/mp4')"),/permission denied/);
    await as('authenticated',a);await assert.rejects(rpc("select public.create_city_video_story('Город А','image/svg+xml')"),/not authorized/);
