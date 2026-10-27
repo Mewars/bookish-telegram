@@ -8,7 +8,7 @@ export function setActor(value){actor=value;for(const f of listeners)f(value==='
 export const client={
  auth:{async getSession(){return {data:{session:user()?{user:user()}:null}};},onAuthStateChange(f){listeners.add(f);return {data:{subscription:{unsubscribe(){listeners.delete(f);}}}};}},
  async rpc(name,p={}){let data=null,error=null;const s=rows.find(s=>s.id===p.p_id);try{
-  if(name==='city_story_profiles')data=(p.p_ids||[]).map(id=>({id,avatar_url:window.location.origin+'/brand/discovery/park.webp',display_name:'Житель'}));
+  if(name==='city_story_profiles')data=(p.p_ids||[]).map(id=>({id,avatar_url:'https://avatars.example.invalid/resident.webp',display_name:'Житель'}));
   else if(name==='city_story_capabilities')data={video:new URLSearchParams(window.location.search).has('video'),immediate_publish:new URLSearchParams(window.location.search).has('instant')};
   else if(name==='list_city_stories')data=rows.filter(s=>s.city===p.p_city&&s.status==='published'&&Date.parse(s.expires_at)>Date.now());
   else if(name==='create_city_story'||name==='create_city_video_story'){if(!user())throw Error('Story not authorized');const id=crypto.randomUUID();data={id,city:p.p_city,author_id:user().id,author_label:actor==='resident'?'Житель':'Команда',status:'draft',mime_type:p.p_mime||'image/webp',caption:'',object_path:user().id+'/'+id+'.webp',created_at:new Date().toISOString()};rows.push(data);}

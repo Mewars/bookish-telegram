@@ -136,7 +136,7 @@
         if(homePath(a.href)){
           event.preventDefault();event.stopImmediatePropagation();closeSection();
           const target=new URL(a.href,location.origin);
-          if(target.hash)location.hash=target.hash;
+          if(target.hash)location.hash=target.hash;window.scrollTo({top:0,left:0,behavior:'instant'});
         }
       },true);
     }catch(e){console.warn('RYADOM section frame navigation:',e)}
@@ -180,6 +180,6 @@
     if(!frame||event.source!==frame.contentWindow)return;
     const path=event.data.path;
     if(allowedPath(path))openSection(path);
-    else if(homePath(path)){closeSection();const target=new URL(path,location.origin);if(target.hash)location.hash=target.hash;}
+    else if(homePath(path)){closeSection();const target=new URL(path,location.origin);if(target.hash)location.hash=target.hash;window.scrollTo({top:0,left:0,behavior:'instant'});}
   });
 })();

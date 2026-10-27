@@ -7,7 +7,7 @@ with sync_playwright() as p:
  browser=p.chromium.launch()
  for width,height in [(390,844),(1440,900)]:
   context=browser.new_context(viewport={'width':width,'height':height},locale='ru-RU',reduced_motion='reduce')
-  context.route('**/*',lambda r:r.continue_() if r.request.url.startswith(ORIGIN+'/') else r.abort())
+  context.route('**/*',lambda r:r.fulfill(path='public/brand/discovery/park.webp') if r.request.url=='https://avatars.example.invalid/resident.webp' else r.continue_() if r.request.url.startswith(ORIGIN+'/') else r.abort())
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto(ORIGIN+'/tests/stories-live-fixture.html?instant=1')
   expect(page.get_by_role('button',name='Войти, чтобы смотреть истории',exact=True)).to_be_visible()

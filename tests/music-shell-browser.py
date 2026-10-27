@@ -67,6 +67,7 @@ with sync_playwright() as p:
   assert page.evaluate('window.__testAudio[0].paused') is False
   page.frame_locator('.ryadom-shell-iframe').get_by_role('link',name='Главная',exact=True).click()
   expect(dialog).to_have_count(0)
+  assert page.evaluate('scrollY')<5
   page.get_by_role('button',name='Открыть Музыку рядом',exact=True).click()
   expect(page.locator('#music-player')).to_be_visible()
   expect(page.get_by_role('slider',name='Громкость музыки')).to_have_count(0)
