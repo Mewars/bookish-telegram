@@ -9,6 +9,7 @@ test('desktop footer keeps admin access in a discreet utility row without duplic
   assert.match(footer, /className="web-footer-note"[\s\S]*className="footer-admin-link"/);
   assert.match(footer, /onClick=\{\(\) => navigate\('admin'\)\}/);
   assert.match(footer, /Административная панель/);
+  assert.match(footer, /canOpenAdmin && <button/);
   assert.doesNotMatch(footer, /footer-navigation/);
   assert.match(footer, /<LegalLinks\s*\/>/);
   assert.match(footer, /<FooterCooperation showLegal=\{false\}/);

@@ -37,7 +37,11 @@ with sync_playwright() as p:
    assert parse_qs(urlparse(link.get_attribute('href').replace('#/','/')).query).get('city')==['Город А']
   expect(page.get_by_role('link',name='+ Предложить новость',exact=True)).to_be_visible()
   expect(page.get_by_role('link',name='Добавить бесплатно',exact=True)).to_have_count(0)
-  assert page.get_by_role('heading',name='Город сегодня',exact=True).evaluate('(el)=>getComputedStyle(el,"::after").display')=='none'
+  for heading in ['Город сегодня','Куда сходить','Нужное рядом']:
+   assert page.get_by_role('heading',name=heading,exact=True).evaluate('(el)=>getComputedStyle(el,"::after").display')=='none'
+  for shortcut in page.locator('.quick-discovery button').all():
+   assert shortcut.evaluate('(el)=>getComputedStyle(el).backdropFilter')=='none'
+   assert shortcut.evaluate('(el)=>getComputedStyle(el).backgroundColor')=='rgba(0, 0, 0, 0)'
   page.get_by_role('button',name='Сегодня',exact=True).click()
   expect(page.get_by_role('heading',name='Тестовый российский праздник',exact=True)).to_be_visible()
   page.get_by_role('button',name='Сбросить',exact=True).click()
