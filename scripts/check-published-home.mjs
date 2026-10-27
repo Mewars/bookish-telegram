@@ -100,32 +100,28 @@ try {
       // Check the actual deployed footer, not just the source or release hash.
       const footer = page.locator('.web-footer');
       const adminLink = footer.locator('.footer-admin-link');
-      await adminLink.waitFor({ state: 'visible', timeout: 10000 });
-      assert.equal(await adminLink.count(), 1, 'Expected exactly one footer admin entry');
-      assert.equal(await footer.locator('.footer-legal').getByText('Административная панель').count(), 0,
-        'Old oversized admin entry still appears beneath legal links');
       assert.equal(await footer.locator('.footer-navigation').count(), 0, 'Duplicate footer navigation returned');
-      const adminPlacement = await adminLink.evaluate(element => {
-        const parent = element.closest('.web-footer-note');
-        const bounds = element.getBoundingClientRect();
-        const fontSize = Number.parseFloat(getComputedStyle(element).fontSize);
-        const noteBounds = parent?.getBoundingClientRect();
-        return {
-          inUtilityRow: !!parent,
-          fontSize,
-          insideUtilityRow: !!noteBounds && bounds.top >= noteBounds.top - 1 && bounds.bottom <= noteBounds.bottom + 1,
-          rightAligned: !!noteBounds && noteBounds.right - bounds.right < 30,
-          noWrap: getComputedStyle(element).whiteSpace === 'nowrap',
-        };
-      });
-      assert(adminPlacement.inUtilityRow && adminPlacement.insideUtilityRow,
-        `Admin entry is outside footer utility row: ${JSON.stringify(adminPlacement)}`);
-      assert(adminPlacement.fontSize <= 12, 'Admin entry is too large');
-      assert(adminPlacement.noWrap, 'Admin entry wraps into multiple lines');
-      if (scenario.name === 'desktop-1440') assert(adminPlacement.rightAligned, 'Desktop admin entry is not right-aligned');
-      result.checks.push('Admin entry compact and in footer bottom row; old link and duplicate navigation absent');
-      await adminLink.scrollIntoViewIfNeeded();
-      await page.screenshot({ path: `${folder}/${scenario.name}-footer.png`, animations: 'disabled' });
+      // PRs audit the currently published release. Require new behavior only after this release deploys.
+      if (expected) {
+        assert.equal(await adminLink.count(), 0, 'Guest must not see the administrative entry');
+        for (const name of ['Город сегодня','Куда сходить','Нужное рядом']) {
+          assert.equal(await page.getByRole('heading',{name,exact:true}).evaluate(el=>getComputedStyle(el,'::after').display),'none',`Unexpected heading decoration: ${name}`);
+        }
+        for (const button of await page.locator('.quick-discovery button').all()) {
+          assert.equal(await button.evaluate(el=>getComputedStyle(el).backdropFilter),'none','Shortcut retains a blurred pill');
+          assert.equal(await button.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)','Shortcut retains a background pill');
+        }
+        await footer.scrollIntoViewIfNeeded();
+        const top=page.getByRole('button',{name:'Наверх',exact:true});
+        await top.waitFor({state:'visible'});
+        await page.screenshot({path:`${folder}/${scenario.name}-footer.png`,animations:'disabled'});
+        await top.click();await page.waitForFunction(()=>window.scrollY<5);
+        assert.equal(await top.isVisible(),false);
+        result.checks.push('Guest admin link absent; heading lines and blurred shortcut pills removed; back-to-top works');
+      } else {
+        await footer.scrollIntoViewIfNeeded();
+        await page.screenshot({path:`${folder}/${scenario.name}-footer.png`,animations:'disabled'});
+      }
 
       const coverBounds = await page.locator('.city-cover').boundingBox();
       const coverBottom = await page.locator('.city-cover').evaluate(el => el.getBoundingClientRect().bottom + window.scrollY);
@@ -212,6 +208,19 @@ try {
       assert.equal(await page.getByRole('button', { name: 'Мои заявки' }).count(), 0,
         'Anonymous visitors must not see organization application management in their profile');
       result.checks.push('Guest profile hides organization applications shortcut');
+      if(expected){
+        await page.goto(`${base}/wall/`,{waitUntil:'domcontentloaded'});
+        await page.locator('#tabs:not([inert])').waitFor({state:'visible',timeout:20000});
+        assert.equal(await page.locator('#adminTab').isVisible(),false,'Guest wall moderation must be hidden');
+        assert(await page.getByRole('textbox',{name:'Написать комментарий',exact:true}).count()>0,'Public posts need a persistent comment composer');
+        assert.equal(await page.getByRole('button',{name:/Удалить (свой комментарий|комментарий жителя)/}).count(),0,'Guest cannot delete comments');
+        const comments=await page.locator('.comment-preview .comment').count();
+        result.checks.push(`Live wall has comment composer, protected controls and ${comments} public comment previews`);
+        await page.locator('footer').scrollIntoViewIfNeeded();
+        await page.getByRole('button',{name:'Наверх',exact:true}).click();await page.waitForFunction(()=>window.scrollY<5);
+        await page.screenshot({path:`${folder}/${scenario.name}-wall.png`,fullPage:true,animations:'disabled'});
+      }
+
     } catch (error) {
       failed = true;
       result.errors.push(error.stack || String(error));
