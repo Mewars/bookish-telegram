@@ -10,6 +10,8 @@ ALTER TABLE public.community_comment_rate_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.community_comment_rate_log FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON public.community_comment_rate_log FROM PUBLIC,anon,authenticated;
 ALTER TABLE public.community_comments ADD COLUMN reply_to uuid REFERENCES public.community_comments(id) ON DELETE SET NULL;
+-- Existing table uses column-level SELECT grants; new public reply metadata needs its own grant.
+GRANT SELECT(reply_to) ON public.community_comments TO anon,authenticated;
 CREATE INDEX community_comments_reply ON public.community_comments(reply_to) WHERE reply_to IS NOT NULL;
 CREATE OR REPLACE FUNCTION public.submit_community_comment(p_post_id uuid,p_body text) RETURNS uuid
  LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$

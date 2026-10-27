@@ -14,7 +14,7 @@ test('real comment deletion, same-post replies, city moderation and deletion-pro
  CREATE TABLE public.city_admin_access(user_id uuid,city text,role text,active boolean);
  CREATE TABLE public.community_wall_settings(city text PRIMARY KEY,comments_mode text);
  CREATE TABLE public.community_comments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),post_id uuid REFERENCES public.community_posts(id) ON DELETE CASCADE,author_id uuid REFERENCES auth.users(id),status text,body text,created_at timestamptz DEFAULT now());
- ALTER TABLE public.community_comments ENABLE ROW LEVEL SECURITY;GRANT SELECT ON public.community_comments TO anon,authenticated;CREATE POLICY visible ON public.community_comments FOR SELECT USING(status='published');
+ ALTER TABLE public.community_comments ENABLE ROW LEVEL SECURITY;GRANT SELECT(id,post_id,author_id,status,body,created_at) ON public.community_comments TO anon,authenticated;CREATE POLICY visible ON public.community_comments FOR SELECT USING(status='published');
  INSERT INTO auth.users VALUES ${ids.map(id=>`('${id}')`).join(',')};
  INSERT INTO public.community_posts VALUES('${postA}','Город А','published'),('${postB}','Город Б','published');
  INSERT INTO public.city_admin_access VALUES('${editor}','Город А','editor',true),('${foreign}','Город Б','editor',true),('${owner}','*','owner',true);
