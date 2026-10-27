@@ -54,7 +54,7 @@ function heading(t){return el('h2','',[t])}
 function safeTime(t){return t?new Date(t).toLocaleString('ru-RU',{dateStyle:'medium',timeStyle:'short'}):''}
 function flash(t,err=false){ui.alert.hidden=false;ui.alert.className='flash'+(err?' error':'');ui.alert.textContent=t;window.scrollTo({top:0,behavior:'smooth'})}
 function hideFlash(){ui.alert.hidden=true;ui.alert.textContent=''}
-function errMsg(e){const msg=String(e?.message||e||'Ошибка подключения');if(msg.includes('Reply unavailable'))return 'Комментарий, на который вы отвечаете, уже недоступен. Отмените ответ и отправьте сообщение снова.';if(msg.includes('Comment unavailable'))return 'Комментарий уже удалён. Обновите обсуждение.';if(msg.includes('Too many comments'))return 'Слишком много комментариев за последний час.';if(msg.includes('Daily post limit'))return 'Лимит: до 10 предложенных записей в день.';if(msg.includes('Not authorized'))return 'Недостаточно прав для действия в этом городе.';return msg}
+function errMsg(e){const msg=String(e?.message||e||'Ошибка подключения');if(msg.includes('Invalid comment'))return 'Введите комментарий: от 1 до 2000 символов.';if(msg.includes('Reply unavailable'))return 'Комментарий, на который вы отвечаете, уже недоступен. Отмените ответ и отправьте сообщение снова.';if(msg.includes('Comment unavailable'))return 'Комментарий уже удалён. Обновите обсуждение.';if(msg.includes('Too many comments'))return 'Слишком много комментариев за последний час.';if(msg.includes('Daily post limit'))return 'Лимит: до 10 предложенных записей в день.';if(msg.includes('Not authorized'))return 'Недостаточно прав для действия в этом городе.';return msg}
 async function act(fn){if(s.busy)return;s.busy=true;try{await fn()}catch(e){flash(errMsg(e),true)}finally{s.busy=false}}
 function authRequired(){if(s.user)return true;flash('Чтобы писать на стене, ставить лайки и комментировать, войдите в аккаунт «РЯДОМ» на главной странице.',true);return false}
 function isStaff(city=s.city){return s.isOwner||s.staff.includes(city)}
@@ -410,12 +410,12 @@ async function commentSection(postId){
 }
 function commentComposer(postId){
  const form=el('form','comment-form');const editor=el('div','wall-comment-editor'),target=el('div','comment-reply-target'),targetText=el('span');target.hidden=true;let reply=null;
- const field=document.createElement('textarea');field.maxLength=2000;field.minLength=2;field.required=true;field.rows=1;field.placeholder='Написать комментарий…';field.setAttribute('aria-label','Написать комментарий');cleanPastedText(field);
+ const field=document.createElement('textarea');field.maxLength=2000;field.minLength=1;field.required=true;field.rows=1;field.placeholder='Написать комментарий…';field.setAttribute('aria-label','Написать комментарий');cleanPastedText(field);
  const resize=()=>{field.style.height='auto';field.style.height=Math.min(180,field.scrollHeight)+'px';};field.addEventListener('input',resize);
  const cancel=btn('Отменить ответ',()=>{reply=null;target.hidden=true;field.focus();},'btn ghost small');target.append(targetText,cancel);
  form._setReply=(comment,name)=>{reply=comment;targetText.textContent='Ответ '+name+': '+wallBodyPreview(comment.body).slice(0,120);target.hidden=false;field.focus();resize();};
  const expressions=attachExpressionPicker(field),send=btn('Отправить',()=>{});send.type='submit';editor.append(target,field,expressions.element);form.append(editor,send);
- form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');const args={p_post_id:postId,p_body:cleanMarkdownPaste(expressions.value().trim())};if(reply)args.p_parent_id=reply.id;await rpc(reply?'reply_community_comment':'submit_community_comment',args);s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});return form;
+ form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');const body=cleanMarkdownPaste(expressions.value().trim());if(!body)throw Error('Комментарий не может быть пустым.');const args={p_post_id:postId,p_body:body};if(reply)args.p_parent_id=reply.id;await rpc(reply?'reply_community_comment':'submit_community_comment',args);s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});return form;
 }
 let clearStoriesPreview=null;
 async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),settings()]);

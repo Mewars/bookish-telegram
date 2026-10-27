@@ -228,7 +228,12 @@ with sync_playwright() as p:
    expect(resident_post.get_by_text('Собственный комментарий для проверки удаления.',exact=True)).to_have_count(0)
    guest.reload()
    expect(guest.get_by_text('Собственный комментарий для проверки удаления.',exact=True)).to_have_count(0)
-   passed('resident writes without expanding comments; only author can remove; deletion disappears for guest')
+   resident_post.get_by_label('Написать комментарий',exact=True).fill('👍')
+   resident_post.get_by_role('button',name='Отправить',exact=True).click()
+   expect(resident_post.locator('.comment-text').filter(has_text='👍')).to_be_visible()
+   guest.reload()
+   expect(guest.locator('.comment-text').filter(has_text='👍')).to_be_visible()
+   passed('resident writes without expanding comments; only author can remove; deletion disappears for guest; single emoji publishes through real Auth')
   if module=='classifieds':
    for role in ['seller','editor','foreign_editor']:
     rpc(role,'owner_pin_classified',{'p_id':first_id,'p_pin':True},403)

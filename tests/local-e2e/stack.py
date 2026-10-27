@@ -303,6 +303,7 @@ for filename in [
     "tests/local-e2e/host-schema/wall_author_retract_pending_v1.sql",
     "docs/sql/community-review-reasons-v1.sql",
     "docs/sql/resident-comment-removal-v1.sql",
+    "docs/sql/resident-comment-single-emoji-v2.sql",
     "docs/sql/friends-nearby-private-v1.sql",
 ]:
     sql((REPO / filename).read_text())
