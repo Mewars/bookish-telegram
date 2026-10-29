@@ -1,4 +1,4 @@
-name: Music Player and Host Shell
+name: External Radio and Host Shell
 on:
   pull_request:
     branches: [mewars]
@@ -32,7 +32,7 @@ jobs:
         run: |
           python -m pip install playwright==1.62.0
           python -m playwright install --with-deps chromium
-      - name: Test real player and host shell with synthetic audio events
+      - name: Test external radio and host shell without embedded audio
         run: |
           python -m http.server 4177 --bind 127.0.0.1 --directory dist > "$RUNNER_TEMP/music-test.log" 2>&1 &
           music_pid=$!
