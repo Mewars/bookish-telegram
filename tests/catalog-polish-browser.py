@@ -26,6 +26,7 @@ with sync_playwright() as p:
    else:request.abort()
   context.route('**/*',route)
   page=context.new_page();errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+  page.on('console',lambda message: print('BROWSER ERROR',message.text,flush=True) if message.type=='error' else None)
   # Missing image, a failed URL and a later valid source all use the real component.
   page.goto(ORIGIN+'/tests/catalog-media-fixture.html')
   expect(page.get_by_role('img',name='Фото скоро появится',exact=True)).to_be_visible()
