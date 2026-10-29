@@ -65,8 +65,11 @@ try {
         assert.equal(friendsSkin.labelColor, 'rgb(243, 189, 93)', 'Friends label must match Ryadom gold');
       }
       assert.match(friendsSkin.background, /^rgba\(/, 'Friends background must be translucent, not a solid white pill');
-      const musicGold = page.getByRole('button', { name: 'Открыть Музыку рядом' });
-      assert.equal(await musicGold.count(), 1, 'Header music shortcut is missing');
+      const musicGold = page.getByRole('link', { name: 'Радио — официальный сайт Radio Record, откроется в новой вкладке' });
+      assert.equal(await musicGold.count(), 1, 'Header radio link is missing');
+      assert.equal(await musicGold.getAttribute('href'), 'https://www.radiorecord.ru/');
+      assert.equal(await musicGold.getAttribute('target'), '_blank');
+      assert.match(await musicGold.getAttribute('rel'), /noopener/);
       assert.equal(await musicGold.evaluate(el => getComputedStyle(el).color), 'rgb(243, 189, 93)', 'Music nearby must use Ryadom gold');
       result.checks.push('Transparent bitten-cookie icon, translucent friends shortcut, Ryadom-gold header accents');
 
