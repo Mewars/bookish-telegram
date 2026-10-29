@@ -25,16 +25,24 @@ with sync_playwright() as p:
   page.screenshot(path=f'qa-screenshots/beauty-categories-{width}.png',full_page=True)
   page.locator('.card-open').click()
   expect(page.locator('.guide-detail')).to_be_visible()
-  expect(page.locator('.detail-contact-tiles').get_by_role('link',name='Телефон · позвонить +7 (000) 000-00-00 Позвонить')).to_be_visible()
-  assert page.locator('.guide-detail a[href^="https://"]').count()==0
+  assert page.locator('a[href^="tel:"]').count()==0
+  assert page.locator('.guide-detail a[href^="https://"]').count()>0
+  assert page.locator('a[href*="example-business"],a[href*="business-website"],a[href*="internal-source"]').count()==0
+  expect(page.get_by_role('link',name='Маршрут в Яндекс Картах')).to_be_visible()
+  expect(page.locator('.guide-detail iframe')).to_have_count(0)
   expect(page.get_by_text('Скрытое расширенное описание',exact=True)).to_have_count(0)
-  expect(page.locator('#detail-about')).to_have_count(0)
+  expect(page.locator('#detail-about')).to_be_visible()
+  expect(page.locator('#detail-about')).not_to_contain_text('Скрытое расширенное описание')
   expect(page.locator('.detail-contact-tiles').get_by_text('Тестовая улица, 1',exact=True)).to_be_visible()
   expect(page.locator('.card').get_by_text('Тестовая улица, 1',exact=True)).to_be_visible()
-  assert page.locator('a[href^="tel:"]').count()==2
+  assert page.locator('a[href^="tel:"]').count()==0
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   page.screenshot(path=f'qa-screenshots/basic-organization-{width}.png',full_page=True)
+  page.get_by_role('button',name='Открыть МФЦ',exact=True).click()
+  expect(page.locator('.detail-contact-tiles a[href^="tel:"]')).to_have_count(1)
+  expect(page.locator('.card a[href^="tel:"]')).to_have_count(1)
+  assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   assert not errors,errors
-  print('PASS',width,'basic contacts only, no commercial/source/map links, no description, beauty aliases, city isolation, no overflow')
+  print('PASS',width,'uniform basic cards, private phone hidden, public institution phone visible, description and map routes, beauty aliases, city isolation, no overflow')
   context.close()
  browser.close()
