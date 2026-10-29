@@ -418,7 +418,20 @@ function commentComposer(postId){
  form.addEventListener('submit',e=>{e.preventDefault();void act(async()=>{if(!authRequired())return;send.disabled=true;try{await verifyHuman(sb,'wall_comment');const body=cleanMarkdownPaste(expressions.value().trim());if(!body)throw Error('Комментарий не может быть пустым.');const args={p_post_id:postId,p_body:body};if(reply)args.p_parent_id=reply.id;await rpc(reply?'reply_community_comment':'submit_community_comment',args);s.expanded=postId;await renderFeed();if(s.settings.comments_mode==='review')flash('Комментарий отправлен на проверку.')}finally{send.disabled=false}})});return form;
 }
 let clearStoriesPreview=null;
-async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),settings()]);
+async function renderFeed(){
+ if(clearStoriesPreview){clearStoriesPreview();clearStoriesPreview=null;}
+ ui.content.replaceChildren();
+ const feedBody=el('div');feedBody.append(el('div','empty',['Загружаем записи…']));
+ {
+  const preview=new URLSearchParams(location.search).get('stories')==='preview';
+  const city=s.city,root=el('section');ui.content.append(root);
+  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=20261029fast1';css.dataset.storiesPreviewStyle='';document.head.append(css);}
+  import(preview?'/stories/preview.js?v=20261026a':'/stories/live.js?v=20261029fast1').then(module=>{if(root.isConnected&&s.city===city)clearStoriesPreview=preview?module.mountStoriesPreview(root,{city}):module.mountCityStories(root,{city,client:sb});}).catch(()=>{root.replaceChildren();});
+ }
+
+ ui.content.append(feedBody);
+ let [posts,] = await Promise.all([postsQuery(),settings()]);
+ if(!feedBody.isConnected)return;
  const requested=new URLSearchParams(location.search).get('post');
  if(requested && /^[0-9a-f-]{36}$/i.test(requested) && !posts.some(p=>p.id===requested)){
   const {data:linkedPost}=await sb.from('community_posts').select('id,city,author_id,title,body,post_type,status,created_at,pinned_at').eq('id',requested).eq('city',s.city).eq('status','published').maybeSingle();
@@ -426,16 +439,10 @@ async function renderFeed(){let [posts,] = await Promise.all([postsQuery(),setti
  }
  s.posts=posts;const ids=posts.map(x=>x.id),[photos,likes,videos,previews]=await Promise.all([
  getPhotos(ids),getLikes(ids),getVideos(ids),getCommentPreviews(ids)
- ]);const authors=await getAuthorCards([...posts.map(x=>x.author_id),...[...previews.values()].flat().map(c=>c.author_id)]);ui.content.replaceChildren();
- if(clearStoriesPreview){clearStoriesPreview();clearStoriesPreview=null;}
- {
-  const preview=new URLSearchParams(location.search).get('stories')==='preview';
-  const city=s.city,root=el('section');ui.content.append(root);
-  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=20261027members4';css.dataset.storiesPreviewStyle='';document.head.append(css);}
-  import(preview?'/stories/preview.js?v=20261026a':'/stories/live.js?v=20261027members4').then(module=>{if(root.isConnected&&s.city===city)clearStoriesPreview=preview?module.mountStoriesPreview(root,{city}):module.mountCityStories(root,{city,client:sb});}).catch(()=>{root.replaceChildren();});
- }
- if(!posts.length){ui.content.append(el('div','empty',[heading('Пока нет записей'),info('Предложите первую запись для жителей '+s.city+'.'),btn('Предложить запись',()=>goto('write'))]));return}
- for(const p of posts)ui.content.append(await makePost(p,photos.get(p.id),likes.get(p.id),'feed',videos.get(p.id),authors.get(p.author_id),previews.get(p.id)||[],authors));
+ ]);const authors=await getAuthorCards([...posts.map(x=>x.author_id),...[...previews.values()].flat().map(c=>c.author_id)]);if(!feedBody.isConnected)return;feedBody.replaceChildren();
+
+ if(!posts.length){feedBody.append(el('div','empty',[heading('Пока нет записей'),info('Предложите первую запись для жителей '+s.city+'.'),btn('Предложить запись',()=>goto('write'))]));return}
+ for(const p of posts)feedBody.append(await makePost(p,photos.get(p.id),likes.get(p.id),'feed',videos.get(p.id),authors.get(p.author_id),previews.get(p.id)||[],authors));
  const requestedPost=new URLSearchParams(location.search).get('post');
  if(requestedPost && /^[0-9a-f-]{36}$/i.test(requestedPost)){
   const element=[...ui.content.querySelectorAll('[data-ryadom-post-id]')].find(node=>node.dataset.ryadomPostId===requestedPost);
@@ -539,5 +546,5 @@ async function renderAdmin(){if(!isStaff()){goto('feed');return}await settings()
  ]);if(!posts.length)ui.content.append(el('div','empty',[heading('Записей в этой очереди нет')]));for(const p of posts)ui.content.append(await makePost(p,photos.get(p.id),null,'admin',videos.get(p.id),authors.get(p.author_id)));
  const {data:comments,error}=await sb.from('community_comments').select('id,post_id,author_id,body,status,created_at,community_posts!inner(city,title)').eq('status','pending').eq('community_posts.city',s.city).order('created_at',{ascending:true}).limit(50);if(!error&&comments?.length){ui.content.append(heading('Комментарии на проверке'));for(const c of comments){const row=panel(el('div','post-person',[c.community_posts?.title||'Комментарий']),renderWallBody(c.body,'post-body'));row.append(el('div','btnrow',[btn('Разрешить',()=>act(async()=>{await rpc('review_community_comment',{p_id:c.id,p_approve:true});await renderAdmin()}),'btn small'),btn('Отклонить',()=>act(async()=>{await rpc('review_community_comment',{p_id:c.id,p_approve:false});await renderAdmin()}),'btn ghost small')]));ui.content.append(row)}}
 }
-async function boot(){try{await cities();await auth();await settings();ui.city.addEventListener('change',async()=>{s.city=ui.city.value;localStorage.setItem('ryadom.wall.city',s.city);s.expanded=null;await settings();goto('feed')});ui.tabs.addEventListener('click',e=>{const v=e.target.closest('[data-view]')?.dataset.view;if(v)goto(v)});sb.auth.onAuthStateChange((event,session)=>{if(event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION'||(event==='SIGNED_IN'&&session?.user?.id===s.user?.id))return;setTimeout(()=>{saveCurrentComposer();void auth().then(()=>render()).catch(e=>flash(errMsg(e),true))},0)});if(s.view==='admin'&&!isStaff())s.view='feed';for(const b of ui.tabs.querySelectorAll('[data-view]'))b.classList.toggle('active',b.dataset.view===s.view);await render();ui.tabs.inert=false;ui.tabs.removeAttribute('aria-busy');ui.city.disabled=false;}catch(e){ui.content.replaceChildren(el('div','empty',['Не удалось загрузить стену.']));flash(errMsg(e),true)}}
+async function boot(){try{await Promise.all([cities(),auth()]);await settings();ui.city.addEventListener('change',async()=>{s.city=ui.city.value;localStorage.setItem('ryadom.wall.city',s.city);s.expanded=null;await settings();goto('feed')});ui.tabs.addEventListener('click',e=>{const v=e.target.closest('[data-view]')?.dataset.view;if(v)goto(v)});sb.auth.onAuthStateChange((event,session)=>{if(event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION'||(event==='SIGNED_IN'&&session?.user?.id===s.user?.id))return;setTimeout(()=>{saveCurrentComposer();void auth().then(()=>render()).catch(e=>flash(errMsg(e),true))},0)});if(s.view==='admin'&&!isStaff())s.view='feed';for(const b of ui.tabs.querySelectorAll('[data-view]'))b.classList.toggle('active',b.dataset.view===s.view);await render();ui.tabs.inert=false;ui.tabs.removeAttribute('aria-busy');ui.city.disabled=false;}catch(e){ui.content.replaceChildren(el('div','empty',['Не удалось загрузить стену.']));flash(errMsg(e),true)}}
 boot();
