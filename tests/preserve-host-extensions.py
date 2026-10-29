@@ -10,6 +10,7 @@ class Preservation(unittest.TestCase):
         live='''<head><script defer src="/ui/site-shell.js?v=1"></script>
         <script defer src="/classifieds/nav.js?v=9" onload="unsafe()"></script>
         <script type="module" src="/assets/index-old.js"></script>
+        <script type="module" src="/notifications/widget.js?v=20261018d"></script>
         <script src="https://example.org/x.js"></script>
         <link rel="stylesheet" href="/categories/panel.css?v=1">
         <meta name="apple-mobile-web-app-title" content="РЯДОМ"></head>'''
@@ -20,6 +21,8 @@ class Preservation(unittest.TestCase):
         self.assertNotIn('/ui/site-shell.js?v=1\"',result)
         self.assertIn('/categories/panel.css?v=1',result)
         self.assertIn('apple-mobile-web-app-title',result)
+        self.assertIn('/notifications/widget.js?v=20261027manual1',result)
+        self.assertNotIn('/notifications/widget.js?v=20261018d',result)
         for excluded in ['index-old.js','unsafe()','onload','example.org']:
             self.assertNotIn(excluded,result)
         self.assertEqual(result,module.preserve(live,result))

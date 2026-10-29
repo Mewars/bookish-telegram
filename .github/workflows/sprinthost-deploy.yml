@@ -110,7 +110,7 @@ jobs:
           backup="/home/mewars/.ryadom-release-backups/${GITHUB_SHA:-release}-$(date +%Y%m%d%H%M%S)"
           mkdir -p "$backup"
           cd /home/mewars/domains/ryadomcity.ru/public_html
-          tar -czf "$backup/frontend-before.tar.gz" index.html version.json .htaccess classifieds wall ui/site-shell.js admin/catalog.js admin/catalog.css categories/panel.js
+          tar -czf "$backup/frontend-before.tar.gz" index.html version.json .htaccess classifieds wall ui/site-shell.js admin/catalog.js admin/catalog.css categories/panel.js notifications/widget.js
           tar -tzf "$backup/frontend-before.tar.gz" >/dev/null
           echo 'Private frontend rollback copy verified.'
           BACKUP
