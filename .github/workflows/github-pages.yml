@@ -54,6 +54,10 @@ jobs:
           fi
       - name: Build for ryadomcity.ru at the domain root
         run: npm run build:pages
+      - name: Apply temporary maintenance screen
+        run: |
+          python3 scripts/prepare-maintenance.py dist dist/.htaccess /tmp/ryadom-pages.htaccess
+          cp /tmp/ryadom-pages.htaccess dist/.htaccess
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

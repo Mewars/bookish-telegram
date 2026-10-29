@@ -1,0 +1,26 @@
+name: Temporary Maintenance Gate
+
+on:
+  pull_request:
+    branches: [mewars]
+    paths:
+      - 'public/maintenance/**'
+      - 'scripts/prepare-maintenance.py'
+      - 'tests/maintenance.test.py'
+      - '.github/workflows/maintenance.yml'
+      - '.github/workflows/sprinthost-deploy.yml'
+      - '.github/workflows/github-pages.yml'
+      - '.github/workflows/sprinthost-build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  apache-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Apache for the real routing check
+        run: sudo apt-get update && sudo apt-get install -y apache2
+      - name: Check closed routes, local artwork and reversible reopening
+        run: REQUIRE_APACHE=1 python3 tests/maintenance.test.py

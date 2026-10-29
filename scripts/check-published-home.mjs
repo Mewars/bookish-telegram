@@ -41,6 +41,30 @@ try {
     const result = { viewport: scenario.name, checks: [], errors: [] };
     try {
       const response = await page.goto(`${base}/#/home`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      if (await page.locator('meta[name="ryadom-maintenance"]').count()) {
+        assert.equal(response?.status(), 503, 'Maintenance must return a temporary 503');
+        await page.getByRole('heading', {name:'Друзья, сайт временно недоступен', exact:true}).waitFor();
+        for (const image of await page.locator('main img').all()) {
+          await image.evaluate(img => img.decode());
+          assert(await image.evaluate(img => img.naturalWidth > 0), 'Maintenance artwork is broken');
+        }
+        assert.equal(await page.locator('script').count(), 0, 'Maintenance must not start the application');
+        assert.equal(await page.locator('form').count(), 0);
+        const size = await page.evaluate(() => ({scroll:document.documentElement.scrollWidth, viewport:window.innerWidth}));
+        assert(size.scroll <= size.viewport + 1, 'Maintenance overflows on mobile');
+        await page.screenshot({path:`${folder}/${scenario.name}-maintenance.png`,fullPage:true,animations:'disabled'});
+        const gate = await fetch(`${base}/maintenance/config.json`, {signal:AbortSignal.timeout(12000),cache:'no-store'});
+        assert.equal((await gate.json()).enabled, true);
+        if (scenario.name === 'desktop-1440') {
+          for (const path of ['/wall/','/classifieds/','/stories-preview/','/api/friends.php?health=1','/api/weather.php']) {
+            const denied = await fetch(base+path, {signal:AbortSignal.timeout(15000),cache:'no-store'});
+            assert.equal(denied.status, 503, `Maintenance bypass: ${path}`);
+            assert.match(await denied.text(), /ryadom-maintenance/);
+          }
+        }
+        result.checks.push('Temporary maintenance page, local artwork, no application startup, direct routes closed');
+        continue;
+      }
       assert(response?.ok(), `Home HTTP status: ${response?.status()}`);
       await page.locator('.city-home').waitFor({ state: 'visible', timeout: 45000 });
       const categoriesLauncher=page.locator('#ryadom-category-trigger');
