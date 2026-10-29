@@ -41,7 +41,11 @@ with sync_playwright() as p:
   expect(page.get_by_role('img',name='Фото скоро появится',exact=True)).to_be_visible()
   # The public category module opens a precise city/category/subcategory URL.
   page.goto(ORIGIN+'/#/home')
-  page.locator('.city-home').wait_for()
+  try: page.locator('.city-home').wait_for()
+  except Exception:
+   print('STARTUP ERRORS',errors,flush=True)
+   print('STARTUP BODY',page.locator('body').inner_text()[:3000],flush=True)
+   raise
   cookies=page.get_by_role('button',name='Только необходимые',exact=True)
   if cookies.is_visible():cookies.click()
   cover=page.locator('.city-cover');bounds=cover.bounding_box()
