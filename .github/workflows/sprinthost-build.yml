@@ -53,6 +53,10 @@ jobs:
           VITE_VK_ID_ENABLED: 'true'
       - name: Include standalone host modules
         run: cp -R host-public/. dist/
+      - name: Apply temporary maintenance screen
+        run: |
+          python3 scripts/prepare-maintenance.py dist dist/.htaccess /tmp/ryadom-zip.htaccess
+          cp /tmp/ryadom-zip.htaccess dist/.htaccess
       - name: Package dist contents without a wrapper folder
         working-directory: dist
         run: zip -r ../sprinthost-site.zip .
@@ -74,7 +78,7 @@ jobs:
                   assert not any(part.startswith('.env') for part in path.parts), 'Environment file in ZIP'
                   assert path.suffix not in {'.ts', '.tsx', '.jsx', '.map'}, 'Source code or source map in ZIP'
               html = archive.read('index.html').decode('utf-8')
-              assert 'src="/assets/' in html and 'href="/assets/' in html, 'Expected root JS/CSS URLs'
+              assert 'ryadom-maintenance' in html or ('src="/assets/' in html and 'href="/assets/' in html), 'Expected maintenance screen or root JS/CSS URLs'
               assert '/bookish-telegram/' not in html, 'Unexpected repository base path'
               assert archive.testzip() is None, 'Corrupt ZIP entry'
           print('ZIP verified: root index.html/assets, base /, build files only')

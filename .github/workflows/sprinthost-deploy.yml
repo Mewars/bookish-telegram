@@ -61,7 +61,11 @@ jobs:
         run: npm run build
       - name: Include verified standalone host modules
         run: cp -R host-public/. dist/
+      - name: Read temporary maintenance setting
+        id: maintenance
+        run: echo "enabled=$(node -p "require('./public/maintenance/config.json').enabled")" >> "$GITHUB_OUTPUT"
       - name: Require private wall-review schema before publishing
+        if: steps.maintenance.outputs.enabled != 'true'
         run: node scripts/check-wall-review-schema.mjs
       - name: Check release version and site entry point
         shell: bash
@@ -114,6 +118,13 @@ jobs:
           tar -tzf "$backup/frontend-before.tar.gz" >/dev/null
           echo 'Private frontend rollback copy verified.'
           BACKUP
+      - name: Prepare maintenance page and preserve existing host rules
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$HOME/.ssh/ryadom-deploy-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" "cat '$DEPLOY_ROOT/.htaccess'" > "$RUNNER_TEMP/ryadom-live.htaccess"
+          python3 scripts/prepare-maintenance.py dist "$RUNNER_TEMP/ryadom-live.htaccess" "$RUNNER_TEMP/ryadom-maintenance.htaccess" --require-host-extensions
       - name: Upload static files before switching HTML
         shell: bash
         run: |
@@ -128,6 +139,8 @@ jobs:
           # Last, atomically switch to the new HTML entry point and publish its version.
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/index.html "$DEST"
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/version.json "$DEST"
+          # Existing rules are preserved; the managed block gates direct host routes too.
+          rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" "$RUNNER_TEMP/ryadom-maintenance.htaccess" "$DEST.htaccess"
       - name: Verify server release ID
         shell: bash
         run: |
@@ -137,6 +150,7 @@ jobs:
             "grep -Fq '$GITHUB_SHA' '$DEPLOY_ROOT/version.json' && test -s '$DEPLOY_ROOT/index.html'"
           echo "Ryadom deployed successfully: $GITHUB_SHA"
       - name: Back up private SQLite and update the reviewed friends module
+        if: steps.maintenance.outputs.enabled != 'true'
         id: friends_update
         shell: bash
         run: bash scripts/update-friends-social.sh
