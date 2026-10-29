@@ -4,11 +4,15 @@ export interface HomePost {id:string;city:string;status:string;title:string;body
 export interface HomeFeed {city:string;listings:HomeListing[];posts:HomePost[];listingsError:boolean;postsError:boolean}
 export function emptyHomeFeed(city:string):HomeFeed{return {city,listings:[],posts:[],listingsError:false,postsError:false};}
 // Explicit city + published filters also apply to owners: a homepage is public.
-export async function loadHomeFeed(client:SupabaseClient|null,city:string,signal:AbortSignal):Promise<HomeFeed>{
+export async function loadHomeFeed(client:SupabaseClient|null,city:string,signal:AbortSignal,onPosts?:(feed:HomeFeed)=>void):Promise<HomeFeed>{
  const result=emptyHomeFeed(city);if(!client||!city)return result;
+ const publishPosts=()=>{if(!signal.aborted)onPosts?.({...result,listings:result.listings.map(item=>({...item})),posts:[...result.posts]});};
  const [ads,posts]=await Promise.allSettled([
   client.from('classifieds').select('id,city,status,title,category,price_rub,deal_type').eq('city',city).eq('status','published').order('created_at',{ascending:false}).limit(4).abortSignal(signal),
-  client.from('community_posts').select('id,city,status,title,body,post_type,created_at').eq('city',city).eq('status','published').order('created_at',{ascending:false}).limit(2).abortSignal(signal),
+  Promise.resolve(client.from('community_posts').select('id,city,status,title,body,post_type,created_at').eq('city',city).eq('status','published').order('created_at',{ascending:false}).limit(2).abortSignal(signal)).then(response=>{
+   if(response.error)result.postsError=true;else result.posts=(response.data??[]).filter(x=>x.city===city&&x.status==='published').slice(0,2) as HomePost[];
+   publishPosts();return response;
+  },error=>{result.postsError=true;publishPosts();throw error;}),
  ]);
  if(signal.aborted)return result;
  if(ads.status==='fulfilled'&&!ads.value.error)result.listings=(ads.value.data??[]).filter(x=>x.city===city&&x.status==='published').slice(0,4).map(x=>({...x})) as HomeListing[];else result.listingsError=true;

@@ -2,6 +2,7 @@
 import {URL} from 'node:url';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {setImmediate} from 'node:timers/promises';
 import {loadHomeFeed,hostSectionHref,homePrice} from '../src/home/feed.ts';
 function fake(rows={},failure){
  const calls=[],signed=[];
@@ -10,6 +11,23 @@ function fake(rows={},failure){
  return {client,calls,signed};
 }
 const published={id:'ad1',city:'Город А',status:'published',title:'Настоящее объявление',price_rub:100,deal_type:'sell'};
+test('wall posts render while listing photos are still waiting on private Storage',async()=>{
+ const f=fake({classifieds:[published],community_posts:[{...published,id:'post'}],classified_photos:[{listing_id:'ad1',object_path:'ad1/photo.webp',slot:0}]});
+ let release;const signing=new Promise(resolve=>{release=resolve;});
+ f.client.storage.from=()=>({createSignedUrl:()=>signing});
+ const updates=[];let done=false;
+ const loaded=loadHomeFeed(f.client,'Город А',new AbortController().signal,feed=>updates.push(feed)).then(feed=>{done=true;return feed;});
+ await setImmediate();
+ assert.equal(done,false,'the photo request is deliberately unresolved');
+ assert.deepEqual(updates[0].posts.map(post=>post.id),['post'],'text posts arrive independently');
+ release({data:{signedUrl:'https://signed.invalid/ad1/photo.webp'},error:null});
+ const result=await loaded;assert.ok(result.listings[0].image);
+ assert.equal(updates[0].listings[0]?.image,undefined,'published snapshots never mutate behind React');
+});
+test('cancelled progressive requests never publish old-city updates',async()=>{
+ const f=fake({community_posts:[{...published,id:'post'}]});const controller=new AbortController();controller.abort();
+ const updates=[];await loadHomeFeed(f.client,'Город А',controller.signal,feed=>updates.push(feed));assert.deepEqual(updates,[]);
+});
 test('public home excludes drafts and other cities even in owner responses, signs only registered public photos',async()=>{
  const f=fake({classifieds:[published,{...published,id:'draft',status:'draft'},{...published,id:'other',city:'Город Б'}],community_posts:[{...published,id:'post'}, {...published,status:'pending'}],classified_photos:[{listing_id:'ad1',object_path:'ad1/photo.webp',slot:0},{listing_id:'draft',object_path:'draft/secret.webp',slot:0}]});
  const feed=await loadHomeFeed(f.client,'Город А',new AbortController().signal);

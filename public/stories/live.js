@@ -1,4 +1,3 @@
-import {mountStoryEditor} from './editor.js?v=20261027round1';
 const storyPath=s=>s.mime_type?.startsWith('video/')?s.object_path.replace(/\.webp$/,s.mime_type==='video/mp4'?'.mp4':'.webm'):s.object_path;
 // Private Storage and server moderation. Missing schema hides the feature until approved.
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text)n.textContent=text;return n;};
@@ -32,7 +31,7 @@ export function mountCityStories(root,{city,client:sb}){
   const request=(async()=>{const r=await sb.storage.from('ryadom-stories').download(storyPath(story),{},{cache:'no-store'});if(r.error)throw r.error;if(!alive||stamp!==generation)throw Error('Stale story');const u=URL.createObjectURL(r.data);urls.set(storyPath(story),u);while(urls.size>2){const oldest=urls.keys().next().value;URL.revokeObjectURL(urls.get(oldest));urls.delete(oldest);}return u;})();
   pending.set(storyPath(story),request);try{return await request;}finally{if(pending.get(storyPath(story))===request)pending.delete(storyPath(story));}
  }
- function avatar(authorId,label){const wrap=el('span','rs-profile-avatar');wrap.setAttribute('aria-hidden','true');wrap.textContent=(label?.[0]||'Ж').toUpperCase();const raw=avatars.get(authorId);if(raw){try{const u=new URL(raw);if(u.protocol==='https:'&&!u.username&&!u.password){const image=el('img');image.alt='';image.referrerPolicy='no-referrer';image.loading='lazy';image.src=u.href;image.onerror=()=>image.remove();wrap.append(image);}}catch{}}return wrap;}
+ function avatar(authorId,label){const wrap=el('span','rs-profile-avatar');wrap.setAttribute('aria-hidden','true');wrap.dataset.authorId=authorId;wrap.textContent=(label?.[0]||'Ж').toUpperCase();const raw=avatars.get(authorId);if(raw){try{const u=new URL(raw);if(u.protocol==='https:'&&!u.username&&!u.password){const image=el('img');image.alt='';image.referrerPolicy='no-referrer';image.loading='lazy';image.src=u.href;image.onerror=()=>image.remove();wrap.append(image);}}catch{}}return wrap;}
  function card(story,action){const b=btn('',action,'rs-card rs-author-card');b.setAttribute('aria-label','История: '+story.author_label);b.append(avatar(story.author_id,story.author_label));return b;}
  function storyNavigation(d){const nav=el('nav','rs-story-navigation');nav.setAttribute('aria-label','Навигация истории');nav.append(btn('← Назад',()=>d.close(),'rs-view-control'));const home=el('a','rs-view-control','На главную');home.href='/#/home?'+new URLSearchParams({city});home.addEventListener('click',()=>{for(const dialog of [...dialogs])dialog.close();if(location.pathname==='/')window.scrollTo({top:0,left:0,behavior:'instant'});});nav.append(home);return nav;}
  function signIn(){const d=modal('Вход для публикации истории');const box=el('div','rs-compose');box.append(el('h2','','Ваша история'),el('p','rs-note','Войдите в аккаунт «РЯДОМ», чтобы смотреть и публиковать истории.'),btn('Закрыть',()=>d.close()));const a=el('a','rs-button rs-gold','Войти на сайт');a.href='/#/login';box.append(a);d.append(box);}
@@ -70,12 +69,14 @@ export function mountCityStories(root,{city,client:sb}){
   }
   void show();
  }
- function compose(startCamera=false){
+ async function compose(startCamera=false){
   if(!user){signIn();return;}const stamp=generation,d=modal('Добавить историю'),form=el('form','rs-compose rs-compose-editor'),editorRoot=el('div'),caption=el('textarea'),error=el('p','rs-error');caption.maxLength=200;caption.rows=2;
   const cl=el('label','rs-field','Подпись');cl.append(caption);error.setAttribute('role','alert');let draft=null,encoded=null,uploaded=false,sent=false;
+  form.append(storyNavigation(d),el('p','rs-note','Подготавливаем редактор…'));d.append(form);
+  let mountStoryEditor;try{({mountStoryEditor}=await import('./editor.js?v=20261027round1'));}catch{if(d.open)form.replaceChildren(el('p','rs-error','Не удалось открыть редактор. Попробуйте ещё раз.'),btn('Закрыть',()=>d.close()));return;}if(!alive||stamp!==generation||!d.open)return;
   const editor=mountStoryEditor(editorRoot,{videoEnabled,onChange:()=>{encoded=null;}});
   const send=el('button','rs-button rs-gold',immediate?'Опубликовать историю':'Отправить на модерацию');send.type='submit';const cancel=btn('Отмена',()=>d.close());
-  form.append(storyNavigation(d),el('h2','','Ваша история'),el('p','rs-note',immediate?'Историю увидят жители вашего города. До 5 историй за сутки.':'История появится после проверки городской командой. До 5 историй за сутки.'),editorRoot,cl,error,send,cancel);d.append(form);if(startCamera)editor.openCamera();
+  form.replaceChildren(storyNavigation(d),el('h2','','Ваша история'),el('p','rs-note',immediate?'Историю увидят жители вашего города. До 5 историй за сутки.':'История появится после проверки городской командой. До 5 историй за сутки.'),editorRoot,cl,error,send,cancel);d.append(form);if(startCamera)editor.openCamera();
   d.addEventListener('close',()=>{editor.dispose();if(draft&&!sent)void call('remove_city_story',{p_id:draft.id}).then(()=>sb.storage.from('ryadom-stories').remove([storyPath(draft)])).catch(()=>{});},{once:true});
   form.onsubmit=async e=>{e.preventDefault();if(send.disabled)return;error.textContent='';send.disabled=true;caption.disabled=true;
    try{if(!encoded)encoded=await editor.prepare();editor.lock(true);if(!alive||stamp!==generation||!d.open)return;
@@ -109,10 +110,11 @@ export function mountCityStories(root,{city,client:sb}){
    root.classList.add('rs-preview','rs-live-circles');const heading=el('div','rs-heading');heading.append(el('h2','','Истории рядом'));
    if(!user){root.hidden=false;root.style.removeProperty('display');root.replaceChildren(heading,btn('Войти, чтобы смотреть истории',signIn));lastRefresh=Date.now();return;}
    const [r,capabilities]=await Promise.all([sb.rpc('list_city_stories',{p_city:city}),sb.rpc('city_story_capabilities')]);if(!alive||stamp!==generation)return;if(r.error)throw r.error;items=r.data||[];videoEnabled=capabilities.data?.video===true;immediate=capabilities.data?.immediate_publish===true;
-   const authorIds=[...new Set([user.id,...items.map(s=>s.author_id)])];const profiles=await sb.rpc('city_story_profiles',{p_ids:authorIds});if(!alive||stamp!==generation)return;avatars.clear();for(const profile of profiles.data||[])avatars.set(profile.id,profile.avatar_url);
+   const authorIds=[...new Set([user.id,...items.map(s=>s.author_id)])];const profilesRequest=sb.rpc('city_story_profiles',{p_ids:authorIds});
    const actions=el('div','rs-live-actions');actions.append(btn('Мои истории',()=>void manage('mine')));
    const strip=el('div','rs-strip');strip.setAttribute('aria-label','Истории города '+city);const add=btn('',()=>compose(),'rs-card rs-add');add.setAttribute('aria-label','Добавить историю');add.append(el('span','rs-plus','+'));strip.append(add);for(const item of items)strip.append(card(item,()=>open(item)));
    root.hidden=false;root.style.removeProperty('display');root.replaceChildren(heading,actions,strip,note);lastRefresh=Date.now();
+   void Promise.resolve(profilesRequest).then(profiles=>{if(!alive||stamp!==generation||profiles.error)return;avatars.clear();for(const profile of profiles.data||[])avatars.set(profile.id,profile.avatar_url);for(const node of root.querySelectorAll('[data-author-id]'))node.replaceWith(avatar(node.dataset.authorId,node.textContent));}).catch(()=>{});
   }catch{if(alive&&stamp===generation){root.replaceChildren();root.hidden=true;root.style.display='none';}}finally{refreshing=false;if(alive&&stamp!==generation)queueMicrotask(()=>void refresh());}
  }
  function reset(){available=true;dirty=false;generation++;for(const d of dialogs){d.close();d.remove();}dialogs.clear();disposeMedia();root.replaceChildren();root.hidden=true;root.style.display='none';user=null;avatars.clear();note.textContent='';setTimeout(()=>void refresh(),0);}
