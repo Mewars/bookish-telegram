@@ -55,7 +55,7 @@ test('contrast, hearing and reduced-motion settings are rendered from controlled
   assert.match(css,/:root\[data-a11y-motion=reduce\]/);
   assert.match(css,/:root\[data-a11y-text=extra\]/);
   assert.match(css,/\.web-nav button \{ font-size: 15px;/);
-  assert.match(music,/music-state-label/);
+  assert.match(music,/aria-label="Радио — официальный сайт Radio Record, откроется в новой вкладке"/);
   assert.match(css,/data-a11y-hearing=on/);
   assert.match(web,/\.web-nav button \{ position:/);
 });
