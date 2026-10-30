@@ -13,9 +13,9 @@ with sync_playwright() as p:
   admin_fixture=False
   def route(request):
    url=request.request.url
-   if url.startswith(ORIGIN+'/host-public/'):
-    # These extensions are static native modules on Sprinthost. Bypass Vite's
-    # source transform, which rejects their absolute public-directory imports.
+   if any(url.startswith(ORIGIN+prefix) for prefix in ['/host-public/admin/','/host-public/categories/']):
+    # Native host admin/category modules need their raw source. React imports
+    # from host-public/wall (including CSS-as-JS in dev) must go through Vite.
     path=Path(urlparse(url).path.lstrip('/'))
     request.fulfill(status=200,content_type='text/css' if path.suffix=='.css' else 'text/javascript',body=path.read_text())
    elif admin_fixture and urlparse(url).path=='/src/lib/supabase.ts':request.fulfill(status=200,content_type='text/javascript',body="import {c} from '/tests/host-catalog-sdk.mjs';export const supabase=c();")
