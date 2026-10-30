@@ -51,7 +51,8 @@ with sync_playwright() as p:
   if cookies.is_visible():cookies.click()
   cover=page.locator('.city-cover');bounds=cover.bounding_box()
   assert abs(bounds['y']+bounds['height']-900)<=3,bounds
-  expect(page.get_by_role('link',name='Добавить бесплатно',exact=True)).to_be_visible()
+  expect(page.get_by_role('link',name='Добавить бесплатно',exact=True)).to_have_count(0)
+  expect(page.get_by_role('link',name='Добавить организацию Рассказать о своём деле',exact=True)).to_be_visible()
   expect(page.locator('.life-business-actions').get_by_role('link',name='Бизнесу',exact=True)).to_have_attribute('href',re.compile(r'^#/business\?city='))
   assert page.locator('#city-selections').bounding_box()['y']>=897
   assert page.locator('.cover-search').bounding_box()['y']+page.locator('.cover-search').bounding_box()['height']<=bounds['y']+bounds['height']+2
