@@ -37,6 +37,7 @@ import { CityPicker } from './components/CityPicker';
 import { filterByCity } from './utils/city';
 import { featureEnabled } from './organizations/model';
 import { useOrganizations } from './organizations/useOrganizations';
+import { basicPublicItem } from './organizations/basicCard';
 import { OrganizationsPage } from './organizations/OrganizationsPage';
 import { OrganizationConsentPage } from './organizations/OrganizationConsentPage';
 import { AdminPage } from './admin/AdminPage';
@@ -98,7 +99,7 @@ export default function App() {
  const photoCatalog = useDirectoryPhotos(organizationCatalog.items, photoEnabled);
  const eventNow=useEventClock();
  const liveEvents=useImportedEvents(eventNow);
- const cityItems = currentEvents(filterByCity(mergeImportedEvents(photoCatalog.items,liveEvents), city),eventNow);
+ const cityItems = currentEvents(filterByCity(mergeImportedEvents(photoCatalog.items,liveEvents), city),eventNow).map(basicPublicItem);
  const favoritesCount = cityItems.filter(entry => favorites.includes(entry.id)).length;
  const mainRef = useRef<HTMLElement>(null);
  const item = id ? cityItems.find(x => x.id === id) : undefined;

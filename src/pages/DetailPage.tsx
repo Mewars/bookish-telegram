@@ -1,3 +1,4 @@
+import {basicPublicItem, showsBasicPhone} from '../organizations/basicCard';
 import {businessHash} from '../business/model';
 import '../business/business.css';
 import { isLegacyIllustration } from '../components/mediaSource';
@@ -42,10 +43,12 @@ interface DetailPageProps {
 }
 
 export function DetailPage({
-  item, saved, toggle, goBack, favoritesBusy = false, desktop = false,
+  item: sourceItem, saved, toggle, goBack, favoritesBusy = false, desktop = false,
   relatedItems = [], favorites = [], openRelated,
 }: DetailPageProps) {
+  const item = basicPublicItem(sourceItem);
   const basic = item.kind !== 'events';
+  const showPhone = showsBasicPhone(item);
   const maps = placeMapLinks(item);
   const website = basic ? undefined : externalUrl(item.website);
   const vkUrl = basic ? undefined : externalUrl(item.vkUrl, true);
@@ -56,7 +59,7 @@ export function DetailPage({
       && entry.kind === item.kind && entry.category.split(' / ')[0] === item.category.split(' / ')[0]).slice(0, 3)
     : [];
   const title = item.kind === 'events' ? 'О событии' : item.kind === 'services' ? 'Об услуге' : 'О месте';
-  const hasMap = !basic && Boolean(item.coordinates);
+  const hasMap = basic ? Boolean(maps.mapsUrl) : Boolean(item.coordinates);
   const mappedDesktop = desktop && hasMap && item.kind !== 'events';
   const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -80,25 +83,25 @@ export function DetailPage({
     </div>
 
     <nav className="detail-quick-tabs" aria-label="Разделы карточки">
-      {!basic && <button type="button" onClick={() => scrollToSection('detail-about')}>Обзор</button>}
+      <button type="button" onClick={() => scrollToSection('detail-about')}>{basic ? 'О месте' : 'Обзор'}</button>
       <button type="button" onClick={() => scrollToSection('detail-photos')}>Фото</button>
       <button type="button" onClick={() => scrollToSection('detail-contacts')}>Контакты</button>
       {hasMap && <button type="button" onClick={() => scrollToSection('detail-map')}>Карта</button>}
-      {!basic && maps.routeUrl && <a href={maps.routeUrl} target="_blank" rel="noopener noreferrer"><Icon name="pin" size={15}/> Маршрут в Яндекс Картах</a>}
+      {maps.routeUrl && <a href={maps.routeUrl} target="_blank" rel="noopener noreferrer"><Icon name="pin" size={15}/> Маршрут в Яндекс Картах</a>}
     </nav>
     <div className={`detail-content-grid ${basic ? 'detail-content-basic' : ''}`}>
-      {!basic && <section className="detail-info-tile" id="detail-about" aria-labelledby="detail-about-heading">
+      <section className="detail-info-tile" id="detail-about" aria-labelledby="detail-about-heading">
         <span className="detail-tile-kicker"><Icon name="places" size={16}/> ИНФОРМАЦИЯ</span>
         <h2 id="detail-about-heading">{title}</h2>
         <p>{publicDetails(item.details ?? item.description)}</p>
-        {item.real && <div className="place-source">
+        {!basic && item.real && <div className="place-source">
           {item.sourceType === 'user_provided'
             ? <span>Данные предоставлены пользователем. Независимая проверка не проводилась.</span>
             : <span>Сведения собраны из открытых источников{item.verifiedAt ? ` · ${suppliedDate(item.verifiedAt)}` : ''}. Уточняйте актуальность перед посещением.</span>}
           {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener noreferrer">Проверить источник <Icon name="arrow" size={13}/></a>}
         </div>}
         {!item.real && <p className="detail-demo-notice">Бронирование и оплата через сервис пока не доступны.</p>}
-      </section>}
+      </section>
 
       <section className="detail-contact-tiles" id="detail-contacts" aria-label="Адрес, контакты и полезная информация">
         {item.kind === 'events' && <div className="detail-contact-tile">
@@ -106,7 +109,7 @@ export function DetailPage({
           <span className="detail-contact-label">Когда</span>
           <strong>{itemEventDate(item, true)}{item.time ? ` · ${item.time}` : ''}</strong>
         </div>}
-        {item.address && (!basic && maps.mapsUrl
+        {item.address && (maps.mapsUrl
           ? <a className="detail-contact-tile detail-contact-tile--link" href={maps.mapsUrl} target="_blank" rel="noopener noreferrer">
               <span className="detail-contact-icon"><Icon name="pin" size={20}/></span>
               <span className="detail-contact-label">Адрес · открыть на карте</span>
@@ -118,9 +121,9 @@ export function DetailPage({
               <span className="detail-contact-label">Адрес</span><strong>{basic ? item.address : `${item.city}, ${item.address}`}</strong>
             </div>)}
         {basic && !item.address && <div className="detail-contact-tile"><span className="detail-contact-label">Адрес</span><strong>Адрес уточняется</strong></div>}
-        {basic && !item.phone && <div className="detail-contact-tile"><span className="detail-contact-label">Телефон</span><strong>Не указан</strong></div>}
+        {showPhone && !item.phone && <div className="detail-contact-tile"><span className="detail-contact-label">Телефон</span><strong>Не указан</strong></div>}
         {basic && !item.hours && <div className="detail-contact-tile"><span className="detail-contact-label">Режим работы</span><strong>Уточняется</strong></div>}
-        {item.phone && <a className="detail-contact-tile detail-contact-tile--link" href={phoneHref(item.phone)}>
+        {(showPhone || !basic) && item.phone && <a className="detail-contact-tile detail-contact-tile--link" href={phoneHref(item.phone)}>
           <span className="detail-contact-icon"><Icon name="phone" size={20}/></span>
           <span className="detail-contact-label">Телефон · позвонить</span>
           <strong>{item.phone}</strong><span className="detail-contact-action">Позвонить <Icon name="arrow" size={15}/></span>
@@ -159,7 +162,7 @@ export function DetailPage({
 
     </div>
     {hasMap && <aside className="detail-map-rail" id="detail-map" aria-label="Местоположение организации">
-      <div className="detail-map-tile"><PlaceMap key={item.id} item={item} desktop={desktop}/></div>
+      <div className="detail-map-tile">{basic ? <><h2>Местоположение</h2><p>{item.address || item.city}</p>{maps.mapsUrl && <a href={maps.mapsUrl} target="_blank" rel="noopener noreferrer">Открыть на карте <Icon name="arrow" size={15}/></a>}</> : <PlaceMap key={item.id} item={item} desktop={desktop}/>}</div>
     </aside>}
     </div>
     {item.real && item.kind !== 'events' && <section className="business-card-contact" aria-label="Для представителя организации"><div><strong>Это ваша организация?</strong><p>Поможем уточнить сведения и согласовать обновления карточки.</p></div><a href={businessHash(item.city,item.id)}>Связаться с РЯДОМ<Icon name="arrow" size={17}/></a></section>}

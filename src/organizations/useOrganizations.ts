@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { catalog } from '../data/catalog';
 import cityImage from '../assets/city.svg';
 import { mergePublished } from './model';
+import { basicPublicItem } from './basicCard';
 import type { OrganizationRow } from './model';
 import { readPublished } from './repository';
 
@@ -31,5 +32,5 @@ export function useOrganizations(enabled: boolean, city: string) {
   const items = enabled && status === 'ready'
     ? mergePublished(catalog.filter(item=>item.city===city), remote.filter(item=>item.city===city), cityImage, true)
     : catalog.filter(item=>item.city===city);
-  return { items:items.map(item=>item.kind==='events'?item:{...item,website:undefined,vkUrl:undefined}), status, retry: () => { setStatus('loading'); setAttempt(value => value + 1); } };
+  return { items:items.map(basicPublicItem), status, retry: () => { setStatus('loading'); setAttempt(value => value + 1); } };
 }

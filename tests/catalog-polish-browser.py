@@ -13,9 +13,9 @@ with sync_playwright() as p:
   admin_fixture=False
   def route(request):
    url=request.request.url
-   if url.startswith(ORIGIN+'/host-public/'):
-    # These extensions are static native modules on Sprinthost. Bypass Vite's
-    # source transform, which rejects their absolute public-directory imports.
+   if any(url.startswith(ORIGIN+prefix) for prefix in ['/host-public/admin/','/host-public/categories/']):
+    # Native host admin/category modules need their raw source. React imports
+    # from host-public/wall (including CSS-as-JS in dev) must go through Vite.
     path=Path(urlparse(url).path.lstrip('/'))
     request.fulfill(status=200,content_type='text/css' if path.suffix=='.css' else 'text/javascript',body=path.read_text())
    elif admin_fixture and urlparse(url).path=='/src/lib/supabase.ts':request.fulfill(status=200,content_type='text/javascript',body="import {c} from '/tests/host-catalog-sdk.mjs';export const supabase=c();")
@@ -26,6 +26,7 @@ with sync_playwright() as p:
    else:request.abort()
   context.route('**/*',route)
   page=context.new_page();errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+  page.on('console',lambda message: print('BROWSER ERROR',message.text,flush=True) if message.type=='error' else None)
   # Missing image, a failed URL and a later valid source all use the real component.
   page.goto(ORIGIN+'/tests/catalog-media-fixture.html')
   expect(page.get_by_role('img',name='Фото скоро появится',exact=True)).to_be_visible()
@@ -41,12 +42,17 @@ with sync_playwright() as p:
   expect(page.get_by_role('img',name='Фото скоро появится',exact=True)).to_be_visible()
   # The public category module opens a precise city/category/subcategory URL.
   page.goto(ORIGIN+'/#/home')
-  page.locator('.city-home').wait_for()
+  try: page.locator('.city-home').wait_for()
+  except Exception:
+   print('STARTUP ERRORS',errors,flush=True)
+   print('STARTUP BODY',page.locator('body').inner_text()[:3000],flush=True)
+   raise
   cookies=page.get_by_role('button',name='Только необходимые',exact=True)
   if cookies.is_visible():cookies.click()
   cover=page.locator('.city-cover');bounds=cover.bounding_box()
   assert abs(bounds['y']+bounds['height']-900)<=3,bounds
-  expect(page.get_by_role('link',name='Добавить бесплатно',exact=True)).to_be_visible()
+  expect(page.get_by_role('link',name='Добавить бесплатно',exact=True)).to_have_count(0)
+  expect(page.get_by_role('link',name='Добавить организацию Рассказать о своём деле',exact=True)).to_be_visible()
   expect(page.locator('.life-business-actions').get_by_role('link',name='Бизнесу',exact=True)).to_have_attribute('href',re.compile(r'^#/business\?city='))
   assert page.locator('#city-selections').bounding_box()['y']>=897
   assert page.locator('.cover-search').bounding_box()['y']+page.locator('.cover-search').bounding_box()['height']<=bounds['y']+bounds['height']+2
