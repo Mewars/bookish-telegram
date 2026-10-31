@@ -1,10 +1,10 @@
 import { lazy, Suspense, useSyncExternalStore } from 'react';
-import { OrganizationImportPage } from './pages/OrganizationImportPage';
 import { isOrganizationImportRoute } from './import/route';
 import { AppLoading } from './components/AppLoading';
 import { AppStartupBoundary } from './components/AppStartupBoundary';
 import { loadWithTimeout } from './utils/loadWithTimeout';
 // Do not initialize Supabase or public providers on a direct importer visit.
+const OrganizationImportPage = lazy(() => loadWithTimeout(() => import('./pages/OrganizationImportPage')).then(module=>({default:module.OrganizationImportPage})));
 const PublicApplication = lazy(() => loadWithTimeout(() => import('./PublicApplication')));
 function subscribeRoute(listener: () => void) {
   window.addEventListener('hashchange', listener);
@@ -12,5 +12,5 @@ function subscribeRoute(listener: () => void) {
 }
 export function RootRoute() {
   const importing = useSyncExternalStore(subscribeRoute, isOrganizationImportRoute);
-  return importing ? <OrganizationImportPage/> : <AppStartupBoundary><Suspense fallback={<AppLoading/>}><PublicApplication/></Suspense></AppStartupBoundary>;
+  return <AppStartupBoundary><Suspense fallback={<AppLoading/>}>{importing ? <OrganizationImportPage/> : <PublicApplication/>}</Suspense></AppStartupBoundary>;
 }
