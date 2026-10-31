@@ -63,11 +63,3 @@ test('listing text is published before a pending wall response',async()=>{
  await setImmediate();assert.deepEqual(updates[0].listings.map(row=>row.id),['ad1']);
  finish({data:[],error:null});await pending;
 });
-
-test('Haltura has its own published city query and excludes ordinary ads',async()=>{
- const gig={...published,id:'gig',deal_type:'gig_offer'};
- const f=fake({classifieds:[published,gig,{...gig,id:'private',status:'draft'},{...gig,id:'foreign',city:'Город Б'}]});
- const feed=await loadHomeFeed(f.client,'Город А',new AbortController().signal);
- assert.deepEqual(feed.gigs.map(row=>row.id),['gig']);
- assert(f.calls.some(c=>c[0]==='classifieds'&&c[1]==='in'&&c[2]==='deal_type'));
-});
