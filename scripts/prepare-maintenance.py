@@ -15,7 +15,7 @@ ErrorDocument 503 /maintenance/index.html
   Header always set Retry-After "3600"
 </IfModule>
 RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/(?:maintenance/(?:index\.html|config\.json)|brand/ryadom-logo-transparent\.png|brand/ryadom-logo-winter\.svg|wall/stickers/sable-20\.webp|version\.json)$
+RewriteCond %{REQUEST_URI} !^/(?:maintenance/(?:index\.html|config\.json)|brand/ryadom-logo-transparent\.png|brand/ryadom-logo-winter\.svg|brand/ryadom-logo-winter-v2\.svg|wall/stickers/sable-20\.webp|version\.json)$
 RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
 RewriteRule ^ - [R=503,L]
 # END RYADOM MAINTENANCE

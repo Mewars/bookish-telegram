@@ -153,7 +153,7 @@ try {
 
       if(expected){
         const brand=page.locator('.web-header .brand-logo-image,.app-header .brand-logo-image').first();
-        assert.match(await brand.getAttribute('src'),/ryadom-logo-winter\.svg$/);
+        assert.match(await brand.getAttribute('src'),/ryadom-logo-winter-v2\.svg$/);
         await brand.evaluate(img=>img.decode());
         const snow=page.locator('.winter-snow');
         assert.equal(await snow.count(),1,'Winter snow layer is missing');

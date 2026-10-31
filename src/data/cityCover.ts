@@ -1,5 +1,5 @@
 export const cityCover = {
-  src: `${(import.meta.env?.BASE_URL ?? '/')}brand/yeniseysk-winter-2026.webp`,
+  src: `${(import.meta.env?.BASE_URL ?? '/')}brand/yeniseysk-winter-faces-v2.webp`,
   alt: 'Зимняя художественная обложка Енисейска: заснеженная набережная, памятник основателям и наряженная ель'
 };
 
