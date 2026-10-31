@@ -9,7 +9,7 @@
 .city-home .winter-snow-toggle{pointer-events:auto;position:absolute;left:24px;bottom:18px;min-height:38px;padding:7px 13px;border:1px solid #edc57b66;border-radius:20px;background:#061b28dd;color:#fff8ea;font:inherit;font-size:12px;}
 .city-home .winter-snow-toggle:focus-visible{outline:3px solid #edc57b;outline-offset:3px;}
 @keyframes ryadom-snowfall{from{transform:translate3d(-10px,-24%,0)}to{transform:translate3d(25px,24%,0)}}
-@media(max-width:699px){.winter-snow-flakes>span:nth-child(3){display:none;}.city-home .winter-snow-toggle{left:18px;bottom:8px;min-height:44px;}}
+@media(max-width:699px){.winter-snow-flakes>span:nth-child(3){display:none;}.city-home .winter-snow-toggle{left:auto;right:18px;bottom:84px;min-height:44px;}}
 @media(prefers-reduced-motion:reduce){.winter-snow{display:none!important;}.winter-snow-flakes>span{animation:none!important;}}
 :root[data-a11y-motion=reduce] .winter-snow{display:none!important;}
 :root[data-a11y-motion=reduce] .winter-snow-flakes>span{animation:none!important;}
