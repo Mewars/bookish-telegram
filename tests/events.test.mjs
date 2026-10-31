@@ -41,3 +41,14 @@ test('date and holiday follow venue timezone, including another future city',()=
  assert.equal(holidaysToday(new Date('2027-10-31T12:00:00Z')).length,1);
  assert.equal(holidaysToday(new Date('2027-10-25T12:00:00Z')).length,0);
 });
+
+test('homepage agenda uses city calendar weekends, explicit free prices and multi-day events',async()=>{
+ const {agendaEvents}=await import('../src/home/agenda.ts');
+ const now=new Date('2026-10-30T19:00:00Z'); // Saturday in Krasnoyarsk, Friday in UTC.
+ const event=(id,start,end,price)=>({id,kind:'events',eventStart:start,eventEnd:end,eventTimeZone:'Asia/Krasnoyarsk',dateOffset:0,price});
+ const rows=[event('sat','2026-10-31',undefined,'Бесплатно'),event('sun','2026-11-01',undefined,'0 ₽'),event('mon','2026-11-02',undefined,'Бесплатно'),event('unknown','2026-10-31',undefined,undefined),event('range','2026-10-29','2026-11-02','200 ₽')];
+ assert.deepEqual(agendaEvents(rows,'weekend',false,now).map(x=>x.id),['sat','sun','unknown','range']);
+ assert.deepEqual(agendaEvents(rows,'weekend',true,now).map(x=>x.id),['sat','sun']);
+ assert.deepEqual(agendaEvents(rows,'tomorrow',false,now).map(x=>x.id),['sun','range']);
+ assert.deepEqual(agendaEvents(rows,'weekend',false,new Date('2026-11-01T05:00:00Z')).map(x=>x.id),['sun','range']);
+});

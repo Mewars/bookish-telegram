@@ -109,7 +109,8 @@ try {
       assert.equal(await weather.isVisible(), false);
       result.checks.push('Compact city weather icon opens current and hourly forecast');
 
-      for (const name of ['Город сегодня','Быстрые действия','Нужное рядом']) {
+      const compactHome=await page.locator('.home-today').count()>0;
+      for (const name of ['Город сегодня','Быстрые действия',compactHome?'Места и организации':'Нужное рядом']) {
         assert.equal(await page.getByRole('heading',{name,exact:true}).count(),1,`Missing city-life section: ${name}`);
       }
       assert.equal(await page.locator('.home-carousel').count(),0,'Legacy directory rails should be absent');
@@ -131,7 +132,7 @@ try {
       // PRs audit the currently published release. Require new behavior only after this release deploys.
       if (expected) {
         assert.equal(await adminLink.count(), 0, 'Guest must not see the administrative entry');
-        for (const name of ['Город сегодня','Куда сходить','Нужное рядом']) {
+        for (const name of ['Город сегодня',compactHome?'Места и организации':'Нужное рядом']) {
           assert.equal(await page.getByRole('heading',{name,exact:true}).evaluate(el=>getComputedStyle(el,'::after').display),'none',`Unexpected heading decoration: ${name}`);
         }
         for (const button of await page.locator('.quick-discovery button').all()) {
@@ -153,8 +154,15 @@ try {
       const coverBounds = await page.locator('.city-cover').boundingBox();
       const coverBottom = await page.locator('.city-cover').evaluate(el => el.getBoundingClientRect().bottom + window.scrollY);
       const viewportHeight=await page.evaluate(()=>window.innerHeight);
-      assert(coverBounds && Math.abs(coverBottom-viewportHeight)<5,`City cover must end at the first viewport edge: ${JSON.stringify({coverBounds,coverBottom,viewportHeight})}`);
-      result.checks.push('Full first-screen city cover');
+      if(compactHome){
+        assert(coverBounds&&coverBounds.height<400,'Compact homepage header is too tall');
+        assert.equal(await page.getByRole('heading',{name:'Сегодня рядом',exact:true}).count(),1);
+        assert.equal(await page.locator('.cover-image').count(),0,'Large city image returned');
+        result.checks.push('Compact Today nearby header; catalog and city-life links');
+      }else{
+        assert(coverBounds && Math.abs(coverBottom-viewportHeight)<5,`City cover must end at the first viewport edge: ${JSON.stringify({coverBounds,coverBottom,viewportHeight})}`);
+        result.checks.push('Full first-screen city cover');
+      }
 
       const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: window.innerWidth }));
       assert(size.scroll <= size.viewport + 3, `Horizontal page overflow: ${JSON.stringify(size)}`);

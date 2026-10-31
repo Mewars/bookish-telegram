@@ -29,7 +29,9 @@ with sync_playwright() as p:
   expect(page.get_by_role('heading',name='Объявление Город А',exact=True)).to_be_visible()
   page.wait_for_function("document.querySelector('.life-listing-image img')?.naturalWidth>0")
   expect(page.get_by_role('heading',name='Прошедшее событие',exact=True)).to_have_count(0)
-  assert abs(page.locator('.city-cover').evaluate('(el)=>el.getBoundingClientRect().bottom+scrollY')-height)<3
+  assert page.locator('.city-cover').bounding_box()['height']<400
+  expect(page.get_by_role('heading',name='Сегодня рядом',exact=True)).to_be_visible()
+  expect(page.locator('.today-gig')).to_contain_text('Задание Город А')
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   expect(page.get_by_role('group',name='Быстрые сценарии',exact=True)).to_be_visible()
   expect(page.get_by_role('button',name='Сегодня',exact=True)).to_be_visible()
@@ -37,7 +39,7 @@ with sync_playwright() as p:
    assert parse_qs(urlparse(link.get_attribute('href').replace('#/','/')).query).get('city')==['Город А']
   expect(page.get_by_role('link',name='+ Предложить новость',exact=True)).to_be_visible()
   expect(page.get_by_role('link',name='Добавить бесплатно',exact=True)).to_have_count(0)
-  for heading in ['Город сегодня','Куда сходить','Нужное рядом']:
+  for heading in ['Город сегодня','Куда сходить','Места и организации']:
    assert page.get_by_role('heading',name=heading,exact=True).evaluate('(el)=>getComputedStyle(el,"::after").display')=='none'
   for shortcut in page.locator('.quick-discovery button').all():
    assert shortcut.evaluate('(el)=>getComputedStyle(el).backdropFilter')=='none'
@@ -65,29 +67,25 @@ with sync_playwright() as p:
   expect(page.get_by_role('heading',name='Новость Енисейск',exact=True)).to_be_visible()
   expect(page.get_by_role('heading',name='Новости города',exact=True)).to_have_count(0)
   assert not news_requests,news_requests
-  tiles=page.locator('.life-collection')
-  expect(tiles).to_have_count(3)
-  assert page.locator('.life-collection h3').all_text_contents()==['На прогулку','Кофе и встречи','История и культура']
-  for index,name in enumerate(['park','coffee','culture']):
-   photo=tiles.nth(index).locator('img')
-   expect(photo).to_have_attribute('src','/brand/discovery/eniseysk-'+name+'.webp')
-   photo.scroll_into_view_if_needed()
-  page.wait_for_function("[...document.querySelectorAll('.life-collection img')].every(img=>img.complete&&img.naturalWidth>0)")
-  expect(page.locator('.life-collection .life-art-label')).to_have_count(0)
-  order=page.locator('.life-content').evaluate("el=>[...el.children].map(node=>node.getAttribute('aria-label')||(node.classList.contains('life-city-row')?'wall':node.classList.contains('life-business')?'business':''))")
-  assert order.index('Открывай город по-новому')<order.index('wall')<order.index('Афиша города')<order.index('Свежие объявления'),order
-  assert order[-1]=='Свежие объявления',order
-  boxes=[tiles.nth(i).bounding_box() for i in range(3)]
-  assert page.locator('.life-city-row').bounding_box()['y']-max(box['y']+box['height'] for box in boxes)>=31
-  assert max(box['height'] for box in boxes)-min(box['height'] for box in boxes)<2,boxes
+  expect(page.locator('.life-collection')).to_have_count(0)
+  agenda=page.get_by_role('region',name='Афиша города',exact=True)
+  agenda.get_by_role('button',name='Завтра',exact=True).click()
+  expect(agenda.get_by_role('button',name='Подробнее: Событие Енисейск',exact=True)).to_be_visible()
+  agenda.get_by_role('button',name='Бесплатно',exact=True).click()
+  expect(agenda.get_by_role('button',name='Подробнее: Событие Енисейск',exact=True)).to_be_visible()
+  agenda.get_by_role('button',name='Подробнее: Событие Енисейск',exact=True).click()
+  expect(page.get_by_label('Открытый раздел',exact=True)).to_have_text('Событие Енисейск')
+  order=page.locator('.life-content').evaluate("el=>[...el.children].map(node=>node.getAttribute('aria-label')||(node.classList.contains('today-overview')?'overview':node.classList.contains('life-city-row')?'wall':''))")
+  assert order.index('overview')<order.index('Места и организации')<order.index('wall')<order.index('Свежие объявления'),order
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   assert not errors,errors
   page.screenshot(path=f'qa-screenshots/home-life-{width}-{height}.png',full_page=True)
-  print('PASS',width,'city isolation, links, search, category focus, hero, local photos, section order, no overflow, empty city')
+  print('PASS',width,'city isolation, links, search, category focus, compact header, agenda filters, task preview, section order, no overflow, empty city')
   if width==390 and height==844:
    page.goto(ORIGIN+'/tests/home-life-fixture.html?stories=preview#/home?city=Город А')
    page.get_by_role('region',name='Пример историй жителей',exact=True).scroll_into_view_if_needed()
    expect(page.get_by_role('heading',name='Истории рядом',exact=True)).to_be_visible()
+   assert page.locator('.rs-heading h2').evaluate('el=>getComputedStyle(el).color===getComputedStyle(document.querySelector(".home-today")).color')
    expect(page.locator('.rs-card')).to_have_count(4)
    assert page.locator('.rs-preview').bounding_box()['y']<page.locator('.life-city-row').bounding_box()['y']
    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')

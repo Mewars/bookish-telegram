@@ -15,8 +15,8 @@ test('native city sections use explicit city links instead of beta-only React pa
  assert.match(home,/ryadomOpenCategories/);
 });
 test('empty public feeds do not turn into invented content or empty advertising rails',()=>{
- assert.match(home,/feed\.listings\.length>0&&/);
- assert.match(home,/events\.length>0&&/);
+ assert.match(home,/listings\.length>0&&/);
+ assert.match(home,/allEvents\.length>0&&/);
  assert.match(home,/Город начинается с нас/);
  assert.doesNotMatch(home,/Выбор «Рядом»|Партнёры «Рядом»|HomeCarousel/);
 });
