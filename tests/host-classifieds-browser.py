@@ -98,7 +98,7 @@ with sync_playwright() as p:
     for failure in [False,True]:
         context=browser.new_context(viewport={'width':390,'height':844})
         context.route('**/*',lambda route:route.continue_() if urlparse(route.request.url).netloc=='127.0.0.1:4176' else route.abort())
-        context.add_init_script('window.hostHalturaTest=true;window.hostHoldPhotos=true;window.hostFailPhotos='+str(failure).lower())
+        context.add_init_script('window.hostGigTest=true;window.hostHoldPhotos=true;window.hostFailPhotos='+str(failure).lower())
         page=context.new_page()
         page.route('**/classifieds/supabase-client.js',lambda route:route.fulfill(content_type='application/javascript',body=sdk))
         page.route('**/notifications/widget.js*',lambda route:route.fulfill(content_type='application/javascript',body=''))
