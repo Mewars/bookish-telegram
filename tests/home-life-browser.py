@@ -82,6 +82,9 @@ with sync_playwright() as p:
   assert max(box['height'] for box in boxes)-min(box['height'] for box in boxes)<2,boxes
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   assert not errors,errors
+  brand=page.locator('.app-header .brand-logo-image')
+  expect(brand).to_have_attribute('src','/brand/ryadom-logo-winter.svg')
+  page.wait_for_function("document.querySelector('.app-header .brand-logo-image')?.naturalWidth>0")
   page.screenshot(path=f'qa-screenshots/home-life-{width}-{height}.png',full_page=True)
   print('PASS',width,'city isolation, links, search, category focus, hero, local photos, section order, no overflow, empty city')
   if width==390 and height==844:
