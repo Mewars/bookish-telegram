@@ -1,0 +1,15 @@
+/* Three tiled CSS layers; no per-frame JavaScript, external scripts or canvas. */
+.city-home .winter-snow{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
+.winter-snow-flakes{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.winter-snow-flakes>span{position:absolute;inset:-60% -15% 0;background-image:radial-gradient(circle at 15% 24%,#fff9 0 1px,transparent 1.8px),radial-gradient(circle at 70% 43%,#fffc 0 1.3px,transparent 2px),radial-gradient(circle at 35% 77%,#fff9 0 1px,transparent 1.8px),radial-gradient(circle at 89% 89%,#fff7 0 1.2px,transparent 2px);background-size:237px 263px;animation:ryadom-snowfall 26s linear infinite;opacity:.65;}
+.winter-snow-flakes>span:nth-child(2){background-size:347px 317px;animation-duration:19s;animation-delay:-11s;opacity:.5;scale:1.3;}
+.winter-snow-flakes>span:nth-child(3){background-size:461px 419px;animation-duration:34s;animation-delay:-22s;opacity:.35;scale:1.7;}
+.winter-snow[data-paused=true] .winter-snow-flakes>span{animation-play-state:paused;}
+.winter-snow[data-enabled=false] .winter-snow-flakes{display:none;}
+.city-home .winter-snow-toggle{pointer-events:auto;position:absolute;left:24px;bottom:18px;min-height:38px;padding:7px 13px;border:1px solid #edc57b66;border-radius:20px;background:#061b28dd;color:#fff8ea;font:inherit;font-size:12px;}
+.city-home .winter-snow-toggle:focus-visible{outline:3px solid #edc57b;outline-offset:3px;}
+@keyframes ryadom-snowfall{from{transform:translate3d(-10px,-24%,0)}to{transform:translate3d(25px,24%,0)}}
+@media(max-width:699px){.winter-snow-flakes>span:nth-child(3){display:none;}.city-home .winter-snow-toggle{left:18px;bottom:8px;min-height:44px;}}
+@media(prefers-reduced-motion:reduce){.winter-snow{display:none!important;}.winter-snow-flakes>span{animation:none!important;}}
+:root[data-a11y-motion=reduce] .winter-snow{display:none!important;}
+:root[data-a11y-motion=reduce] .winter-snow-flakes>span{animation:none!important;}
