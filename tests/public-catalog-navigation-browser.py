@@ -86,6 +86,10 @@ with sync_playwright() as p:
         page.locator('.detail-breadcrumb .back-link').click()
         expect(search).to_have_value('музей')
         expect(page.locator('.app-shell')).to_have_attribute('data-section','home')
+        page.goto(origin+'/#/admin-preview')
+        expect(page.get_by_role('heading',name='Попробуй добавить организацию',exact=True)).to_be_visible()
+        page.goto(origin+'/#/admin/import')
+        expect(page.get_by_role('heading',name='Импорт организаций',exact=True)).to_be_visible()
         assert not errors, errors
         print(f'PASS {width}px: filters/subcategory, Back/Forward, Escape, reload, cities, direct and unsafe links')
         context.close()

@@ -19,7 +19,7 @@ test('wall posts render while listing photos are still waiting on private Storag
  const loaded=loadHomeFeed(f.client,'Город А',new AbortController().signal,feed=>updates.push(feed)).then(feed=>{done=true;return feed;});
  await setImmediate();
  assert.equal(done,false,'the photo request is deliberately unresolved');
- assert.deepEqual(updates[0].posts.map(post=>post.id),['post'],'text posts arrive independently');
+ assert(updates.some(feed=>feed.posts.some(post=>post.id==='post')),'text posts arrive independently');
  release({data:{signedUrl:'https://signed.invalid/ad1/photo.webp'},error:null});
  const result=await loaded;assert.ok(result.listings[0].image);
  assert.equal(updates[0].listings[0]?.image,undefined,'published snapshots never mutate behind React');
@@ -52,4 +52,14 @@ test('unconfigured client yields empty sections and destination links carry the 
  const result=await loadHomeFeed(null,'Город Б',new AbortController().signal);assert.equal(result.city,'Город Б');assert.deepEqual(result.posts,[]);
  const url=new URL(hostSectionHref('classifieds','Город Б',{ad:'record'}),'https://ryadomcity.ru');assert.equal(url.searchParams.get('city'),'Город Б');assert.equal(url.searchParams.get('ad'),'record');
  assert.equal(homePrice({...published,price_rub:null}),'По договорённости');assert.equal(homePrice({...published,deal_type:'exchange'}),'Обмен');
+});
+
+// A fast classifieds response must not wait for a slow wall or photo endpoint.
+test('listing text is published before a pending wall response',async()=>{
+ const f=fake({classifieds:[published]});const original=f.client.from;
+ let finish;const wall=new Promise(resolve=>{finish=resolve;});
+ f.client.from=table=>{const query=original(table);if(table==='community_posts')query.then=(resolve,reject)=>wall.then(resolve,reject);return query;};
+ const updates=[];const pending=loadHomeFeed(f.client,'Город А',new AbortController().signal,feed=>updates.push(feed));
+ await setImmediate();assert.deepEqual(updates[0].listings.map(row=>row.id),['ad1']);
+ finish({data:[],error:null});await pending;
 });

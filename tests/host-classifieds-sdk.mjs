@@ -20,6 +20,8 @@ class Query {
  update(payload){this.payload=payload;return this;}
  single(){this.one=true;return this;} maybeSingle(){this.one=true;return this;}
  async then(resolve){
+  if(this.table==='classified_photos'&&window.hostHoldPhotos){window.hostPhotosPending=true;await new Promise(release=>{window.hostReleasePhotos=()=>{window.hostHoldPhotos=false;release();};});}
+  if(this.table==='classified_photos'&&window.hostFailPhotos)return resolve({data:null,error:{message:'Synthetic photo outage'}});
   let result={data:[],error:null};
   if(this.table==='city_directory')result.data=[{name:'Енисейск'},{name:'Лесосибирск'}];
   if(this.table==='classifieds') {
