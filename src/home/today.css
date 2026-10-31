@@ -74,3 +74,10 @@
 }
 
 :root[data-theme=dark] .city-home.home-today{--bg:#071622;--surface:#102330;--text:#fff8e9;--muted:#b9c2cb;--line:#ffffff26;--life-gold:#9ac2ff;--accent-contrast:#102330;}
+@media(max-width:699px){
+ .city-home.home-today .cover-summary{display:none;}
+ .city-home.home-today .today-title{margin-bottom:17px;}
+ .city-home.home-today .quick-discovery{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+ .city-home.home-today .quick-discovery :is(a,button){min-width:0;padding:0 4px;font-size:11px;gap:5px;}
+ .city-home.home-today .quick-discovery #ryadom-category-trigger{grid-column:span 2;justify-content:center;font-size:12px;}
+}
