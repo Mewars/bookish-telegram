@@ -1,6 +1,6 @@
 /* Reversible homepage composition; existing catalog, wall and host links stay intact. */
 .city-home.home-today{--bg:#f5f7fb;--surface:#fff;--text:#142740;--muted:#63748a;--line:#e4eaf3;--life-gold:#175cd3;--accent-contrast:#fff;--life-muted:var(--muted);background:var(--bg,#f4f6fa);color:var(--text,#172a3e);padding-bottom:1px;}
-.city-home.home-today>.city-cover{min-height:0;height:auto;padding:30px max(24px,calc((100vw - 1260px)/2)) 24px;background:transparent;}
+.city-home.home-today>.city-cover{color:var(--text);border:0;min-height:0;height:auto;padding:30px max(24px,calc((100vw - 1260px)/2)) 24px;background:transparent;}
 .city-home.home-today .city-cover-content{position:static;max-width:none;width:auto;padding:0;}
 .city-home.home-today .today-city-label{display:flex;align-items:center;gap:7px;color:var(--life-muted);}
 .city-home.home-today .city-cover-content h1{font-size:14px;line-height:1.4;font-weight:600;letter-spacing:0;text-transform:none;text-shadow:none;color:inherit;margin:0;}
