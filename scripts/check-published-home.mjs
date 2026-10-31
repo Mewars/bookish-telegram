@@ -151,6 +151,22 @@ try {
         await page.screenshot({path:`${folder}/${scenario.name}-footer.png`,animations:'disabled'});
       }
 
+      if(expected){
+        const brand=page.locator('.web-header .brand-logo-image,.app-header .brand-logo-image').first();
+        assert.match(await brand.getAttribute('src'),/ryadom-logo-winter\.svg$/);
+        await brand.evaluate(img=>img.decode());
+        const snow=page.locator('.winter-snow');
+        assert.equal(await snow.count(),1,'Winter snow layer is missing');
+        await page.emulateMedia({reducedMotion:'no-preference'});
+        const toggle=page.getByRole('button',{name:'Выключить падающий снег',exact:true});
+        await toggle.scrollIntoViewIfNeeded();await toggle.click();
+        assert.equal(await snow.getAttribute('data-enabled'),'false');
+        await page.getByRole('button',{name:'Включить падающий снег',exact:true}).click();
+        await page.emulateMedia({reducedMotion:'reduce'});
+        assert.equal(await snow.isVisible(),false,'Reduced motion must disable falling snow');
+        await page.emulateMedia({reducedMotion:'no-preference'});
+        result.checks.push('Winter logo loads; falling snow toggle and reduced-motion work');
+      }
       const coverBounds = await page.locator('.city-cover').boundingBox();
       const coverBottom = await page.locator('.city-cover').evaluate(el => el.getBoundingClientRect().bottom + window.scrollY);
       const viewportHeight=await page.evaluate(()=>window.innerHeight);

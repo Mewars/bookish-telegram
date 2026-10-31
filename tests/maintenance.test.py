@@ -36,6 +36,7 @@ class MaintenanceTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             dist = Path(folder)
             shutil.copytree(ROOT / 'public/maintenance', dist / 'maintenance')
+            (dist / 'maintenance/config.json').write_text('{"enabled":true}')
             (dist / 'version.json').write_text('{"version":"test-123456"}')
             entry = '<head><script type="module" src="/assets/app.js"></script><script src="/ui/site-shell.js"></script><script src="/classifieds/nav.js"></script></head><body>APP</body>'
             (dist / 'index.html').write_text(entry)
@@ -65,7 +66,8 @@ class MaintenanceTest(unittest.TestCase):
             doc = root / 'www'
             doc.mkdir()
             shutil.copytree(ROOT / 'public/maintenance', doc / 'maintenance')
-            for target, source in [('brand/ryadom-logo-transparent.png', 'public/brand/ryadom-logo-transparent.png'), ('wall/stickers/sable-20.webp', 'host-public/wall/stickers/sable-20.webp')]:
+            (doc / 'maintenance/config.json').write_text('{"enabled":true}')
+            for target, source in [('brand/ryadom-logo-transparent.png', 'public/brand/ryadom-logo-transparent.png'), ('brand/ryadom-logo-winter.svg', 'public/brand/ryadom-logo-winter.svg'), ('wall/stickers/sable-20.webp', 'host-public/wall/stickers/sable-20.webp')]:
                 (doc / target).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / source, doc / target)
             for path in ['index.html','wall/index.html','classifieds/index.html','stories-preview/index.html','api/friends.php','api/weather.php','assets/app.js']:
@@ -128,7 +130,7 @@ DirectoryIndex index.html
                     self.assertEqual(headers.get('Retry-After'), '3600')
                 self.assertEqual(request('/api/friends.php', 'POST')[0], 503)
                 self.assertEqual(request('/wall/', 'HEAD')[0], 503)
-                for path in ['/brand/ryadom-logo-transparent.png','/wall/stickers/sable-20.webp','/maintenance/config.json','/version.json']:
+                for path in ['/brand/ryadom-logo-transparent.png','/brand/ryadom-logo-winter.svg','/wall/stickers/sable-20.webp','/maintenance/config.json','/version.json']:
                     self.assertEqual(request(path)[0], 200, path)
                 (doc / 'maintenance/config.json').write_text('{"enabled":false}')
                 (doc / 'index.html').write_text('REBUILT APP')

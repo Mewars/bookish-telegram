@@ -1,3 +1,4 @@
+import {WinterSnow} from '../home/WinterSnow';
 import {StoriesPreview} from '../home/StoriesPreview';
 import {wallBodyPreview} from '../../host-public/wall/expressions.js';
 import { useEffect, useRef, useState } from 'react';
@@ -93,6 +94,7 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
     </div>
     <button id="ryadom-category-trigger" className="life-categories-button" onClick={categories} aria-haspopup="dialog"><Icon name="search" size={19}/>Все категории<Icon name="arrow" size={18}/></button>
    </div>
+   <WinterSnow/>
    <svg className="life-route" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30C180 100 220 0 390 33S700 110 960 45S1210 30 1440 48"/><path className="life-route-echo" d="M0 75C250 0 350 80 610 65S1040 15 1440 55"/></svg><span className="life-route-marker" aria-hidden="true"><Icon name="pin" size={22}/></span>
   </section>
   <div id="city-selections" className="life-content">

@@ -82,6 +82,9 @@ with sync_playwright() as p:
   assert max(box['height'] for box in boxes)-min(box['height'] for box in boxes)<2,boxes
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   assert not errors,errors
+  brand=page.locator('.app-header .brand-logo-image')
+  expect(brand).to_have_attribute('src','/brand/ryadom-logo-winter.svg')
+  page.wait_for_function("document.querySelector('.app-header .brand-logo-image')?.naturalWidth>0")
   page.screenshot(path=f'qa-screenshots/home-life-{width}-{height}.png',full_page=True)
   print('PASS',width,'city isolation, links, search, category focus, hero, local photos, section order, no overflow, empty city')
   if width==390 and height==844:
@@ -102,5 +105,29 @@ with sync_playwright() as p:
    expect(page.get_by_role('dialog',name='Просмотр истории')).to_contain_text('Город Б')
    page.keyboard.press('Escape')
    assert not errors,errors
+  if width==390 and height==844:
+   page.emulate_media(reduced_motion='no-preference')
+   snow=page.locator('.winter-snow')
+   control=page.get_by_role('button',name='Выключить падающий снег',exact=True)
+   control.scroll_into_view_if_needed()
+   expect(control).to_be_visible()
+   expect(snow).to_have_attribute('data-paused','false')
+   layer=page.locator('.winter-snow-flakes>span').first
+   initial=layer.evaluate('el=>getComputedStyle(el).transform')
+   page.wait_for_function("before=>getComputedStyle(document.querySelector('.winter-snow-flakes>span')).transform!==before",arg=initial)
+   control.click()
+   expect(snow).to_have_attribute('data-enabled','false')
+   expect(page.locator('.winter-snow-flakes')).not_to_be_visible()
+   page.get_by_role('button',name='Включить падающий снег',exact=True).click()
+   expect(snow).to_have_attribute('data-enabled','true')
+   page.get_by_role('heading',name='Город сегодня',exact=True).scroll_into_view_if_needed()
+   expect(snow).to_have_attribute('data-paused','true')
+   page.emulate_media(reduced_motion='reduce')
+   expect(snow).not_to_be_visible()
+   page.emulate_media(reduced_motion='no-preference')
+   page.evaluate("document.documentElement.dataset.a11yMotion='reduce'")
+   expect(snow).not_to_be_visible()
+   page.evaluate('delete document.documentElement.dataset.a11yMotion')
+   print('PASS winter: real CSS motion, pause offscreen, toggle, system and site reduced-motion settings')
   context.close()
  browser.close()

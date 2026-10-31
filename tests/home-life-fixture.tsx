@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {createRoot} from 'react-dom/client';
+import {BrandWordmark} from '../src/components/BrandWordmark';
 import {CityHome} from '../src/components/CityHome';
 import type {Item} from '../src/types';
 import '../src/styles.css';
@@ -11,5 +12,5 @@ const items:Item[]=['Город А','Город Б','Енисейск'].flatMap(
  {...base,id:city+'-event',city,title:'Событие '+city,category:'Выставка',kind:'events',dateOffset:1,time:'18:00'},
  {...base,id:city+'-past',city,title:'Прошедшее событие',category:'Выставка',kind:'events',dateOffset:-1},
 ]);
-export function Fixture(){const[city,setCity]=useState('Город А');const[opened,setOpened]=useState('');return <><header className="app-header" style={{height:200,display:'flex'}}><label>Тестовый город<select aria-label="Тестовый город" value={city} onChange={e=>setCity(e.target.value)}><option>Город А</option><option>Город Б</option><option>Пустой город</option><option>Енисейск</option></select></label></header><CityHome city={city} cityProfile={{name:city,region:'Тестовая область',cover_url:'/tests/photo-valid.png'}} items={items} favorites={[]} toggle={()=>{}} open={item=>setOpened(item.title)} navigate={section=>setOpened(section)}/><output aria-label="Открытый раздел">{opened}</output></>;}
+export function Fixture(){const[city,setCity]=useState('Город А');const[opened,setOpened]=useState('');return <><header className="app-header" style={{height:200,display:'flex'}}><span className="brand brand-logo-pin"><BrandWordmark/></span><label>Тестовый город<select aria-label="Тестовый город" value={city} onChange={e=>setCity(e.target.value)}><option>Город А</option><option>Город Б</option><option>Пустой город</option><option>Енисейск</option></select></label></header><CityHome city={city} cityProfile={{name:city,region:'Тестовая область',cover_url:'/tests/photo-valid.png'}} items={items} favorites={[]} toggle={()=>{}} open={item=>setOpened(item.title)} navigate={section=>setOpened(section)}/><output aria-label="Открытый раздел">{opened}</output></>;}
 createRoot(document.getElementById('root')!).render(<Fixture/>);

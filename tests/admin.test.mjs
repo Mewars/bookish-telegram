@@ -151,7 +151,7 @@ test('admin sidebar reuses the official Ryadom brand image and returns to overvi
     readFile('src/components/web/WebHeader.tsx', 'utf8'),
     readFile('src/admin/admin.css', 'utf8'),
   ]);
-  assert.match(brand, /brand\/ryadom-logo-transparent\.png/);
+  assert.match(brand, /brand\/ryadom-logo-winter\.svg/);
   assert.match(desktop, /<BrandWordmark decorative\/>/);
   assert.match(admin, /<button type="button" className="admin-cms-wordmark"/);
   assert.match(admin, /<BrandWordmark decorative\/><\/button>/);
