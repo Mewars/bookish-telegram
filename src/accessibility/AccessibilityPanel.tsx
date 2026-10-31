@@ -71,12 +71,11 @@ export function AccessibilityPanel({ open, onClose, preferences, onChange, onRes
       <input type="checkbox" checked={preferences.reduceMotion} onChange={event => set('reduceMotion', event.target.checked)}/>
     </label>
     <label className="accessibility-option">
-      <span><strong>Для слабослышащих</strong><small>Показывает состояние музыки текстом и пояснения о звуковом контенте</small></span>
+      <span><strong>Для слабослышащих</strong><small>Показывает пояснения о звуковом контенте</small></span>
       <input type="checkbox" checked={preferences.hearingAssistance} onChange={event => set('hearingAssistance', event.target.checked)}/>
     </label>
     {preferences.hearingAssistance && <p className="accessibility-hearing-note" role="status">
-      Музыку можно включить и выключить самостоятельно. Прямой радиоэфир не имеет текстовой расшифровки;
-      субтитры к видео RUTUBE зависят от самого видео.
+      Субтитры к видео RUTUBE зависят от самого видео. Радио и музыкальный плеер временно недоступны.
     </p>}
     <div className="accessibility-actions">
       <button className="accessibility-reset" type="button" onClick={() => { onReset(); }}>Сбросить настройки</button>

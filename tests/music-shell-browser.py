@@ -1,10 +1,9 @@
-"""Radio is an external navigation; visiting Ryadom never starts a radio request."""
+"""Radio is absent; public navigation never starts radio playback or requests."""
 import os
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright, expect
 
 ORIGIN = 'http://127.0.0.1:4177'
-RADIO = 'https://www.radiorecord.ru/'
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE'))
     for width in (360, 390, 1440):
@@ -30,23 +29,11 @@ with sync_playwright() as p:
         cookies = page.get_by_role('button', name='Только необходимые', exact=True)
         if cookies.is_visible():
             cookies.click()
-        radio = page.get_by_role('link', name='Радио — официальный сайт Radio Record, откроется в новой вкладке', exact=True)
-        expect(radio).to_be_visible()
-        expect(radio).to_have_attribute('href', RADIO)
-        expect(radio).to_have_attribute('rel', 'noopener noreferrer')
+        expect(page.locator('.music-launch')).to_have_count(0)
+        expect(page.get_by_role('link',name='Радио',exact=True)).to_have_count(0)
         assert not radio_requests
         assert page.evaluate('window.__radioAudioCount') == 0
         expect(page.locator('#music-player')).to_have_count(0)
-        # Keyboard navigation opens the real external-link behavior into a controlled fixture.
-        radio.focus()
-        with page.expect_popup() as popup_info:
-            radio.press('Enter')
-        popup = popup_info.value
-        popup.wait_for_load_state()
-        assert popup.url == RADIO
-        assert popup.evaluate('window.opener === null')
-        popup.close()
-        assert radio_requests == [RADIO], radio_requests
         page.get_by_role('button', name='Места', exact=True).click()
         expect(page.locator('.app-shell')).to_have_attribute('data-section', 'places')
         page.add_script_tag(path='host-public/ui/site-shell.js')
@@ -58,7 +45,7 @@ with sync_playwright() as p:
         page.frame_locator('.ryadom-shell-iframe').get_by_role('link', name='Главная', exact=True).click()
         expect(dialog).to_have_count(0)
         assert page.evaluate('window.__radioAudioCount') == 0
-        assert radio_requests == [RADIO]
-        print('PASS', width, 'external radio only; no autoplay/stream; keyboard/popup isolation; public section navigation')
+        assert not radio_requests
+        print('PASS', width, 'radio absent; no autoplay/stream/third-party requests; public section navigation')
         context.close()
     browser.close()
