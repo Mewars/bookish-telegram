@@ -36,6 +36,7 @@ class MaintenanceTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             dist = Path(folder)
             shutil.copytree(ROOT / 'public/maintenance', dist / 'maintenance')
+            (dist / 'maintenance/config.json').write_text('{"enabled":true}')
             (dist / 'version.json').write_text('{"version":"test-123456"}')
             entry = '<head><script type="module" src="/assets/app.js"></script><script src="/ui/site-shell.js"></script><script src="/classifieds/nav.js"></script></head><body>APP</body>'
             (dist / 'index.html').write_text(entry)
@@ -65,6 +66,7 @@ class MaintenanceTest(unittest.TestCase):
             doc = root / 'www'
             doc.mkdir()
             shutil.copytree(ROOT / 'public/maintenance', doc / 'maintenance')
+            (doc / 'maintenance/config.json').write_text('{"enabled":true}')
             for target, source in [('brand/ryadom-logo-transparent.png', 'public/brand/ryadom-logo-transparent.png'), ('brand/ryadom-logo-winter.svg', 'public/brand/ryadom-logo-winter.svg'), ('wall/stickers/sable-20.webp', 'host-public/wall/stickers/sable-20.webp')]:
                 (doc / target).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / source, doc / target)
