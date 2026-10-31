@@ -85,6 +85,7 @@ with sync_playwright() as p:
    page.goto(ORIGIN+'/tests/home-life-fixture.html?stories=preview#/home?city=Город А')
    page.get_by_role('region',name='Пример историй жителей',exact=True).scroll_into_view_if_needed()
    expect(page.get_by_role('heading',name='Истории рядом',exact=True)).to_be_visible()
+   assert page.locator('.rs-heading h2').evaluate('el=>getComputedStyle(el).color===getComputedStyle(document.querySelector(".home-today")).color')
    expect(page.locator('.rs-card')).to_have_count(4)
    assert page.locator('.rs-preview').bounding_box()['y']<page.locator('.life-city-row').bounding_box()['y']
    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')

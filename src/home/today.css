@@ -81,3 +81,7 @@
  .city-home.home-today .quick-discovery :is(a,button){min-width:0;padding:0 4px;font-size:11px;gap:5px;}
  .city-home.home-today .quick-discovery #ryadom-category-trigger{grid-column:span 2;justify-content:center;font-size:12px;}
 }
+.city-home.home-today .rs-preview{color:var(--text);}
+.city-home.home-today .rs-heading h2{color:var(--text)!important;}
+.city-home.home-today .rs-note{color:var(--life-muted);}
+.city-home.home-today .rs-trial{color:var(--life-gold);border-color:var(--line);}
