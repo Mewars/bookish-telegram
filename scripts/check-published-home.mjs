@@ -89,13 +89,14 @@ try {
         assert.equal(friendsSkin.labelColor, 'rgb(243, 189, 93)', 'Friends label must match Ryadom gold');
       }
       assert.match(friendsSkin.background, /^rgba\(/, 'Friends background must be translucent, not a solid white pill');
-      const musicGold = page.getByRole('link', { name: 'Радио — официальный сайт Radio Record, откроется в новой вкладке' });
-      assert.equal(await musicGold.count(), 1, 'Header radio link is missing');
-      assert.equal(await musicGold.getAttribute('href'), 'https://www.radiorecord.ru/');
-      assert.equal(await musicGold.getAttribute('target'), '_blank');
-      assert.match(await musicGold.getAttribute('rel'), /noopener/);
-      assert.equal(await musicGold.evaluate(el => getComputedStyle(el).color), 'rgb(243, 189, 93)', 'Music nearby must use Ryadom gold');
-      result.checks.push('Transparent bitten-cookie icon, translucent friends shortcut, Ryadom-gold header accents');
+      const radio=page.locator('.music-launch');
+      if(expected){
+        assert.equal(await radio.count(),0,'Radio must be absent from the published header');
+      }else if(await radio.count()){
+        // Pull requests audit the preceding published release until deployment.
+        assert.equal(await radio.getAttribute('href'),'https://www.radiorecord.ru/');
+      }
+      result.checks.push('Transparent bitten-cookie icon and translucent friends shortcut; radio hidden in this release');
 
       const weatherTrigger = page.locator('.header-city-weather .city-weather-trigger');
       const weather = page.getByRole('dialog', { name: 'Погода — Енисейск' });
