@@ -1,13 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 export interface HomeListing {id:string;city:string;status:string;title:string;category:string;price_rub:number|null;deal_type:string;image?:string}
 export interface HomePost {id:string;city:string;status:string;title:string;body:string;post_type:string;created_at:string}
-export interface HomeFeed {city:string;listings:HomeListing[];posts:HomePost[];listingsError:boolean;postsError:boolean}
-export function emptyHomeFeed(city:string):HomeFeed{return {city,listings:[],posts:[],listingsError:false,postsError:false};}
+export interface HomeFeed {city:string;listings:HomeListing[];gigs:HomeListing[];posts:HomePost[];listingsError:boolean;postsError:boolean}
+export function emptyHomeFeed(city:string):HomeFeed{return {city,listings:[],gigs:[],posts:[],listingsError:false,postsError:false};}
 // Explicit city + published filters also apply to owners: a homepage is public.
 export async function loadHomeFeed(client:SupabaseClient|null,city:string,signal:AbortSignal,onUpdate?:(feed:HomeFeed)=>void):Promise<HomeFeed>{
  const result=emptyHomeFeed(city);if(!client||!city||signal.aborted)return result;
- const publishUpdate=()=>{if(!signal.aborted)onUpdate?.({...result,listings:result.listings.map(item=>({...item})),posts:[...result.posts]});};
- const [ads,posts]=await Promise.allSettled([
+ const publishUpdate=()=>{if(!signal.aborted)onUpdate?.({...result,listings:result.listings.map(item=>({...item})),gigs:[...result.gigs],posts:[...result.posts]});};
+ const [ads,posts,gigs]=await Promise.allSettled([
   Promise.resolve(client.from('classifieds').select('id,city,status,title,category,price_rub,deal_type').eq('city',city).eq('status','published').order('created_at',{ascending:false}).limit(4).abortSignal(signal)).then(response=>{
    if(signal.aborted)return response;
    if(response.error)result.listingsError=true;else result.listings=(response.data??[]).filter(x=>x.city===city&&x.status==='published').slice(0,4).map(x=>({...x})) as HomeListing[];
@@ -18,10 +18,15 @@ export async function loadHomeFeed(client:SupabaseClient|null,city:string,signal
    if(response.error)result.postsError=true;else result.posts=(response.data??[]).filter(x=>x.city===city&&x.status==='published').slice(0,2) as HomePost[];
    publishUpdate();return response;
   },error=>{result.postsError=true;publishUpdate();throw error;}),
+  Promise.resolve(client.from('classifieds').select('id,city,status,title,category,price_rub,deal_type').eq('city',city).eq('status','published').in('deal_type',['gig_offer','gig_seek']).order('created_at',{ascending:false}).limit(3).abortSignal(signal)).then(response=>{
+   if(!signal.aborted&&!response.error){result.gigs=(response.data??[]).filter(x=>x.city===city&&x.status==='published'&&['gig_offer','gig_seek'].includes(x.deal_type)).slice(0,3) as HomeListing[];publishUpdate();}
+   return response;
+  }),
  ]);
  if(signal.aborted)return emptyHomeFeed(city);
  if(ads.status==='fulfilled'&&!ads.value.error)result.listings=(ads.value.data??[]).filter(x=>x.city===city&&x.status==='published').slice(0,4).map(x=>({...x})) as HomeListing[];else result.listingsError=true;
  if(posts.status==='fulfilled'&&!posts.value.error)result.posts=(posts.value.data??[]).filter(x=>x.city===city&&x.status==='published').slice(0,2) as HomePost[];else result.postsError=true;
+ if(gigs.status==='fulfilled'&&!gigs.value.error)result.gigs=(gigs.value.data??[]).filter(x=>x.city===city&&x.status==='published'&&['gig_offer','gig_seek'].includes(x.deal_type)).slice(0,3) as HomeListing[];
  if(!result.listings.length)return result;
  // Private Storage stays private. Sign only the first registered photo of each
  // already-published listing; a missing photo must not hide the listing itself.
