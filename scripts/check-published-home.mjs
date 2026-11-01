@@ -167,9 +167,18 @@ try {
       if(expected){
         const scene=page.locator('.cover-image').first();
         const frame=await scene.boundingBox();
-        assert(frame&&Math.abs(frame.width/frame.height-1606/979)<.01,'Panorama must retain its full aspect ratio');
-        assert.equal(await scene.locator(':scope>img').evaluate(img=>getComputedStyle(img).objectFit),'contain');
-        result.checks.push('Complete, uncropped panorama with stable width-based sizing');
+        assert(frame&&frame.height>200,'City scene must be visible');
+        if(page.viewportSize().width<900){
+          assert(Math.abs(frame.width/frame.height-1)<.01,'Mobile scene must use the closer right-hand square crop');
+          assert(frame.x<2&&Math.abs(frame.width-page.viewportSize().width)<3,'Mobile scene must fill the page width');
+          const controls=await page.locator('.app-header .city-weather-trigger,.app-header .header-friends,.app-header .header-profile-button,.app-header .ryadom-bell-header').evaluateAll(nodes=>nodes.map(el=>{const b=el.getBoundingClientRect();return {x:b.x,y:b.y,w:b.width,h:b.height};}));
+          assert(controls.length===4,'Expected weather, friends, profile and bell controls');
+          assert(controls.every(b=>Math.abs(b.w-36)<1&&Math.abs(b.h-36)<1&&Math.abs(b.y-controls[0].y)<1),'Header controls must have equal sizes and vertical alignment');
+          const gaps=controls.slice(1).map((b,i)=>b.x-controls[i].x-controls[i].w);
+          assert(Math.max(...gaps)-Math.min(...gaps)<2,'Header icon gaps must match');
+        }
+        assert.equal(await scene.locator(':scope>img').evaluate(img=>getComputedStyle(img).objectFit),'cover');
+        result.checks.push('Responsive city scene with a stable right-hand crop on mobile');
       }
 
       const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: window.innerWidth }));
