@@ -3,11 +3,18 @@ export const cityCover = {
   alt: 'Зимняя художественная обложка Енисейска: заснеженная набережная, памятник основателям и наряженная ель'
 };
 
+const lampsOffCover = { ...cityCover, src: `${(import.meta.env?.BASE_URL ?? '/')}brand/yeniseysk-winter-lamps-off.webp` };
+const cityHour = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Krasnoyarsk', hour:'2-digit', hourCycle:'h23'});
+export function winterLampsOn(now: Date): boolean {
+  const hour = Number(cityHour.format(now));
+  return hour >= 19 || hour < 9;
+}
+
 // Do not display an Eniseysk image as the cover of a different city.
 // Only use a real city-specific cover after the administrator supplies it.
-export function getCityCover(city: string, coverUrl?: string | null): { src: string; alt: string } | null {
+export function getCityCover(city: string, coverUrl?: string | null, now = new Date()): { src: string; alt: string } | null {
   // Owner-approved seasonal cover for Eniseysk; never reuse it for another city.
-  if (city === 'Енисейск') return cityCover;
+  if (city === 'Енисейск') return winterLampsOn(now) ? cityCover : lampsOffCover;
   if (coverUrl) {
     try {
       const url = new URL(coverUrl);

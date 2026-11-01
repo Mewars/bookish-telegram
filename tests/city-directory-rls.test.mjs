@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { PGlite } from '@electric-sql/pglite';
-import { getCityCover } from '../src/data/cityCover.ts';
+import { getCityCover, winterLampsOn } from '../src/data/cityCover.ts';
 import { isAvailableCity, getCityDefinition, availableCities } from '../src/data/cities.ts';
 import { pageMetadata } from '../src/seo/metadata.ts';
 
@@ -88,3 +88,15 @@ test('owners alone may register cities and city covers: isolated SQL RLS', async
     });
   } finally {await db.close();}
 });
+
+// The schedule uses city time even when the visitor's device is elsewhere.
+for (const [instant,on] of [
+ ['2026-11-01T01:59:59Z',true], ['2026-11-01T02:00:00Z',false],
+ ['2026-11-01T11:59:59Z',false], ['2026-11-01T12:00:00Z',true],
+ ['2026-11-01T17:00:00Z',true],
+]) {
+ const now=new Date(instant);
+ assert.equal(winterLampsOn(now),on,instant);
+ assert.equal(getCityCover('Енисейск',null,now).src.includes('lamps-off'),!on);
+ assert.equal(getCityCover('Лесосибирск',null,now),null);
+}
