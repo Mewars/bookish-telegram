@@ -39,7 +39,7 @@ jobs:
       DEPLOY_ROOT: /home/mewars/domains/ryadomcity.ru/public_html
     steps:
       - name: Checkout reviewed production code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Node.js 24
         uses: actions/setup-node@v4
         with:
