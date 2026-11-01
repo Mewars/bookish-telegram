@@ -49,8 +49,8 @@
       display:flex;flex-direction:column;color:#fff8e9}
     .ryadom-shell-iframe{flex:1;width:100%;min-height:0;border:0;background:#071622}
     @media(max-width:899px){
-      #root .app-header .ryadom-notif-trigger.ryadom-bell-header{min-width:36px;
-        width:36px;height:36px;padding:3px;font-size:16px}
+      #root .app-header .ryadom-notif-trigger.ryadom-bell-header{min-width:36px!important;min-height:36px!important;
+        width:36px!important;height:36px!important;max-width:36px;max-height:36px;flex:0 0 36px;align-self:center;padding:3px;font-size:16px}
       #root .app-header .ryadom-notif-trigger.ryadom-bell-header .ryadom-notif-count{
         min-width:15px;padding:1px 3px;font-size:9px}
 

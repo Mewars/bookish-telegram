@@ -147,7 +147,7 @@
  .app-header .header-city-weather{display:contents;}
  .app-header .brand-logo-pin{--brand-logo-width:108px;min-width:64px;flex:1 1 108px;max-width:108px;}
  .app-header .city-pill{flex:0 1 96px;min-width:60px;max-width:110px;overflow:hidden;}
- .app-header :is(.city-weather-trigger,.header-friends,.header-profile-button){width:36px;height:36px;min-width:36px;flex:0 0 36px;margin:0;}
+ .app-shell .app-header :is(.city-weather-trigger,.header-friends,.header-profile-button){width:36px;height:36px;min-width:36px;min-height:36px;max-width:36px;max-height:36px;flex:0 0 36px;align-self:center;margin:0;}
  .app-header .header-friends svg{width:30px;height:30px;}
 }
 @media(max-width:389px){.app-header .brand-logo-pin{--brand-logo-width:88px;max-width:88px;}.app-header .city-pill{font-size:10px;padding-inline:5px;}}
