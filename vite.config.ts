@@ -29,6 +29,7 @@ export default defineConfig(({ mode }) => {
   const deployEnv = loadEnv(mode, '.', ['GITHUB_SHA', 'COMMIT_REF']);
   const buildId = deployEnv.GITHUB_SHA || deployEnv.COMMIT_REF || `local-${Date.now()}`;
   return {
+    server: { allowedHosts: ['terminal.local'] },
     base: mode === 'github-pages-test' ? '/bookish-telegram/' : '/',
     plugins: [
       react(),

@@ -58,9 +58,9 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
  useEffect(()=>{const dialog=categoryDialog.current;if(categoriesOpen)dialog?.showModal();else dialog?.close();},[categoriesOpen]);
  useEffect(()=>{const sync=()=>{if(hashParts(window.location.hash).section==='home')setQuery(readCatalogFilters(window.location.hash).query);};window.addEventListener('hashchange',sync);return()=>window.removeEventListener('hashchange',sync);},[]);
  useEffect(()=>{rememberHomeSearch(city,query);},[city,query]);
- const cover=getCityCover(city,cityProfile?.cover_url);
- const {feed,loading}=useHomeFeed(city);
  const now=useEventClock();
+ const cover=getCityCover(city,cityProfile?.cover_url,now);
+ const {feed,loading}=useHomeFeed(city);
  const cityItems=currentEvents(items.filter(item=>item.city===city),now);
  const holidays=useRussianHolidays(now,cityProfile?.timeZone);
  const selected=homeShortcuts().find(x=>x.label===discovery);
