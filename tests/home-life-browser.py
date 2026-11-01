@@ -140,12 +140,15 @@ with sync_playwright() as p:
    expect(cover).to_have_attribute('src','/brand/yeniseysk-winter-lamps-off.webp')
    page.wait_for_function("document.querySelector('.cover-image img')?.naturalWidth>0")
    page.evaluate('scrollTo(0,0)')
+   page.clock.run_for(250)  # Let the decoded image paint under the controlled browser clock.
    page.screenshot(path='qa-screenshots/winter-lamps-0900-off.png')
    page.clock.set_system_time(datetime.datetime(2026,11,1,11,59,59,tzinfo=datetime.timezone.utc))
    page.clock.fast_forward(31000)
    expect(cover).to_have_attribute('src','/brand/yeniseysk-winter-faces-v2.webp')
    page.wait_for_function("document.querySelector('.cover-image img')?.naturalWidth>0")
+   page.clock.run_for(250)
    page.screenshot(path='qa-screenshots/winter-lamps-1900-on.png')
+   page.add_style_tag(content='.app-header{background:#061b28;color:#fff8ea}')
    page.locator('.app-header .brand-logo-image').screenshot(path='qa-screenshots/winter-hat-v3.png')
    assert not errors,errors
    print('PASS winter lamps: 09:00 off, 19:00 on, automatic refresh of an open page')
