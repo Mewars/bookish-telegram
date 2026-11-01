@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { activePoint } from './repository';
 import type { NearbyState } from './repository';
 
-const centers:Record<string,[number,number]>={'Енисейск':[58.45,92.17],'Лесосибирск':[58.22,92.48]};
+const centers:Record<string,[number,number]>={'Енисейск':[58.45,92.17],'Лесосибирск':[58.22,92.48],'Красноярск':[56.01,92.87]};
 export function FriendsMap({city,data,now}:{city:string;data:NearbyState;now:number}) {
   const element=useRef<HTMLDivElement>(null);
   const map=useRef<L.Map|null>(null);

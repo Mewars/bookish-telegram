@@ -1,7 +1,7 @@
 import { parseMetNorwayForecast } from './metNorway';
 import type { CityForecast } from './metNorway';
 
-export const weatherCities: Record<string,string> = {'Енисейск':'eniseysk','Лесосибирск':'lesosibirsk'};
+export const weatherCities: Record<string,string> = {'Енисейск':'eniseysk','Лесосибирск':'lesosibirsk','Красноярск':'krasnoyarsk'};
 export type WeatherPoint = CityForecast & {rainMm:number|null;windMps:number|null};
 export type Weather = {city:string;fetchedAt:string;stale:boolean;points:WeatherPoint[]};
 const finite = (value:unknown,max:number):number|null => typeof value==='number' && Number.isFinite(value) && value>=0 && value<=max ? value : null;

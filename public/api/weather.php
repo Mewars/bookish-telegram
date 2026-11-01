@@ -5,6 +5,7 @@ declare(strict_types=1);
 const RYADOM_WEATHER_CITIES = [
     'eniseysk' => ['Енисейск', '58.45', '92.17'],
     'lesosibirsk' => ['Лесосибирск', '58.22', '92.48'],
+    'krasnoyarsk' => ['Красноярск', '56.01', '92.87'],
 ];
 
 function ryadom_valid_weather($payload): bool {

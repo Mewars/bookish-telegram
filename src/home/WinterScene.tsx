@@ -36,13 +36,18 @@ function ClockArt({time}:{time:CityTime}){
  </g>;
 }
 export function WinterScene({city,coverUrl}:{city:string;coverUrl?:string|null}){
- const clock=city==='Енисейск',winter=clock||city==='Лесосибирск';
+ const krasnoyarsk=city==='Красноярск',clock=city==='Енисейск'||krasnoyarsk,winter=clock||city==='Лесосибирск';
  const now=useEventClock(winter?1000:30000);
  const cover=getCityCover(city,coverUrl,now),time=winterTime(now);
  return <div className={`cover-image${winter?' cover-image--winter':''}${cover?'':' cover-image--neutral'}`}>
   {cover&&<MediaImage src={cover.src} alt={cover.alt} eager/>}
-  {clock&&<div className="city-clock" role="img" aria-label={`Городские часы: ${time.label.slice(0,5)}, время Енисейска`} data-time={time.label} data-lit={time.lampsOn}>
-   <svg className="city-clock-world" viewBox="0 0 1606 979" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"><ClockArt time={time}/></svg>
+  {clock&&<div className="city-clock" role="img" aria-label={`Городские часы: ${time.label.slice(0,5)}, время ${krasnoyarsk?'Красноярска':'Енисейска'}`} data-time={time.label} data-lit={time.lampsOn}>
+   <svg className="city-clock-world" viewBox={krasnoyarsk?'0 0 1586 992':'0 0 1606 979'} preserveAspectRatio="xMaxYMid slice" aria-hidden="true">{krasnoyarsk?<g className="city-clock-dial" transform="translate(1159 274)">
+    <path className="city-clock-hour" d="M-2.6 7L-3-24 0-33 3-24 2.6 7Z" fill="#f7f2df" transform={`rotate(${time.hourAngle})`}/>
+    <path className="city-clock-minute" d="M-1.6 9L-1.6-36 0-45 1.6-36 1.6 9Z" fill="#f7f2df" transform={`rotate(${time.minuteAngle})`}/>
+    <line className="city-clock-second" x1="0" y1="9" x2="0" y2="-47" stroke="#d8b870" strokeWidth=".9" transform={`rotate(${time.secondAngle})`}/>
+    <circle r="3.5" fill="#f7f2df"/>
+   </g>:<ClockArt time={time}/>}</svg>
   </div>}
   <WinterSnow/>
  </div>;
