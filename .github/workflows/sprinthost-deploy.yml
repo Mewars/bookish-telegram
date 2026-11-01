@@ -114,7 +114,7 @@ jobs:
           backup="/home/mewars/.ryadom-release-backups/${GITHUB_SHA:-release}-$(date +%Y%m%d%H%M%S)"
           mkdir -p "$backup"
           cd /home/mewars/domains/ryadomcity.ru/public_html
-          tar -czf "$backup/frontend-before.tar.gz" index.html version.json .htaccess classifieds wall ui/site-shell.js admin/catalog.js admin/catalog.css categories/panel.js notifications/widget.js
+          tar -czf "$backup/frontend-before.tar.gz" index.html version.json .htaccess classifieds wall ui/site-shell.js admin/catalog.js admin/catalog.css categories/panel.js notifications/widget.js api/weather.php
           tar -tzf "$backup/frontend-before.tar.gz" >/dev/null
           echo 'Private frontend rollback copy verified.'
           BACKUP
@@ -136,6 +136,11 @@ jobs:
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" \
             --exclude='/api/' --exclude='/.htaccess' --exclude='/index.html' --exclude='/version.json' --exclude='/wall/index.html' dist/ "$DEST"
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/wall/index.html "$DEST/wall/"
+          # Deploy only this reviewed public gateway; preserve every other host API.
+          rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/api/weather.php "$DEST/api/weather.php.next"
+          ssh -i "$HOME/.ssh/ryadom-deploy-key" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SPRINTHOST_USER@$SPRINTHOST_HOST" \
+            "php -l '$DEPLOY_ROOT/api/weather.php.next' && mv '$DEPLOY_ROOT/api/weather.php.next' '$DEPLOY_ROOT/api/weather.php'"
           # Last, atomically switch to the new HTML entry point and publish its version.
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/index.html "$DEST"
           rsync -az --delay-updates --no-perms --no-owner --no-group -e "$SSH_RSYNC" dist/version.json "$DEST"
