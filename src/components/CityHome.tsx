@@ -1,5 +1,4 @@
 import {WinterScene} from '../home/WinterScene';
-import {WinterSnow} from '../home/WinterSnow';
 import {StoriesPreview} from '../home/StoriesPreview';
 import {wallBodyPreview} from '../../host-public/wall/expressions.js';
 import { useEffect, useRef, useState } from 'react';
@@ -22,6 +21,7 @@ import { homePrice, hostSectionHref } from '../home/feed';
 import {useRussianHolidays} from '../events/useCityFeeds';
 import '../home/home-life.css';
 import '../home/editorial.css';
+import '../home/panorama.css';
 
 // These filters remain available to existing category-panel navigation.
 function homeShortcuts():{label:string;matches:(item:Item)=>boolean}[]{return [
@@ -45,13 +45,6 @@ function PlacePreview({item,open}:Pick<CardActions,'open'>&{item:Item}){
  </button>;
 }
 export function CityHome({city,cityProfile,items,navigate,...actions}:CardActions&{city:string;cityProfile?:DirectoryCity;items:Item[];navigate:(section:Section)=>void}){
- useEffect(()=>{
-  const cover=document.querySelector<HTMLElement>('.city-home > .city-cover');if(!cover)return;
-  const size=()=>{const top=cover.getBoundingClientRect().top+window.scrollY;cover.style.setProperty('--home-cover-height',`${Math.max(window.innerWidth<700&&window.innerHeight<=740?420:540,window.innerHeight-Math.max(0,top))}px`);};
-  size();window.addEventListener('resize',size);const observer=new ResizeObserver(size);
-  const header=document.querySelector('.web-header,.app-header');if(header)observer.observe(header);
-  return ()=>{window.removeEventListener('resize',size);observer.disconnect();};
- },[]);
  const [query,setQuery]=useState(()=>readCatalogFilters(window.location.hash).query);
  const [discovery,setDiscovery]=useState<string|null>(null);
  const [categoriesOpen,setCategoriesOpen]=useState(false);
@@ -78,7 +71,7 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
   {image:'culture',title:'История и культура',text:'Узнать город через его места и истории',category:'Культура',match:isCulturalPlace},
  ].map(group=>({...group,item:cityItems.find(x=>group.match(x))}));
  return <div className="city-home home-life home-editorial">
-  <section className={`city-cover${cover?'':' city-cover--no-image'}${city.length>10?' city-cover--long-name':''}`} aria-labelledby="city-cover-title">
+  <section className={`city-cover${cover?' city-cover--panorama':' city-cover--no-image'}${city.length>10?' city-cover--long-name':''}`} aria-labelledby="city-cover-title">
    <WinterScene city={city} coverUrl={cityProfile?.cover_url}/><div className="cover-atmosphere" aria-hidden="true"/>
    <div className="city-cover-content">
     <h1 id="city-cover-title">{city}</h1>
@@ -95,7 +88,6 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
     </div>
     <button id="ryadom-category-trigger" className="life-categories-button" onClick={categories} aria-haspopup="dialog"><Icon name="search" size={19}/>Все категории<Icon name="arrow" size={18}/></button>
    </div>
-   <WinterSnow/>
    <svg className="life-route" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30C180 100 220 0 390 33S700 110 960 45S1210 30 1440 48"/><path className="life-route-echo" d="M0 75C250 0 350 80 610 65S1040 15 1440 55"/></svg><span className="life-route-marker" aria-hidden="true"><Icon name="pin" size={22}/></span>
   </section>
   <div id="city-selections" className="life-content">

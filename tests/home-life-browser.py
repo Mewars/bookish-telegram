@@ -30,7 +30,7 @@ with sync_playwright() as p:
   expect(page.get_by_role('heading',name='Объявление Город А',exact=True)).to_be_visible()
   page.wait_for_function("document.querySelector('.life-listing-image img')?.naturalWidth>0")
   expect(page.get_by_role('heading',name='Прошедшее событие',exact=True)).to_have_count(0)
-  assert abs(page.locator('.city-cover').evaluate('(el)=>el.getBoundingClientRect().bottom+scrollY')-height)<3
+  assert page.locator('.city-cover').bounding_box()['height']>=420
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   expect(page.get_by_role('group',name='Быстрые сценарии',exact=True)).to_be_visible()
   expect(page.get_by_role('button',name='Сегодня',exact=True)).to_be_visible()
@@ -65,20 +65,24 @@ with sync_playwright() as p:
   page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
   expect(page.get_by_role('heading',name='Новость Енисейск',exact=True)).to_be_visible()
   expect(page.locator('.city-clock')).to_be_visible()
-  if width<700:
-   expect(page.locator('.city-clock-mobile')).to_be_visible()
-   face=page.locator('.city-clock-mobile circle').first.bounding_box()
-   tagline=page.locator('.life-cover-tagline').bounding_box()
-   assert face['y']+face['height']<=tagline['y'],(face,tagline)
-   page.emulate_media(reduced_motion='no-preference')
-   control=page.locator('.winter-snow-toggle').bounding_box()
-   assert face['y']>=control['y']+control['height'],(face,control)
-   page.emulate_media(reduced_motion='reduce')
-  else:expect(page.locator('.city-clock-world')).to_be_visible()
-  face=page.locator(('.city-clock-mobile' if width<700 else '.city-clock-world')+' circle').first.bounding_box()
-  hero=page.locator('.city-cover').bounding_box()
-  assert face['x']>=hero['x'] and face['x']+face['width']<=hero['x']+hero['width'],(face,hero)
-  assert page.locator('.cover-image>img').evaluate('el=>getComputedStyle(el).objectPosition')=='50% 50%'
+  expect(page.locator('.city-clock-world')).to_be_visible()
+  expect(page.locator('.winter-snow-toggle')).to_have_count(0)
+  scene=page.locator('.cover-image')
+  frame=scene.bounding_box()
+  img=scene.locator(':scope>img')
+  assert img.evaluate('el=>getComputedStyle(el).objectFit')=='contain'
+  assert abs(frame['width']/frame['height']-1606/979)<.01,frame
+  face=page.locator('.city-clock-world circle').first.bounding_box()
+  assert face['x']>=frame['x'] and face['x']+face['width']<=frame['x']+frame['width'],(face,frame)
+  if width<900:
+   content=page.locator('.city-cover-content').bounding_box()
+   assert content['y']>=frame['y']+frame['height']-1,(content,frame)
+  page.set_viewport_size({'width':width,'height':height+100})
+  page.evaluate('scrollTo(0,100)')
+  resized=scene.bounding_box()
+  assert abs(resized['width']-frame['width'])<1 and abs(resized['height']-frame['height'])<1,(frame,resized)
+  page.set_viewport_size({'width':width,'height':height})
+  page.evaluate('scrollTo(0,0)')
   expect(page.get_by_role('heading',name='Новости города',exact=True)).to_have_count(0)
   assert not news_requests,news_requests
   tiles=page.locator('.life-collection')
@@ -124,18 +128,12 @@ with sync_playwright() as p:
   if width==390 and height==844:
    page.emulate_media(reduced_motion='no-preference')
    snow=page.locator('.winter-snow')
-   control=page.get_by_role('button',name='Выключить падающий снег',exact=True)
-   control.scroll_into_view_if_needed()
-   expect(control).to_be_visible()
+   page.locator('.cover-image').scroll_into_view_if_needed()
+   expect(page.locator('.winter-snow-toggle')).to_have_count(0)
    expect(snow).to_have_attribute('data-paused','false')
    layer=page.locator('.winter-snow-flakes>span').first
    initial=layer.evaluate('el=>getComputedStyle(el).transform')
    page.wait_for_function("before=>getComputedStyle(document.querySelector('.winter-snow-flakes>span')).transform!==before",arg=initial)
-   control.click()
-   expect(snow).to_have_attribute('data-enabled','false')
-   expect(page.locator('.winter-snow-flakes')).not_to_be_visible()
-   page.get_by_role('button',name='Включить падающий снег',exact=True).click()
-   expect(snow).to_have_attribute('data-enabled','true')
    page.get_by_role('heading',name='Город сегодня',exact=True).scroll_into_view_if_needed()
    expect(snow).to_have_attribute('data-paused','true')
    page.emulate_media(reduced_motion='reduce')
@@ -144,7 +142,7 @@ with sync_playwright() as p:
    page.evaluate("document.documentElement.dataset.a11yMotion='reduce'")
    expect(snow).not_to_be_visible()
    page.evaluate('delete document.documentElement.dataset.a11yMotion')
-   print('PASS winter: real CSS motion, pause offscreen, toggle, system and site reduced-motion settings')
+   print('PASS winter: real CSS motion, pause offscreen, no visitor toggle, system and site reduced-motion settings')
   if width==1440:
    page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
    page.clock.install(time=datetime.datetime(2026,11,1,1,59,59,tzinfo=datetime.timezone.utc))

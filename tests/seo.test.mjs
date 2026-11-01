@@ -11,6 +11,13 @@ test('static homepage and runtime defaults agree, public URLs use the canonical 
   assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Рядом');
   assert.match(html, /property="og:title" content="Рядом"/);
   assert.match(html, /name="twitter:title" content="Рядом"/);
+  const share='https://ryadomcity.ru/brand/ryadom-share-pin-v1.png';
+  assert.ok(html.includes(`property="og:image" content="${share}"`));
+  assert.ok(html.includes(`name="twitter:image" content="${share}"`));
+  const icon=await readFile(new URL('../public/brand/ryadom-share-pin-v1.png',import.meta.url));
+  assert.equal(icon.subarray(1,4).toString(),'PNG');
+  assert.equal(icon.readUInt32BE(16),1200);
+  assert.equal(icon.readUInt32BE(20),630);
   assert.ok(html.includes(`name="description" content="${HOME_METADATA.description}"`));
   assert.equal((html.match(/rel="canonical"/g) ?? []).length, 1);
   assert.ok(html.includes(`rel="canonical" href="${HOME_URL}"`));
