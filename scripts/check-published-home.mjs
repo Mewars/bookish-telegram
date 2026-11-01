@@ -292,23 +292,30 @@ try {
       }
 
       if(expected){
-        await page.goto(`${base}/#/home?city=${encodeURIComponent('Лесосибирск')}`,{waitUntil:'domcontentloaded'});
-        await page.getByRole('heading',{name:/^Лесосибирск$/i}).waitFor({state:'visible',timeout:20000});
-        const photo=page.locator('.cover-image>img');
-        assert.match(await photo.getAttribute('src'),/\/brand\/lesosibirsk-winter-v2-(on|off)\.webp$/,'Lesosibirsk must use its own approved winter cover');
-        await photo.evaluate(img=>img.decode());
-        assert(await photo.evaluate(img=>img.naturalWidth>0),'Lesosibirsk cover must load');
-        assert.equal(await page.locator('.city-clock').count(),0,'Lesosibirsk must not show the Eniseysk clock');
-        assert.equal(await page.locator('.winter-snow-toggle').count(),0);
-        assert.equal(await page.locator('.winter-snow').count(),1);
-        await page.evaluate(()=>window.scrollTo(0,0));
-        assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),'Lesosibirsk must not overflow horizontally');
-        if(page.viewportSize().width>=900){
-          const box=await page.locator('.city-cover').boundingBox();
-          assert(Math.abs(box.y+box.height-page.viewportSize().height)<2,'Lesosibirsk must fill its own first screen');
+        for(const [city,asset,clockCount,slug] of [['Лесосибирск','lesosibirsk-winter-v2',0,'lesosibirsk'],['Красноярск','krasnoyarsk-winter-v1',1,'krasnoyarsk']]){
+          await page.goto(`${base}/#/home?city=${encodeURIComponent(city)}`,{waitUntil:'domcontentloaded'});
+          await page.getByRole('heading',{name:new RegExp(`^${city}$`,'i')}).waitFor({state:'visible',timeout:20000});
+          const photo=page.locator('.cover-image>img');
+          assert.match(await photo.getAttribute('src'),new RegExp(`/brand/${asset}-(on|off)\\.webp$`),`${city} must use its own approved winter cover`);
+          await photo.evaluate(img=>img.decode());
+          assert(await photo.evaluate(img=>img.naturalWidth>0),`${city} cover must load`);
+          assert.equal(await page.locator('.city-clock').count(),clockCount,`${city} clock count`);
+          if(clockCount){
+            const second=page.locator('.city-clock-second');
+            const before=await second.getAttribute('transform');
+            await page.waitForFunction(value=>document.querySelector('.city-clock-second')?.getAttribute('transform')!==value,before);
+          }
+          assert.equal(await page.locator('.winter-snow-toggle').count(),0);
+          assert.equal(await page.locator('.winter-snow').count(),1);
+          await page.evaluate(()=>window.scrollTo(0,0));
+          assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),`${city} must not overflow horizontally`);
+          if(page.viewportSize().width>=900){
+            const box=await page.locator('.city-cover').boundingBox();
+            assert(Math.abs(box.y+box.height-page.viewportSize().height)<2,`${city} must fill its own first screen`);
+          }
+          await page.screenshot({path:`${folder}/${scenario.name}-${slug}-home.png`,fullPage:true,animations:'disabled'});
+          result.checks.push(`${city}: own artwork, snowfall, expected clock behavior and complete first screen`);
         }
-        await page.screenshot({path:`${folder}/${scenario.name}-lesosibirsk-home.png`,fullPage:true,animations:'disabled'});
-        result.checks.push('Lesosibirsk: own winter artwork, snowfall, no clock, no overflow and a complete first screen');
       }
 
     } catch (error) {

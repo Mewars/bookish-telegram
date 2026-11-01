@@ -12,6 +12,7 @@ export interface DirectoryCity {
 export const availableCities: DirectoryCity[] = [
   { name: 'Енисейск', region: 'Красноярский край', timeZone: 'Asia/Krasnoyarsk' },
   { name: 'Лесосибирск', region: 'Красноярский край', timeZone: 'Asia/Krasnoyarsk' },
+  { name: 'Красноярск', region: 'Красноярский край', timeZone: 'Asia/Krasnoyarsk' },
 ];
 
 export const defaultCity = availableCities[0].name;

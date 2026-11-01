@@ -10,6 +10,11 @@ const lesosibirskCover = {
   alt: 'Зимняя художественная обложка Лесосибирска: Крестовоздвиженский собор, мост через Енисей и въездной знак города'
 };
 const lesosibirskLampsOffCover = { ...lesosibirskCover, src: `${(import.meta.env?.BASE_URL ?? '/')}brand/lesosibirsk-winter-v2-off.webp` };
+const krasnoyarskCover = {
+  src: `${(import.meta.env?.BASE_URL ?? '/')}brand/krasnoyarsk-winter-v1-on.webp`,
+  alt: 'Зимняя художественная панорама Красноярска: Биг-Бэн, часовня Параскевы Пятницы, Коммунальный мост и Столбы'
+};
+const krasnoyarskLampsOffCover = { ...krasnoyarskCover, src: `${(import.meta.env?.BASE_URL ?? '/')}brand/krasnoyarsk-winter-v1-off.webp` };
 export function winterLampsOn(now: Date): boolean { return winterTime(now).lampsOn; }
 
 // Do not display an Eniseysk image as the cover of a different city.
@@ -18,6 +23,7 @@ export function getCityCover(city: string, coverUrl?: string | null, now = new D
   // Seasonal backgrounds are approved separately for each city.
   if (city === 'Енисейск') return winterLampsOn(now) ? cityCover : lampsOffCover;
   if (city === 'Лесосибирск') return winterLampsOn(now) ? lesosibirskCover : lesosibirskLampsOffCover;
+  if (city === 'Красноярск') return winterLampsOn(now) ? krasnoyarskCover : krasnoyarskLampsOffCover;
   if (coverUrl) {
     try {
       const url = new URL(coverUrl);
