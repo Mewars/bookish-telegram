@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - run: python tests/city-feeds.py
@@ -36,7 +36,7 @@ jobs:
       SPRINTHOST_SSH_PORT: ${{ vars.SPRINTHOST_SSH_PORT || '22' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Collect only Russian calendar and event posters
