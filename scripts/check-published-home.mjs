@@ -295,7 +295,7 @@ try {
         await page.goto(`${base}/#/home?city=${encodeURIComponent('Лесосибирск')}`,{waitUntil:'domcontentloaded'});
         await page.getByRole('heading',{name:/^Лесосибирск$/i}).waitFor({state:'visible',timeout:20000});
         const photo=page.locator('.cover-image>img');
-        assert.match(await photo.getAttribute('src'),/\/brand\/lesosibirsk-winter-v1-(on|off)\.webp$/,'Lesosibirsk must use its own approved winter cover');
+        assert.match(await photo.getAttribute('src'),/\/brand\/lesosibirsk-winter-v2-(on|off)\.webp$/,'Lesosibirsk must use its own approved winter cover');
         await photo.evaluate(img=>img.decode());
         assert(await photo.evaluate(img=>img.naturalWidth>0),'Lesosibirsk cover must load');
         assert.equal(await page.locator('.city-clock').count(),0,'Lesosibirsk must not show the Eniseysk clock');

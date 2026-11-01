@@ -10,7 +10,7 @@ test('city-scoped pages do not reuse Eniseysk photos or SEO text', async () => {
   assert.equal(availableCities.length, 2);
   assert.ok(isAvailableCity('Лесосибирск'));
   assert.equal(getCityDefinition('Лесосибирск')?.region, 'Красноярский край');
-  assert.ok(getCityCover('Лесосибирск')?.src.includes('lesosibirsk-winter-v1'));
+  assert.ok(getCityCover('Лесосибирск')?.src.includes('lesosibirsk-winter-v2'));
   assert.equal(getCityCover('Другой город'), null);
   assert.ok(getCityCover('Енисейск')?.src.includes('yeniseysk'));
   assert.equal(getCityCover('Другой город','http://insecure.example/city.webp'), null);
@@ -99,7 +99,7 @@ for (const [instant,on] of [
  const now=new Date(instant);
  assert.equal(winterLampsOn(now),on,instant);
  assert.equal(getCityCover('Енисейск',null,now).src.includes('churches-off'),!on);
- assert.equal(getCityCover('Лесосибирск',null,now).src.endsWith(on?'v1-on.webp':'v1-off.webp'),true);
+ assert.equal(getCityCover('Лесосибирск',null,now).src.endsWith(on?'v2-on.webp':'v2-off.webp'),true);
  assert.equal(getCityCover('Другой город',null,now),null);
 }
 
