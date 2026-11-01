@@ -2,6 +2,7 @@
 import base64
 import datetime
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright,expect
@@ -148,6 +149,14 @@ with sync_playwright() as p:
    expect(snow).not_to_be_visible()
    page.evaluate('delete document.documentElement.dataset.a11yMotion')
    print('PASS winter: real CSS motion, pause offscreen, no visitor toggle, system and site reduced-motion settings')
+  page.get_by_label('Тестовый город',exact=True).select_option('Лесосибирск')
+  leso_cover=page.locator('.city-cover .cover-image img')
+  expect(leso_cover).to_have_attribute('src',re.compile(r'/brand/lesosibirsk-winter-v1-(on|off)\.webp'))
+  expect(page.locator('.city-clock')).to_have_count(0)
+  page.wait_for_function("document.querySelector('.cover-image img')?.naturalWidth>0")
+  page.evaluate('scrollTo(0,0)')
+  leso_cover.evaluate('img=>img.decode()')
+  page.screenshot(path=f'qa-screenshots/lesosibirsk-winter-{width}-{height}.png',full_page=True)
   if width==1440:
    page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
    page.clock.install(time=datetime.datetime(2026,11,1,1,59,59,tzinfo=datetime.timezone.utc))
@@ -181,5 +190,16 @@ with sync_playwright() as p:
    page.locator('.app-header .brand-logo-image').screenshot(path='qa-screenshots/winter-hat-v3.png')
    assert not errors,errors
    print('PASS winter lamps: 09:00 off, 19:00 on, automatic refresh of an open page')
+   page.get_by_label('Тестовый город',exact=True).select_option('Лесосибирск')
+   expect(page.locator('.city-clock')).to_have_count(0)
+   expect(cover).to_have_attribute('src','/brand/lesosibirsk-winter-v1-on.webp')
+   page.clock.set_system_time(datetime.datetime(2026,11,2,1,59,59,tzinfo=datetime.timezone.utc))
+   page.clock.fast_forward(2000)
+   expect(cover).to_have_attribute('src','/brand/lesosibirsk-winter-v1-off.webp')
+   page.clock.set_system_time(datetime.datetime(2026,11,2,11,59,59,tzinfo=datetime.timezone.utc))
+   page.clock.fast_forward(2000)
+   expect(cover).to_have_attribute('src','/brand/lesosibirsk-winter-v1-on.webp')
+   expect(page.locator('.city-clock')).to_have_count(0)
+   print('PASS Lesosibirsk: own winter art, no clock, 09:00 off and 19:00 on')
   context.close()
  browser.close()
