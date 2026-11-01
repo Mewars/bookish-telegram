@@ -36,12 +36,12 @@ function ClockArt({time}:{time:CityTime}){
  </g>;
 }
 export function WinterScene({city,coverUrl}:{city:string;coverUrl?:string|null}){
- const now=useEventClock(city==='Енисейск'?1000:30000);
+ const clock=city==='Енисейск',winter=clock||city==='Лесосибирск';
+ const now=useEventClock(winter?1000:30000);
  const cover=getCityCover(city,coverUrl,now),time=winterTime(now);
- const winter=city==='Енисейск';
  return <div className={`cover-image${winter?' cover-image--winter':''}${cover?'':' cover-image--neutral'}`}>
   {cover&&<MediaImage src={cover.src} alt={cover.alt} eager/>}
-  {winter&&<div className="city-clock" role="img" aria-label={`Городские часы: ${time.label.slice(0,5)}, время Енисейска`} data-time={time.label} data-lit={time.lampsOn}>
+  {clock&&<div className="city-clock" role="img" aria-label={`Городские часы: ${time.label.slice(0,5)}, время Енисейска`} data-time={time.label} data-lit={time.lampsOn}>
    <svg className="city-clock-world" viewBox="0 0 1606 979" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"><ClockArt time={time}/></svg>
   </div>}
   <WinterSnow/>
