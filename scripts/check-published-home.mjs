@@ -293,7 +293,7 @@ try {
 
       if(expected){
         await page.goto(`${base}/#/home?city=${encodeURIComponent('Лесосибирск')}`,{waitUntil:'domcontentloaded'});
-        await page.getByRole('heading',{name:'ЛЕСОСИБИРСК',exact:true}).waitFor({state:'visible',timeout:20000});
+        await page.getByRole('heading',{name:/^Лесосибирск$/i}).waitFor({state:'visible',timeout:20000});
         const photo=page.locator('.cover-image>img');
         assert.match(await photo.getAttribute('src'),/\/brand\/lesosibirsk-winter-v1-(on|off)\.webp$/,'Lesosibirsk must use its own approved winter cover');
         await photo.evaluate(img=>img.decode());
