@@ -1,3 +1,4 @@
+import {WinterSnow} from './WinterSnow';
 import {useId} from 'react';
 import {MediaImage} from '../components/MediaImage';
 import {getCityCover} from '../data/cityCover';
@@ -7,14 +8,14 @@ import './winter-scene.css';
 
 type CityTime=ReturnType<typeof winterTime>;
 const numerals=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
-function ClockArt({time,stand=false}:{time:CityTime;stand?:boolean}){
+function ClockArt({time}:{time:CityTime}){
  const id=useId().replace(/[^a-zA-Z0-9_-]/g,'');
- return <g>
+ return <g transform="translate(-100 45)">
   <defs>
    <radialGradient id={`${id}-face`} cx="35%" cy="27%"><stop stopColor={time.lampsOn?'#fff8da':'#f1f2df'}/><stop offset="1" stopColor={time.lampsOn?'#e6d7a7':'#bcc8bc'}/></radialGradient>
    <linearGradient id={`${id}-rim`} x2="1" y2="1"><stop stopColor="#65736b"/><stop offset=".45" stopColor="#192522"/><stop offset="1" stopColor="#070e13"/></linearGradient>
   </defs>
-  {stand&&<g className="city-clock-stand" fill="#142120" stroke="#07121a"><path d="M1541 215H1557V2200H1541Z"/><ellipse cx="1549" cy="216" rx="15" ry="8" fill="#e7edf0"/></g>}
+  <g className="city-clock-stand" fill="#142120" stroke="#07121a"><path d="M1543 215H1555V900H1543Z"/><path d="M1536 900H1562V926H1536Z"/><ellipse cx="1549" cy="216" rx="10" ry="5" fill="#e7edf0"/></g>
   <g fill="none" stroke="#14211e" strokeWidth="7" strokeLinecap="round">
    <path d="M1451 325H1548M1462 325C1437 337 1465 351 1476 333C1483 320 1501 328 1496 339C1490 352 1514 345 1518 331C1522 318 1540 326 1548 325"/>
    <path d="M1512 261H1548"/>
@@ -41,8 +42,8 @@ export function WinterScene({city,coverUrl}:{city:string;coverUrl?:string|null})
  return <div className={`cover-image${winter?' cover-image--winter':''}${cover?'':' cover-image--neutral'}`}>
   {cover&&<MediaImage src={cover.src} alt={cover.alt} eager/>}
   {winter&&<div className="city-clock" role="img" aria-label={`Городские часы: ${time.label.slice(0,5)}, время Енисейска`} data-time={time.label} data-lit={time.lampsOn}>
-   <svg className="city-clock-world" viewBox="0 0 1606 979" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"><ClockArt time={time} stand/></svg>
-   <svg className="city-clock-mobile" viewBox="1355 180 251 799" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><ClockArt time={time} stand/></svg>
+   <svg className="city-clock-world" viewBox="0 0 1606 979" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><ClockArt time={time}/></svg>
   </div>}
+  <WinterSnow/>
  </div>;
 }

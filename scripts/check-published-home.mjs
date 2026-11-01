@@ -158,20 +158,19 @@ try {
         const snow=page.locator('.winter-snow');
         assert.equal(await snow.count(),1,'Winter snow layer is missing');
         await page.emulateMedia({reducedMotion:'no-preference'});
-        const toggle=page.getByRole('button',{name:'Выключить падающий снег',exact:true});
-        await toggle.scrollIntoViewIfNeeded();await toggle.click();
-        assert.equal(await snow.getAttribute('data-enabled'),'false');
-        await page.getByRole('button',{name:'Включить падающий снег',exact:true}).click();
+        assert.equal(await page.locator('.winter-snow-toggle').count(),0,'Visitor snow toggle must be absent');
         await page.emulateMedia({reducedMotion:'reduce'});
         assert.equal(await snow.isVisible(),false,'Reduced motion must disable falling snow');
         await page.emulateMedia({reducedMotion:'no-preference'});
-        result.checks.push('Winter logo loads; falling snow toggle and reduced-motion work');
+        result.checks.push('Winter logo loads; falling snow has no visitor toggle; reduced-motion works');
       }
-      const coverBounds = await page.locator('.city-cover').boundingBox();
-      const coverBottom = await page.locator('.city-cover').evaluate(el => el.getBoundingClientRect().bottom + window.scrollY);
-      const viewportHeight=await page.evaluate(()=>window.innerHeight);
-      assert(coverBounds && Math.abs(coverBottom-viewportHeight)<5,`City cover must end at the first viewport edge: ${JSON.stringify({coverBounds,coverBottom,viewportHeight})}`);
-      result.checks.push('Full first-screen city cover');
+      if(expected){
+        const scene=page.locator('.cover-image').first();
+        const frame=await scene.boundingBox();
+        assert(frame&&Math.abs(frame.width/frame.height-1606/979)<.01,'Panorama must retain its full aspect ratio');
+        assert.equal(await scene.locator(':scope>img').evaluate(img=>getComputedStyle(img).objectFit),'contain');
+        result.checks.push('Complete, uncropped panorama with stable width-based sizing');
+      }
 
       const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: window.innerWidth }));
       assert(size.scroll <= size.viewport + 3, `Horizontal page overflow: ${JSON.stringify(size)}`);

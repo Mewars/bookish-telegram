@@ -1,15 +1,5 @@
-/* The clock and the raster share a centered, cover-sized coordinate system. */
-.city-home.home-life .cover-image.cover-image--winter>img{object-position:50% 50%;}
+/* The panorama and its clock use the same uncropped coordinate system. */
 .city-clock{position:absolute;inset:0;pointer-events:none;}
 .city-clock-world{width:100%;height:100%;display:block;}
-.city-clock-mobile{display:none;}
-@media(max-width:699px){
- .city-clock-world{display:none;}
- .city-clock-mobile{display:block;position:absolute;inset:65px 0 0 auto;width:130px;height:calc(100% - 65px);}
-}
 @media(prefers-reduced-motion:reduce){.city-clock-second{display:none;}}
 :root[data-a11y-motion=reduce] .city-clock-second{display:none;}
-
-.city-home.home-life .cover-image--winter{container-type:size;container-name:winter-scene;}
-.city-clock-world .city-clock-stand{display:none;}
-@container winter-scene (max-aspect-ratio:1606/979){.city-clock-world .city-clock-stand{display:inline;}}
