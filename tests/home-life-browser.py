@@ -75,6 +75,10 @@ with sync_playwright() as p:
    assert face['y']>=control['y']+control['height'],(face,control)
    page.emulate_media(reduced_motion='reduce')
   else:expect(page.locator('.city-clock-world')).to_be_visible()
+  face=page.locator(('.city-clock-mobile' if width<700 else '.city-clock-world')+' circle').first.bounding_box()
+  hero=page.locator('.city-cover').bounding_box()
+  assert face['x']>=hero['x'] and face['x']+face['width']<=hero['x']+hero['width'],(face,hero)
+  assert page.locator('.cover-image>img').evaluate('el=>getComputedStyle(el).objectPosition')=='50% 50%'
   expect(page.get_by_role('heading',name='Новости города',exact=True)).to_have_count(0)
   assert not news_requests,news_requests
   tiles=page.locator('.life-collection')
