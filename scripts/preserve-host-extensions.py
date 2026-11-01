@@ -39,6 +39,8 @@ class Extensions(HTMLParser):
         if tag == 'script' and url.path in ('/categories/panel.js','/admin/catalog.js'):
             attrs['src'] = url.path+('?v=20261025basic1' if url.path == '/categories/panel.js' else '?v=20261022admin1')
             attrs['type'] = 'module'
+        if tag == 'link' and url.path == '/ui/mobile-fixes.css':
+            attrs['href'] = '/ui/mobile-fixes.css?v=20261101header3'
         if tag == 'link' and url.path == '/admin/catalog.css':
             attrs['href'] = '/admin/catalog.css?v=20261022admin1'
         # Preserve only browser loading attributes, never event-handler code.

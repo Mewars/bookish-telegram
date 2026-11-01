@@ -1,0 +1,7 @@
+/* Header geometry is owned by src/styles/chrome.css. Keep this legacy URL
+   for notification badges without overriding the responsive React header. */
+.ryadom-notif-count[hidden]{display:none!important}
+@media(max-width:899px){
+ .app-header .ryadom-bell-header{position:relative!important;overflow:visible!important}
+ .app-header .ryadom-bell-header .ryadom-notif-count{box-sizing:border-box;position:absolute;top:-3px;right:-3px;left:auto;bottom:auto;transform:none;min-width:16px;max-width:29px;height:17px;padding:0 3px;border-radius:9px;text-align:center;font:700 10px/15px system-ui;z-index:2;overflow:hidden;white-space:nowrap}
+}

@@ -12,7 +12,7 @@ class Preservation(unittest.TestCase):
         <script type="module" src="/assets/index-old.js"></script>
         <script type="module" src="/notifications/widget.js?v=20261018d"></script>
         <script src="https://example.org/x.js"></script>
-        <link rel="stylesheet" href="/categories/panel.css?v=1">
+        <link rel="stylesheet" href="/categories/panel.css?v=1"><link rel="stylesheet" href="/ui/mobile-fixes.css?v=20261018d">
         <meta name="apple-mobile-web-app-title" content="РЯДОМ"></head>'''
         built='<head><script type="module" src="/assets/index-new.js"></script><meta name="ryadom-build-version" content="new"></head>'
         result=module.preserve(live,built)
@@ -20,6 +20,8 @@ class Preservation(unittest.TestCase):
         self.assertIn('/ui/site-shell.js?v=20261101header2',result)
         self.assertNotIn('/ui/site-shell.js?v=1\"',result)
         self.assertIn('/categories/panel.css?v=1',result)
+        self.assertIn('/ui/mobile-fixes.css?v=20261101header3',result)
+        self.assertNotIn('/ui/mobile-fixes.css?v=20261018d',result)
         self.assertIn('apple-mobile-web-app-title',result)
         self.assertIn('/notifications/widget.js?v=20261027manual1',result)
         self.assertNotIn('/notifications/widget.js?v=20261018d',result)
