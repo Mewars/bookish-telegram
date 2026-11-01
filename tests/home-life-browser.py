@@ -65,7 +65,15 @@ with sync_playwright() as p:
   page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
   expect(page.get_by_role('heading',name='Новость Енисейск',exact=True)).to_be_visible()
   expect(page.locator('.city-clock')).to_be_visible()
-  if width<700:expect(page.locator('.city-clock-mobile')).to_be_visible()
+  if width<700:
+   expect(page.locator('.city-clock-mobile')).to_be_visible()
+   face=page.locator('.city-clock-mobile circle').first.bounding_box()
+   tagline=page.locator('.life-cover-tagline').bounding_box()
+   assert face['y']+face['height']<=tagline['y'],(face,tagline)
+   page.emulate_media(reduced_motion='no-preference')
+   control=page.locator('.winter-snow-toggle').bounding_box()
+   assert face['y']>=control['y']+control['height'],(face,control)
+   page.emulate_media(reduced_motion='reduce')
   else:expect(page.locator('.city-clock-world')).to_be_visible()
   expect(page.get_by_role('heading',name='Новости города',exact=True)).to_have_count(0)
   assert not news_requests,news_requests
