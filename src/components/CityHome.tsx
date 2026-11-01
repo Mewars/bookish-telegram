@@ -1,3 +1,4 @@
+import {WinterScene} from '../home/WinterScene';
 import {WinterSnow} from '../home/WinterSnow';
 import {StoriesPreview} from '../home/StoriesPreview';
 import {wallBodyPreview} from '../../host-public/wall/expressions.js';
@@ -78,7 +79,7 @@ export function CityHome({city,cityProfile,items,navigate,...actions}:CardAction
  ].map(group=>({...group,item:cityItems.find(x=>group.match(x))}));
  return <div className="city-home home-life home-editorial">
   <section className={`city-cover${cover?'':' city-cover--no-image'}${city.length>10?' city-cover--long-name':''}`} aria-labelledby="city-cover-title">
-   <div className={`cover-image${cover?'':' cover-image--neutral'}`}>{cover&&<MediaImage src={cover.src} alt={cover.alt} eager/>}</div><div className="cover-atmosphere" aria-hidden="true"/>
+   <WinterScene city={city} coverUrl={cityProfile?.cover_url}/><div className="cover-atmosphere" aria-hidden="true"/>
    <div className="city-cover-content">
     <h1 id="city-cover-title">{city}</h1>
     <p className="life-cover-tagline">Твой город. <em>Твои возможности.</em></p>

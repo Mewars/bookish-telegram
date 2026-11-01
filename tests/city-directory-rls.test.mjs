@@ -97,6 +97,14 @@ for (const [instant,on] of [
 ]) {
  const now=new Date(instant);
  assert.equal(winterLampsOn(now),on,instant);
- assert.equal(getCityCover('Енисейск',null,now).src.includes('lamps-off'),!on);
+ assert.equal(getCityCover('Енисейск',null,now).src.includes('churches-off'),!on);
  assert.equal(getCityCover('Лесосибирск',null,now),null);
 }
+
+// Hands include minute/second offsets, rather than a decorative fixed time.
+const {winterTime}=await import('../src/home/winterTime.ts');
+const t=winterTime(new Date('2026-11-01T05:30:30Z'));
+assert.equal(t.label,'12:30:30');
+assert.equal(t.hourAngle,15.25);
+assert.equal(t.minuteAngle,183);
+assert.equal(t.secondAngle,180);
