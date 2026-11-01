@@ -49,15 +49,11 @@
       display:flex;flex-direction:column;color:#fff8e9}
     .ryadom-shell-iframe{flex:1;width:100%;min-height:0;border:0;background:#071622}
     @media(max-width:899px){
-      #root .app-header .ryadom-notif-trigger.ryadom-bell-header{min-width:32px;
-        width:32px;height:32px;padding:3px;font-size:16px}
+      #root .app-header .ryadom-notif-trigger.ryadom-bell-header{min-width:36px;
+        width:36px;height:36px;padding:3px;font-size:16px}
       #root .app-header .ryadom-notif-trigger.ryadom-bell-header .ryadom-notif-count{
         min-width:15px;padding:1px 3px;font-size:9px}
 
-    }
-    @media(max-width:520px){
-      #root .app-header {gap:6px!important;padding-left:10px!important;padding-right:10px!important}
-      #root .app-header .brand-logo-pin{--brand-logo-width:108px!important}
     }
   `;
   document.head.append(css);

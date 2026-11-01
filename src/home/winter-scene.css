@@ -1,4 +1,4 @@
-/* The panorama and its clock use the same uncropped coordinate system. */
+/* The panorama and its clock use the same right-aligned camera and scale. */
 .city-clock{position:absolute;inset:0;pointer-events:none;}
 .city-clock-world{width:100%;height:100%;display:block;}
 @media(prefers-reduced-motion:reduce){.city-clock-second{display:none;}}

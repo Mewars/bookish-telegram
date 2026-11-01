@@ -70,9 +70,11 @@ with sync_playwright() as p:
   scene=page.locator('.cover-image')
   frame=scene.bounding_box()
   img=scene.locator(':scope>img')
-  assert img.evaluate('el=>getComputedStyle(el).objectFit')=='contain'
-  assert abs(frame['width']/frame['height']-1606/979)<.01,frame
-  face=page.locator('.city-clock-world circle').first.bounding_box()
+  assert img.evaluate('el=>getComputedStyle(el).objectFit')=='cover'
+  if width<900: assert abs(frame['width']/frame['height']-1)<.01,frame
+  expect(page.locator('.city-clock-stand')).to_have_count(0)
+  expect(page.locator('.city-clock-bracket')).to_be_visible()
+  face=page.locator('.city-clock-dial').bounding_box()
   assert face['x']>=frame['x'] and face['x']+face['width']<=frame['x']+frame['width'],(face,frame)
   if width<900:
    content=page.locator('.city-cover-content').bounding_box()
@@ -80,7 +82,10 @@ with sync_playwright() as p:
   page.set_viewport_size({'width':width,'height':height+100})
   page.evaluate('scrollTo(0,100)')
   resized=scene.bounding_box()
-  assert abs(resized['width']-frame['width'])<1 and abs(resized['height']-frame['height'])<1,(frame,resized)
+  if width<900: assert abs(resized['width']-frame['width'])<1 and abs(resized['height']-frame['height'])<1,(frame,resized)
+  else:
+   content=page.locator('.city-cover-content').bounding_box()
+   assert content['y']+content['height']<frame['y']+frame['height']-35,(content,frame)
   page.set_viewport_size({'width':width,'height':height})
   page.evaluate('scrollTo(0,0)')
   expect(page.get_by_role('heading',name='Новости города',exact=True)).to_have_count(0)
