@@ -85,7 +85,7 @@ with sync_playwright() as p:
   if width<900: assert abs(resized['width']-frame['width'])<1 and abs(resized['height']-frame['height'])<1,(frame,resized)
   else:
    content=page.locator('.city-cover-content').bounding_box()
-   assert content['y']+content['height']<frame['y']+frame['height']-35,(content,frame)
+   assert content['y']+content['height']<resized['y']+resized['height']-35,(content,resized)
   page.set_viewport_size({'width':width,'height':height})
   page.evaluate('scrollTo(0,0)')
   expect(page.get_by_role('heading',name='Новости города',exact=True)).to_have_count(0)

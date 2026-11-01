@@ -28,6 +28,7 @@ let failed = false;
 try {
   for (const scenario of [
     { name: 'desktop-1440', options: { viewport: { width: 1440, height: 900 } } },
+    { name: 'laptop-1366', options: { viewport: { width: 1366, height: 768 } } },
     { name: 'iphone-13', options: devices['iPhone 13'] },
     { name: 'android-360', options: { viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 } },
   ]) {
@@ -176,6 +177,22 @@ try {
           assert(controls.every(b=>Math.abs(b.w-36)<1&&Math.abs(b.h-36)<1&&Math.abs(b.y-controls[0].y)<1),`Header controls must have equal sizes and vertical alignment: ${JSON.stringify(controls)}`);
           const gaps=controls.slice(1).map((b,i)=>b.x-controls[i].x-controls[i].w);
           assert(Math.max(...gaps)-Math.min(...gaps)<2,'Header icon gaps must match');
+        }
+        if(page.viewportSize().width>=900){
+          await page.waitForFunction(()=>window.scrollY===0);
+          const viewport=page.viewportSize();
+          const header=await page.locator('.web-header').boundingBox();
+          const cover=await page.locator('.city-cover').boundingBox();
+          const title=await page.locator('#city-cover-title').boundingBox();
+          const route=await page.locator('.life-route').boundingBox();
+          const next=await page.locator('#city-selections').boundingBox();
+          const categories=await page.locator('#ryadom-category-trigger').boundingBox();
+          assert(Math.abs(cover.y+cover.height-viewport.height)<2,'First scene must end at the bottom of the viewport');
+          assert(title.y>=header.y+header.height+24,'City title must clear the header');
+          assert(Math.abs(route.y+route.height-viewport.height)<2,'Gold divider must sit at the bottom of the first screen');
+          assert(next.y>=viewport.height-1,'Second section must begin below the first screen');
+          assert(categories.y+categories.height<=route.y-24,'Hero actions must clear the bottom divider');
+          result.checks.push('Header, centered hero, bottom divider and following section occupy separate areas');
         }
         assert.equal(await scene.locator(':scope>img').evaluate(img=>getComputedStyle(img).objectFit),'cover');
         result.checks.push('Responsive city scene with a stable right-hand crop on mobile');
