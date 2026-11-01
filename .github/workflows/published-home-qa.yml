@@ -39,7 +39,7 @@ jobs:
           RYADOM_EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
       - name: Upload screenshots and report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: published-home-browser-qa
           path: qa-screenshots/

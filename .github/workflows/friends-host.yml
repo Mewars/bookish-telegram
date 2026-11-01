@@ -49,7 +49,7 @@ jobs:
           ssh -i "$HOME/.ssh/friends-probe" -p "$SPRINTHOST_SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes \
             "$SPRINTHOST_USER@$SPRINTHOST_HOST" php < scripts/probe-friends-host.php > friends-host-capabilities.json
           cat friends-host-capabilities.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: friends-host-capabilities
           path: friends-host-capabilities.json
