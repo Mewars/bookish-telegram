@@ -173,7 +173,7 @@ try {
           assert(frame.x<2&&Math.abs(frame.width-page.viewportSize().width)<3,'Mobile scene must fill the page width');
           const controls=await page.locator('.app-header .city-weather-trigger,.app-header .header-friends,.app-header .header-profile-button,.app-header .ryadom-bell-header').evaluateAll(nodes=>nodes.map(el=>{const b=el.getBoundingClientRect();return {x:b.x,y:b.y,w:b.width,h:b.height};}));
           assert(controls.length===4,'Expected weather, friends, profile and bell controls');
-          assert(controls.every(b=>Math.abs(b.w-36)<1&&Math.abs(b.h-36)<1&&Math.abs(b.y-controls[0].y)<1),'Header controls must have equal sizes and vertical alignment');
+          assert(controls.every(b=>Math.abs(b.w-36)<1&&Math.abs(b.h-36)<1&&Math.abs(b.y-controls[0].y)<1),`Header controls must have equal sizes and vertical alignment: ${JSON.stringify(controls)}`);
           const gaps=controls.slice(1).map((b,i)=>b.x-controls[i].x-controls[i].w);
           assert(Math.max(...gaps)-Math.min(...gaps)<2,'Header icon gaps must match');
         }
