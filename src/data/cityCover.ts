@@ -1,14 +1,11 @@
+import {winterTime} from '../home/winterTime.ts';
 export const cityCover = {
-  src: `${(import.meta.env?.BASE_URL ?? '/')}brand/yeniseysk-winter-faces-v2.webp`,
+  src: `${(import.meta.env?.BASE_URL ?? '/')}brand/yeniseysk-winter-churches-on.webp`,
   alt: 'Зимняя художественная обложка Енисейска: заснеженная набережная, памятник основателям и наряженная ель'
 };
 
-const lampsOffCover = { ...cityCover, src: `${(import.meta.env?.BASE_URL ?? '/')}brand/yeniseysk-winter-lamps-off.webp` };
-const cityHour = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Krasnoyarsk', hour:'2-digit', hourCycle:'h23'});
-export function winterLampsOn(now: Date): boolean {
-  const hour = Number(cityHour.format(now));
-  return hour >= 19 || hour < 9;
-}
+const lampsOffCover = { ...cityCover, src: `${(import.meta.env?.BASE_URL ?? '/')}brand/yeniseysk-winter-churches-off.webp` };
+export function winterLampsOn(now: Date): boolean { return winterTime(now).lampsOn; }
 
 // Do not display an Eniseysk image as the cover of a different city.
 // Only use a real city-specific cover after the administrator supplies it.
