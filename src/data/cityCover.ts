@@ -1,4 +1,4 @@
-import {winterTime} from '../home/winterTime';
+import {winterTime} from '../home/winterTime.ts';
 export const cityCover = {
   src: `${(import.meta.env?.BASE_URL ?? '/')}brand/yeniseysk-winter-churches-on.webp`,
   alt: 'Зимняя художественная обложка Енисейска: заснеженная набережная, памятник основателям и наряженная ель'
