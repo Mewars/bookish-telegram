@@ -30,7 +30,10 @@ class MaintenanceTest(unittest.TestCase):
         original = '# Existing host rule\nErrorDocument 404 /index.html\n'
         gated = maintenance.configure_htaccess(original, True)
         self.assertEqual(maintenance.configure_htaccess(gated, True), gated)
-        self.assertEqual(maintenance.configure_htaccess(gated, False), original)
+        self.assertEqual(maintenance.configure_htaccess(gated, False), maintenance.SECURITY_BLOCK + original)
+        self.assertEqual(maintenance.configure_htaccess(maintenance.SECURITY_BLOCK + original, False), maintenance.SECURITY_BLOCK + original)
+        with self.assertRaises(ValueError):
+            maintenance.configure_htaccess(maintenance.SECURITY_START, False)
         with self.assertRaises(ValueError):
             maintenance.configure_htaccess(maintenance.START, False)
         with tempfile.TemporaryDirectory() as folder:
@@ -136,6 +139,15 @@ DirectoryIndex index.html
                 (doc / 'index.html').write_text('REBUILT APP')
                 maintenance.prepare(doc, doc / '.htaccess', doc / '.htaccess')
                 self.assertEqual(request('/')[0], 200)
+                headers = request('/')[1]
+                self.assertEqual(headers.get('X-Content-Type-Options'), 'nosniff')
+                self.assertEqual(headers.get('X-Frame-Options'), 'SAMEORIGIN')
+                self.assertIn("frame-ancestors 'self'", headers.get('Content-Security-Policy', ''))
+                for name in ['.env', '.env.production', 'backup.sql', 'friends.sqlite', 'secret.pem']:
+                    (doc / name).write_text('synthetic secret')
+                    self.assertEqual(request('/' + name)[0], 403, name)
+                (doc / 'empty-directory').mkdir()
+                self.assertEqual(request('/empty-directory/')[0], 403)
                 self.assertEqual(request('/')[2], 'REBUILT APP')
                 self.assertEqual(request('/api/friends.php')[0], 200)
             finally:

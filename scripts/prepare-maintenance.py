@@ -22,6 +22,22 @@ RewriteRule ^ - [R=503,L]
 '''
 
 
+SECURITY_START = '# BEGIN RYADOM SECURITY'
+SECURITY_END = '# END RYADOM SECURITY'
+SECURITY_BLOCK = r'''# BEGIN RYADOM SECURITY
+Options -Indexes
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Content-Security-Policy "base-uri 'self'; object-src 'none'; frame-ancestors 'self'"
+</IfModule>
+<FilesMatch "(?i)^(?:\.env(?:\..*)?|\.git.*|.*\.(?:sqlite3?|sql|bak|pem|key))$">
+  Require all denied
+</FilesMatch>
+# END RYADOM SECURITY
+'''
+
 def enabled(config):
     value = json.loads(config)
     if not isinstance(value, dict) or type(value.get('enabled')) is not bool:
@@ -32,8 +48,11 @@ def enabled(config):
 def configure_htaccess(original, active):
     if original.count(START) != original.count(END) or original.count(START) > 1:
         raise ValueError('Unexpected maintenance markers; preserve host configuration')
+    if original.count(SECURITY_START) != original.count(SECURITY_END) or original.count(SECURITY_START) > 1:
+        raise ValueError('Unexpected security markers; preserve host configuration')
+    original = re.sub(re.escape(SECURITY_START) + r'\n.*?' + re.escape(SECURITY_END) + r'\n?', '', original, flags=re.S)
     cleaned = re.sub(re.escape(START) + r'\n.*?' + re.escape(END) + r'\n?', '', original, flags=re.S)
-    return (BLOCK if active else '') + cleaned
+    return SECURITY_BLOCK + (BLOCK if active else '') + cleaned
 
 
 def prepare(dist, live_htaccess, output_htaccess, require_host_extensions=False):
