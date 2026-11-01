@@ -97,6 +97,7 @@ LoadModule authz_core_module {modules}/mod_authz_core.so
 LoadModule mime_module {modules}/mod_mime.so
 LoadModule dir_module {modules}/mod_dir.so
 LoadModule rewrite_module {modules}/mod_rewrite.so
+LoadModule autoindex_module /usr/lib/apache2/modules/mod_autoindex.so
 LoadModule headers_module {modules}/mod_headers.so
 TypesConfig /etc/mime.types
 User {user}
