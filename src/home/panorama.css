@@ -1,17 +1,23 @@
 /* Stable scene framing: wide on desktop, a closer right-hand crop on phones. */
-.city-home.home-life>.city-cover.city-cover--panorama{display:block;height:clamp(640px,calc(100svh - 80px),940px);min-height:0;max-height:none;aspect-ratio:auto;border:0;box-shadow:none;}
+.city-home.home-life>.city-cover.city-cover--panorama{display:block;height:calc(100svh - 80px);min-height:0;max-height:none;aspect-ratio:auto;border:0;box-shadow:none;}
 .city-home.home-life .city-cover--panorama>.cover-image{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;}
 .city-home.home-life .city-cover--panorama>.cover-image>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:right center;}
-.city-home.home-life .city-cover--panorama>.city-cover-content{top:clamp(72px,10svh,120px);bottom:auto;}
+.city-home.home-life .city-cover--panorama>.city-cover-content{top:50%;bottom:auto;transform:translateY(-50%);}
 .city-home.home-life .city-cover--panorama .city-cover-content h1{font-size:clamp(72px,8.5vw,148px);margin:0 0 18px;}
 @media(max-width:899px){
  .app-shell:has(.city-home) main{padding-top:0;margin-top:0;}
  .city-home.home-life>.city-cover.city-cover--panorama{height:auto;margin:0;border:0;}
  .city-home.home-life .city-cover--panorama>.cover-image{position:relative;inset:auto;height:auto;aspect-ratio:1;}
  .city-home.home-life .city-cover--panorama>.cover-atmosphere{display:none;}
- .city-home.home-life .city-cover--panorama>.city-cover-content{position:relative;inset:auto;width:auto;max-width:none;margin:0;padding:24px 20px 76px;}
+ .city-home.home-life .city-cover--panorama>.city-cover-content{position:relative;inset:auto;transform:none;width:auto;max-width:none;margin:0;padding:24px 20px 76px;}
  .city-home.home-life .city-cover--panorama .city-cover-content h1{font-size:clamp(36px,9vw,64px);margin:0 0 12px;}
  .city-home.home-life .city-cover--panorama .cover-summary{max-width:none;}
  .city-home.home-life .city-cover--panorama>.cover-image>img{filter:brightness(.96);}
  .app-shell.compact-app:has(.city-home) main{padding-inline:0;}
+}
+
+/* The header occupies its own row; the scene fills the rest of the first screen. */
+@media(min-width:900px){
+ .app-shell.desktop-web:has(.city-home)>main{margin-top:0;}
+ .city-home.home-editorial .city-cover--panorama>.life-route{bottom:0;}
 }
