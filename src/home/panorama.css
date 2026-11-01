@@ -19,5 +19,6 @@
 /* The header occupies its own row; the scene fills the rest of the first screen. */
 @media(min-width:900px){
  .app-shell.desktop-web:has(.city-home)>main{margin-top:0;}
+ .app-shell.desktop-web:has(.city-home)>.web-header{background:#071622;}
  .city-home.home-editorial .city-cover--panorama>.life-route{bottom:0;}
 }
