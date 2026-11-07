@@ -89,7 +89,7 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
   const friends=data?.friends.filter(friend=>friend.accepted)??[];
   const pending=data?.friends.filter(friend=>!friend.accepted)??[];
   return <div className="friends-page ym-disable-keys ym-disable-clicks ym-disable-webvisor">
-    <header className="friends-heading"><span className="eyebrow">ТВОИ ЛЮДИ В ГОРОДЕ</span><h1>Друзья рядом</h1><p>Добавляйте знакомых и делитесь приблизительной точкой, когда сами этого хотите.</p></header>
+    <header className="friends-heading"><span className="eyebrow">ТВОИ ЛЮДИ В ГОРОДЕ</span><h1>Друзья на карте</h1><p>Добавляйте знакомых и делитесь приблизительной точкой, когда сами этого хотите.</p></header>
     {!userId?<section className="friends-card"><h2>Здесь только ваши друзья</h2><p>Войдите, чтобы обменяться приглашениями. Геолокация по умолчанию выключена.</p><button onClick={openLogin}>Войти в аккаунт</button></section>:<>
       {notice&&<p className="friends-notice" role="status">{notice}</p>}
       <section className="friends-card friends-visibility"><div><span className={visible?'friends-status visible':'friends-status'}>{visible?`Вас видно до ${localTime(data!.self.expires_at!)}`:data?'Вы невидимы':'Проверяем видимость…'}</span>
@@ -97,7 +97,7 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
         <button disabled={busy||locating||!data} onClick={()=>void share()}>{locating?'Определяем местоположение…':visible?'Обновить точку на один час':'Показать друзьям на один час'}</button>
         <button className="friends-secondary" onClick={()=>void hide()}>{locating?'Отменить и стать невидимым':'Стать невидимым'}</button>
         <small>Точное положение округляется ещё до отправки. Друзья видят область примерно в один километр; публичного поиска людей нет.</small>
-        {import.meta.env.VITE_FRIENDS_BACKEND==='host'&&<details><summary>Условия показа местоположения</summary><p>Нажимая «Показать друзьям на один час», вы разрешаете оператору «Рядом» обработать одну приблизительную точку и показать её всем подтверждённым друзьям. Скрыть точку и отозвать согласие можно кнопкой «Стать невидимым».</p><p>Имена для друзей, приглашения, связи и точки хранятся на сервере сайта у Спринтхост в России. Геопозиция не передаётся в Supabase. Показ прекращается через час; очистка истёкших точек запускается каждые пять минут. Подробности — в <a href="#/privacy">политике обработки данных</a>.</p></details>}
+        {import.meta.env.VITE_FRIENDS_BACKEND==='host'&&<details><summary>Условия показа местоположения</summary><p>Нажимая «Показать друзьям на один час», вы разрешаете оператору «Городской портал» обработать одну приблизительную точку и показать её всем подтверждённым друзьям. Скрыть точку и отозвать согласие можно кнопкой «Стать невидимым».</p><p>Имена для друзей, приглашения, связи и точки хранятся на сервере сайта у Спринтхост в России. Геопозиция не передаётся в Supabase. Показ прекращается через час; очистка истёкших точек запускается каждые пять минут. Подробности — в <a href="#/privacy">политике обработки данных</a>.</p></details>}
       </section>
       {data&&<FriendsMap key={`map-${city}`} city={city} data={data} now={now}/>}
       <section className="friends-card"><h2>Пригласить знакомого</h2><label>Как вас увидят друзья<input maxLength={40} minLength={2} placeholder="Имя или псевдоним" value={name} onChange={event=>setName(event.target.value)}/></label>
@@ -120,7 +120,7 @@ function FriendsSession({userId,city,openLogin}:{userId:string|null;city:string;
         </article>)}
       </section>
       {!!data?.blocked.length&&<section className="friends-card"><h2>Заблокированные</h2>{data.blocked.map(person=><article className="friend-row" key={person.id}><h3>{person.name}</h3><button disabled={busy} onClick={()=>void run(()=>nearbyCall(nearby,'nearby_disconnect',{p_peer:person.id,p_block:false}))}>Разблокировать</button><small>Дружба и доступ к точке автоматически не восстанавливаются.</small></article>)}</section>}
-      {import.meta.env.VITE_FRIENDS_BACKEND==='host'&&<section className="friends-card"><h2>Ваши данные</h2><p>Можно удалить имя для друзей, код, точку, список друзей и блокировки. Учётная запись на сайте останется.</p><button className="friends-secondary" disabled={busy||locating} onClick={()=>{if(window.confirm('Удалить все ваши данные раздела «Друзья рядом»? Друзей потребуется добавить заново.')){++generation.current;void run(async()=>{await nearbyCall(nearby,'nearby_forget');setName('');setCode('');},'Данные раздела удалены. Вы невидимы.');}}}>Удалить данные раздела</button></section>}
+      {import.meta.env.VITE_FRIENDS_BACKEND==='host'&&<section className="friends-card"><h2>Ваши данные</h2><p>Можно удалить имя для друзей, код, точку, список друзей и блокировки. Учётная запись на сайте останется.</p><button className="friends-secondary" disabled={busy||locating} onClick={()=>{if(window.confirm('Удалить все ваши данные раздела «Друзья на карте»? Друзей потребуется добавить заново.')){++generation.current;void run(async()=>{await nearbyCall(nearby,'nearby_forget');setName('');setCode('');},'Данные раздела удалены. Вы невидимы.');}}}>Удалить данные раздела</button></section>}
     </>}
   </div>;
 }
