@@ -52,7 +52,7 @@ export function CityPicker({ city, cities, selectCity, onDismiss, storageError }
     >
       <div className="sheet-handle" aria-hidden="true"/>
       <div className="city-sheet-heading">
-        <div><span className="eyebrow">ВСЁ ХОРОШЕЕ РЯДОМ</span><h2 id="city-sheet-title">Выбери свой город</h2></div>
+        <div><span className="eyebrow">ВСЁ ХОРОШЕЕ Городской портал</span><h2 id="city-sheet-title">Выбери свой город</h2></div>
         <button className="sheet-close" aria-label="Закрыть выбор города" onClick={onDismiss}><Icon name="close" size={20}/></button>
       </div>
       <p id="city-sheet-description">Места, события и люди поблизости.</p>
@@ -65,7 +65,7 @@ export function CityPicker({ city, cities, selectCity, onDismiss, storageError }
           </button>
         ))}
       </div>
-      <p className="city-coming-soon">Города добавляются по мере подключения к «Рядом»</p>
+      <p className="city-coming-soon">Города добавляются по мере подключения к «Городской портал»</p>
       {storageError && <p className="city-storage-error" role="status">Браузер запретил сохранение города. Выбор доступен до закрытия приложения.</p>}
       <button className="primary-button city-confirm" onClick={onDismiss}>Готово <Icon name="arrow" size={18}/></button>
     </dialog>,
