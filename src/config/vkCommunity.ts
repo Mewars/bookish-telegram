@@ -5,5 +5,5 @@ export const FEDERAL_VK_COMMUNITY = Object.freeze({
   url: 'https://vk.ru/ryadomcity',
   id: 242202919,
   wallOwnerId: -242202919,
-  label: 'Федеральное сообщество «РЯДОМ»',
+  label: 'Федеральное сообщество «Городской портал»',
 } as const);
