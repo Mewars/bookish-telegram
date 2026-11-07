@@ -75,7 +75,7 @@ export function SiteUpdateNotice() {
   return (
     <aside className="site-update-notice" role="status" aria-label="Доступно обновление сайта">
       <div className="site-update-notice__text">
-        <strong>«Рядом» обновился</strong>
+        <strong>«Городской портал» обновился</strong>
         <span>Есть свежая версия сайта.</span>
       </div>
       <button className="site-update-notice__refresh" type="button" onClick={loadNewestRelease}>
