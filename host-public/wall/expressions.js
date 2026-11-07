@@ -53,7 +53,7 @@ export function attachExpressionPicker(field){
  function show(kind){
   choices.replaceChildren();for(const tab of tabs.children)tab.setAttribute('aria-pressed',String(tab.dataset.kind===kind));
   if(kind==='stickers'){
-   const label=document.createElement('p');label.className='wall-expression-caption';label.textContent='Соболь РЯДОМ · 24 стикера';choices.append(label);
+   const label=document.createElement('p');label.className='wall-expression-caption';label.textContent='Соболь Городской портал · 24 стикера';choices.append(label);
    const grid=document.createElement('div');grid.className='wall-sticker-grid';
    for(const sticker of WALL_STICKERS){const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',`Стикер: ${sticker.label}`);button.title=sticker.label;button.append(stickerImage(sticker));button.onclick=()=>{
     if(field.value.length+stickerToken(sticker.id).length+1>max){status.textContent='Для стикера нужно немного сократить текст.';return;}
