@@ -67,7 +67,7 @@ test('owner contact page and fixed launcher keep requested legal and mobile beha
     readFile('src/accessibility/accessibility.css', 'utf8'),
     readFile('src/components/CityHome.tsx', 'utf8'),
   ]);
-  assert.match(contacts, /Контакты владельца/);
+  assert.match(contacts, /Контакты и реквизиты/);
   assert.match(contacts, /Владелец сервиса/);
   assert.match(contacts, /https:\/\/vk\.ru\/mewarspro/);
   assert.match(links, /Контакты владельца/);
