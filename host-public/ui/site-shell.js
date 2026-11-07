@@ -153,9 +153,9 @@
     beforeScroll=document.body.style.overflow;
     overlay=document.createElement('section');overlay.className='ryadom-shell-overlay';
     overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
-    overlay.setAttribute('aria-label','Городской раздел РЯДОМ');
+    overlay.setAttribute('aria-label','Городской раздел Городской портал');
     frame=document.createElement('iframe');frame.className='ryadom-shell-iframe';
-    frame.title='Раздел РЯДОМ';frame.allow='camera; microphone';frame.src=framePath(dest);
+    frame.title='Раздел Городской портал';frame.allow='camera; microphone';frame.src=framePath(dest);
     frame.addEventListener('load',injectFrameSupport);
     overlay.append(frame);
     document.body.append(overlay);document.body.style.overflow='hidden';
