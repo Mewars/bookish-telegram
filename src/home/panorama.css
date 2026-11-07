@@ -6,7 +6,7 @@
 .city-home.home-life .city-cover--panorama .city-cover-content h1{font-size:clamp(72px,8.5vw,148px);margin:0 0 18px;}
 @media(max-width:899px){
  .app-shell:has(.city-home) main{padding-top:0;margin-top:0;}
- .city-home.home-life>.city-cover.city-cover--panorama{height:auto;margin:0;border:0;}
+ .city-home.home-life>.city-cover.city-cover--panorama{height:auto;min-height:calc(100vh - 68px);margin:0;border:0;}
  .city-home.home-life .city-cover--panorama>.cover-image{position:relative;inset:auto;height:auto;aspect-ratio:1;}
  .city-home.home-life .city-cover--panorama>.cover-atmosphere{display:none;}
  .city-home.home-life .city-cover--panorama>.city-cover-content{position:relative;inset:auto;transform:none;width:auto;max-width:none;margin:0;padding:24px 20px 76px;}
