@@ -1,5 +1,5 @@
-// Seasonal wrapper embeds the approved wordmark; the original PNG stays unchanged.
-// Labelled navigation controls hide the image from assistive technology to avoid repetition.
+// Temporary neutral visual identity while the name is under trademark review.
+// Keep the asset path and the site's existing routing/domain unchanged.
 export function BrandWordmark({ decorative = false }: { decorative?: boolean }) {
-  return <img className="brand-logo-image" src={`${import.meta.env.BASE_URL}brand/ryadom-logo-winter-v3.svg`} width={2096} height={682} alt={decorative ? '' : 'Рядом'} aria-hidden={decorative || undefined}/>;
+  return <img className="brand-logo-image" src={`${import.meta.env.BASE_URL}brand/pin-yellow.svg`} width={44} height={44} alt={decorative ? '' : 'Городской портал'} aria-hidden={decorative || undefined}/>;
 }
