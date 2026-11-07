@@ -3,7 +3,7 @@ import { CookieSettingsButton } from '../privacy/CookieSettingsButton';
 export function CookiePolicyPage({ goBack }: { goBack: () => void }) {
   return <LegalPage title="Политика использования cookie и browser storage" version="COOKIE-1.0" goBack={goBack}>
 <h2>1. Общие положения</h2>
-<p>Сервис «Рядом» использует файлы cookie и технологии хранения информации в браузере, включая localStorage и sessionStorage.</p>
+<p>Сервис «Городской портал» использует файлы cookie и технологии хранения информации в браузере, включая localStorage и sessionStorage.</p>
 <p>Они используются для работы функций сайта и, только при отдельном согласии, для аналитики посещаемости.</p>
 <h2>2. Необходимые технологии</h2>
 <p>Для работы сайта могут использоваться технические данные браузера для:</p>
