@@ -33,7 +33,7 @@ export function WebFooter({ city, region, navigate }: { city: string; region: st
           <FooterCooperation showLegal={false} />
         </div>
         <div className="web-footer-note">
-          <span>© 2026 Городской портал. Все права защищены.</span>
+          <span>© 2026 Городской портал · Оператор: Евсеев Александр Романович, г. Енисейск · <a href="mailto:Mewars@yandex.ru">Mewars@yandex.ru</a></span>
           {canOpenAdmin && <button className="footer-admin-link" type="button" onClick={() => navigate('admin')}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <rect x="5" y="10" width="14" height="11" rx="2" />
