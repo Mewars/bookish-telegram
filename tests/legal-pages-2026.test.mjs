@@ -13,7 +13,7 @@ test('privacy, publication, advertising and payment information have routes and 
     assert.ok(types.includes("'"+name+"'"), 'Section type: '+name);
     assert.ok(route.includes("'"+name+"'"), 'allow route: '+name);
     assert.ok(links.includes('href="#/'+name+'"'), 'legal footer link: '+name);
-    assert.ok(meta.includes(name+':'), 'metadata: '+name);
+    assert.ok(meta.includes(name+':') || meta.includes("'"+name+"':"), 'metadata: '+name);
     assert.ok(app.includes("'"+name+"'"), 'render route: '+name);
   }
 });
