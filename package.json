@@ -46,9 +46,9 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite": "^0.5.15",
     "@eslint/js": "^10.0.1",
-    "@types/leaflet": "1.9.21",
+    "@types/leaflet": "1.9.22",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.1.0",
