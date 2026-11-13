@@ -124,7 +124,7 @@ export function AdminPreviewPage({ goHome }: { goHome: () => void }) {
 
   return <div className="admin-shell">
     <header className="admin-heading">
-      <div><span className="eyebrow">Городской портал · ПРОБНАЯ АДМИНКА</span><h1>Попробуй добавить организацию</h1>
+      <div><span className="eyebrow">Scarivo · ПРОБНАЯ АДМИНКА</span><h1>Попробуй добавить организацию</h1>
         <p>Места и услуги · {rows.filter(row => row.item.city === city).length} карточек в {city === 'Енисейск' ? 'Енисейске' : 'Лесосибирске'}</p></div>
       <button className="secondary-button" type="button" onClick={goHome}>На сайт <Icon name="arrow" size={17}/></button>
     </header>
