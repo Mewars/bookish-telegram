@@ -48,7 +48,7 @@ export function HomeCarousel({ title, subtitle, index, kind, items, navigate, fe
 
   return <section className="city-section home-carousel" data-selection={index} aria-labelledby={id}>
     <div className="section-heading">
-      <div><span className="section-index">{index} / Городской портал</span><h2 id={id}>{title}</h2><p>{subtitle}</p></div>
+      <div><span className="section-index">{index} / Scarivo</span><h2 id={id}>{title}</h2><p>{subtitle}</p></div>
       <div className="home-section-controls">
         <button type="button" className="text-action" onClick={() => navigate(kind)}
           aria-label={`Смотреть каталог: ${title}`}>Смотреть все <Icon name="arrow" size={18}/></button>
