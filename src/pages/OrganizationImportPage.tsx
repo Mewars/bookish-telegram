@@ -44,7 +44,7 @@ export function OrganizationImportPage() {
   useEffect(() => {
     const title = document.title;
     const loadState = loadVersion.current;
-    document.title = 'Импорт организаций — Городской портал';
+    document.title = 'Импорт организаций — Scarivo';
     return () => { document.title = title; loadState.version++; };
   }, []);
   const editingNumber = editing?.number;
@@ -95,14 +95,14 @@ export function OrganizationImportPage() {
   const visibleRows = checked.slice(page * pageSize, (page + 1) * pageSize);
   const selected = editing ? checked.find(row => row.number === editing.number) : undefined;
   return <div className="import-shell ym-disable-keys ym-disable-clicks ym-disable-webvisor">
-    <header className="import-header"><a href="#/home" className="brand brand-logo-pin" aria-label="Городской портал — на главную"><BrandWordmark decorative/></a>
+    <header className="import-header"><a href="#/home" className="brand brand-logo-pin" aria-label="Scarivo — на главную"><BrandWordmark decorative/></a>
       {isWideScreen && <label>Тема<select value={theme} onChange={event => setTheme(event.target.value as typeof theme)}><option value="system">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label>}
     </header>
     <main className="import-page">
       <div className="import-heading"><span className="eyebrow">ВНУТРЕННИЙ ИНСТРУМЕНТ</span><h1>Импорт организаций</h1>
         <p>Инструмент работает локально в браузере. Файл и его содержимое никуда не отправляются.</p>
       </div>
-      <p className="import-rights">Загружайте только данные, которые вы вправе использовать и публиковать в сервисе “Городской портал”.</p>
+      <p className="import-rights">Загружайте только данные, которые вы вправе использовать и публиковать в сервисе “Scarivo”.</p>
       <ol className="import-steps" aria-label="Этапы импорта"><li>Загрузить CSV</li><li>Проверить</li><li>Исправить</li><li>Экспортировать</li></ol>
       <section className="import-panel" aria-labelledby="upload-heading"><div className="import-panel-title"><h2 id="upload-heading">1. Загрузить CSV</h2>
         <button className="import-secondary" onClick={() => downloadText(csvTemplate(), 'ryadom-organizations-template.csv', 'text/csv;charset=utf-8')}>Скачать шаблон CSV</button></div>

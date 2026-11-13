@@ -7,14 +7,14 @@ import { HOME_METADATA, HOME_URL, pageMetadata } from '../src/seo/metadata.ts';
 test('static homepage and runtime defaults agree, public URLs use the canonical domain', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(html.includes(`<title>${HOME_METADATA.title}</title>`));
-  assert.equal(HOME_METADATA.title,'Городской портал');
-  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Городской портал');
-  assert.match(html, /property="og:title" content="Городской портал"/);
-  assert.match(html, /name="twitter:title" content="Городской портал"/);
-  const share='https://ryadomcity.ru/brand/ryadom-share-pin-v1.png';
+  assert.equal(HOME_METADATA.title,'Scarivo');
+  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Scarivo');
+  assert.match(html, /property="og:title" content="Scarivo"/);
+  assert.match(html, /name="twitter:title" content="Scarivo"/);
+  const share='https://ryadomcity.ru/brand/scarivo-share-pin.png';
   assert.ok(html.includes(`property="og:image" content="${share}"`));
   assert.ok(html.includes(`name="twitter:image" content="${share}"`));
-  const icon=await readFile(new URL('../public/brand/ryadom-share-pin-v1.png',import.meta.url));
+  const icon=await readFile(new URL('../public/brand/scarivo-share-pin.png',import.meta.url));
   assert.equal(icon.subarray(1,4).toString(),'PNG');
   assert.equal(icon.readUInt32BE(16),1200);
   assert.equal(icon.readUInt32BE(20),630);
@@ -39,16 +39,16 @@ test('public sections are distinct; private screens never inherit a place or hom
   assert.equal(new Set(sections.map(section => pageMetadata(section).title)).size, sections.length);
   for (const section of [...sections, 'profile', 'login', 'favorites', 'import', 'privacy', 'consent']) {
     assert.equal(pageMetadata(section).canonical, undefined);
-    assert.ok(pageMetadata(section).title.includes('Городской портал'));
+    assert.ok(pageMetadata(section).title.includes('Scarivo'));
   }
   assert.deepEqual(pageMetadata('home'), HOME_METADATA);
 });
 
 test('real place uses supplied public copy; missing/demo cards do not invent facts or URLs', () => {
   const place = { id: 'real', kind: 'places', real: true, title: 'Музей', city: 'Енисейск', description: 'Описание музея.' };
-  assert.deepEqual(pageMetadata('places', 'real', place), { title: 'Музей — Енисейск | Городской портал', description: place.description });
+  assert.deepEqual(pageMetadata('places', 'real', place), { title: 'Музей — Енисейск | Scarivo', description: place.description });
   assert.deepEqual(pageMetadata('favorites', 'real', place), pageMetadata('places', 'real', place));
-  assert.equal(pageMetadata('places', 'missing').title, 'Карточка не найдена — Городской портал');
+  assert.equal(pageMetadata('places', 'missing').title, 'Карточка не найдена — Scarivo');
   for (const kind of ['events', 'services', 'places']) {
     const demo = { ...place, kind, real: false, title: 'Invented', description: 'Invented facts' };
     const metadata = pageMetadata(kind, 'demo', demo);
