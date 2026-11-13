@@ -74,14 +74,14 @@ try {
       assert.equal(await categoriesLauncher.count(),1,'Expected one live category launcher');
       result.checks.push('Live shared category launcher');
 
-      const cookies = page.getByRole('button', { name: 'Только необходимые' });
+      const cookies = page.getByRole('button', { name: 'Отказаться от аналитики' });
       if (await cookies.isVisible().catch(() => false)) {
         const cookieGlyph = page.locator('.cookie-banner .cookie-title .cookie-bite-icon');
         assert.equal(await cookieGlyph.count(), 1, 'Black bitten cookie mark must appear beside consent title');
         assert.equal(await cookieGlyph.evaluate(node => getComputedStyle(node).backgroundColor), 'rgba(0, 0, 0, 0)', 'Cookie glyph must have a transparent background');
         await cookies.click();
       }
-      const friendsGold = page.getByRole('button', { name: 'Друзья рядом — узнать о разделе' });
+      const friendsGold = page.getByRole('button', { name: 'Друзья на карте — узнать о разделе' });
       assert.equal(await friendsGold.count(), 1, 'Friends header shortcut is missing');
       const friendsSkin = await friendsGold.evaluate(el => ({
         labelColor: getComputedStyle(el.querySelector('span') ?? el).color,
@@ -223,12 +223,12 @@ try {
       assert(await page.locator('main .card').count()>0,'Food category contains no public cards');
       result.checks.push('Shared live directory opens a precise public food subcategory');
       await page.screenshot({ path: `${folder}/${scenario.name}-food.png`, fullPage: true, animations: 'disabled' });
-      assert.equal(await page.getByRole('button', { name: 'Друзья рядом · Открыть карту' }).count(), 0, 'Duplicate friends CTA must not appear beneath the homepage hero');
-      const friendsShortcut = page.getByRole('button', { name: 'Друзья рядом — узнать о разделе' });
+      assert.equal(await page.getByRole('button', { name: 'Друзья на карте · Открыть карту' }).count(), 0, 'Duplicate friends CTA must not appear beneath the homepage hero');
+      const friendsShortcut = page.getByRole('button', { name: 'Друзья на карте — узнать о разделе' });
       assert.equal(await friendsShortcut.count(), 1, 'Friends mascot must replace favorites in the header');
       assert.equal(await page.locator('.web-favorites, .header-heart').count(), 0, 'Old header favorites shortcut is still visible');
       await friendsShortcut.click();
-      const friendIntro = page.getByRole('dialog', { name: 'Друзья рядом' });
+      const friendIntro = page.getByRole('dialog', { name: 'Друзья на карте' });
       await friendIntro.waitFor({ state: 'visible' });
       assert.equal(await friendIntro.getByRole('button', { name: 'Открыть друзей' }).count(), 1);
       assert.equal(await page.evaluate(() => window.__ryadomGpsCalls), 0, 'Explainer must not request GPS');
@@ -239,7 +239,7 @@ try {
       await friendIntro.getByRole('button', { name: 'Открыть друзей' }).click();
       await page.waitForURL('**/#/friends');
       result.checks.push('Mascot opens reusable accessible explainer; opening friends needs explicit click and no GPS');
-      await page.getByRole('heading', {name:'Друзья рядом',exact:true}).waitFor();
+      await page.getByRole('heading', {name:'Друзья на карте',exact:true}).waitFor();
       await page.getByRole('button',{name:'Войти в аккаунт',exact:true}).waitFor();
       assert.equal(await page.evaluate(()=>window.__ryadomGpsCalls),0,'Guest friends page must not request GPS');
       await page.screenshot({path:`${folder}/${scenario.name}-friends.png`,animations:'disabled'});
@@ -255,7 +255,7 @@ try {
         assert.equal(forged.status,401,'Server must verify and reject a forged identity through Auth');
         result.checks.push('Live host storage ready; anonymous private API access denied');
         await page.goto(`${base}/#/contacts`, { waitUntil: 'domcontentloaded' });
-        await page.getByRole('heading', { name: 'Контакты владельца' }).waitFor();
+        await page.getByRole('heading', { name: 'Контакты и реквизиты' }).waitFor();
         const vk = page.locator('.legal-document a[href="https://vk.ru/mewarspro"]');
         assert(await vk.isVisible(), 'Owner VK contact link missing');
         result.checks.push('Owner contacts page and VK link');
@@ -266,7 +266,7 @@ try {
         await page.getByRole('heading', { name: 'Городская лента готовится' }).waitFor();
         await page.goto(`${base}/#/classifieds`, { waitUntil: 'domcontentloaded' });
         await page.waitForURL(`${base}/classifieds/`);
-        await page.getByRole('heading', {name:'Объявления рядом',exact:true}).waitFor();
+        await page.getByRole('heading', {name:'Объявления города',exact:true}).waitFor();
         await page.getByRole('link',{name:'Войти / зарегистрироваться',exact:true}).waitFor();
         assert.equal(await page.locator('#mod-tab').isVisible(),false,'Guest must not see moderation');
         await page.getByRole('button',{name:'Подать объявление',exact:true}).click();
