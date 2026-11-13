@@ -233,13 +233,13 @@ export function LoginPage({ goBack, openProfile }: { goBack: () => void; openPro
   }
 
   if (state.status === 'authenticated') {
-    return <section className="login-card"><h1>Вы уже вошли в Городской портал</h1><button className="primary-button" onClick={openProfile}>Перейти в профиль</button></section>;
+    return <section className="login-card"><h1>Вы уже вошли в Scarivo</h1><button className="primary-button" onClick={openProfile}>Перейти в профиль</button></section>;
   }
 
   return <><button className="back-link" onClick={goBack}><Icon name="back" size={18}/> Назад</button>
     <section className="login-card" aria-busy={disabled}>
       <span className="brand brand-logo-pin login-brand"><BrandWordmark/></span>
-      <h1>{mode === 'signup' ? 'Регистрация' : mode === 'forgot' ? 'Восстановить пароль' : 'Войти в Городской портал'}</h1>
+      <h1>{mode === 'signup' ? 'Регистрация' : mode === 'forgot' ? 'Восстановить пароль' : 'Войти в Scarivo'}</h1>
       <p>{mode === 'signup' ? 'Создайте аккаунт, чтобы сохранять любимые места.' : mode === 'forgot' ? 'Укажите почту, и мы отправим ссылку для смены пароля.' : 'Сохраняйте места и пользуйтесь профилем на разных устройствах.'}</p>
       {mode !== 'forgot' && <>
         <label className="pd-consent-checkbox"><input type="checkbox" checked={pdConsent} onChange={event => { setPdConsent(event.target.checked); setConsentError(null); }} aria-describedby={consentError ? 'pd-consent-error' : undefined}/><span>Я даю <a href="#/consent">согласие на обработку персональных данных</a> для создания аккаунта</span></label>
