@@ -18,7 +18,7 @@ interface WebHeaderProps {
 
 export function WebHeader({ city, section, navigate, friendsEnabled, openFriendsIntro, cityPickerOpen, openCityPicker }: WebHeaderProps) {
   return <header className="web-header"><div className="web-header-inner">
-    <button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Рядом — на главную"><BrandWordmark decorative/></button>
+    <button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Scarivo — на главную"><BrandWordmark decorative/></button>
     <div className="header-city-weather"><button className="city-pill" onClick={openCityPicker} aria-label={`Выбрать город: ${city}`} aria-haspopup="dialog" aria-expanded={cityPickerOpen}>
       <Icon name="pin" size={14}/>{city}<span className="city-chevron" aria-hidden="true"><Icon name="back" size={12}/></span>
     </button><CityWeather key={city} city={city}/></div>
@@ -26,7 +26,7 @@ export function WebHeader({ city, section, navigate, friendsEnabled, openFriends
       { id: 'home', label: 'Главная' }, { id: 'events', label: 'Афиша' }, { id: 'places', label: 'Места' }, { id: 'services', label: 'Услуги' },
     ] as const).map(tab => <button key={tab.id} data-section={tab.id} aria-current={section === tab.id ? 'page' : undefined} onClick={() => navigate(tab.id)}>{tab.label}</button>)}</nav>
     <div className="web-header-actions"><MusicButton/>
-      {friendsEnabled && <button type="button" className="web-friends-trigger" onClick={openFriendsIntro} aria-label="Друзья рядом — узнать о разделе" aria-haspopup="dialog" aria-current={section === 'friends' ? 'page' : undefined}><FriendsMascot size={33}/> <span>Друзья</span></button>}
+      {friendsEnabled && <button type="button" className="web-friends-trigger" onClick={openFriendsIntro} aria-label="Друзья на карте — узнать о разделе" aria-haspopup="dialog" aria-current={section === 'friends' ? 'page' : undefined}><FriendsMascot size={33}/> <span>Друзья</span></button>}
       <button className="web-profile-button" aria-label="Открыть профиль" aria-current={section === 'profile' ? 'page' : undefined} onClick={() => navigate('profile')}><HeaderUserAvatar/></button>
     </div>
   </div></header>;

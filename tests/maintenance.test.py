@@ -70,7 +70,7 @@ class MaintenanceTest(unittest.TestCase):
             doc.mkdir()
             shutil.copytree(ROOT / 'public/maintenance', doc / 'maintenance')
             (doc / 'maintenance/config.json').write_text('{"enabled":true}')
-            for target, source in [('brand/ryadom-logo-transparent.png', 'public/brand/ryadom-logo-transparent.png'), ('brand/ryadom-logo-winter.svg', 'public/brand/ryadom-logo-winter.svg'), ('brand/ryadom-logo-winter-v3.svg', 'public/brand/ryadom-logo-winter-v3.svg'), ('wall/stickers/sable-20.webp', 'host-public/wall/stickers/sable-20.webp')]:
+            for target, source in [('brand/scarivo-winter.svg', 'public/brand/scarivo-winter.svg'), ('brand/scarivo-pin.svg', 'public/brand/scarivo-pin.svg'), ('brand/ryadom-logo-transparent.png', 'public/brand/ryadom-logo-transparent.png'), ('brand/ryadom-logo-winter.svg', 'public/brand/ryadom-logo-winter.svg'), ('brand/ryadom-logo-winter-v3.svg', 'public/brand/ryadom-logo-winter-v3.svg'), ('wall/stickers/sable-20.webp', 'host-public/wall/stickers/sable-20.webp')]:
                 (doc / target).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / source, doc / target)
             for path in ['index.html','wall/index.html','classifieds/index.html','stories-preview/index.html','api/friends.php','api/weather.php','assets/app.js']:
@@ -134,7 +134,7 @@ DirectoryIndex index.html
                     self.assertEqual(headers.get('Retry-After'), '3600')
                 self.assertEqual(request('/api/friends.php', 'POST')[0], 503)
                 self.assertEqual(request('/wall/', 'HEAD')[0], 503)
-                for path in ['/brand/ryadom-logo-transparent.png','/brand/ryadom-logo-winter.svg','/brand/ryadom-logo-winter-v3.svg','/wall/stickers/sable-20.webp','/maintenance/config.json','/version.json']:
+                for path in ['/brand/scarivo-winter.svg','/brand/scarivo-pin.svg','/brand/ryadom-logo-transparent.png','/brand/ryadom-logo-winter.svg','/brand/ryadom-logo-winter-v3.svg','/wall/stickers/sable-20.webp','/maintenance/config.json','/version.json']:
                     self.assertEqual(request(path)[0], 200, path)
                 (doc / 'maintenance/config.json').write_text('{"enabled":false}')
                 (doc / 'index.html').write_text('REBUILT APP')

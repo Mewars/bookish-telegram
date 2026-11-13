@@ -2,37 +2,40 @@ import type { Item, Section } from '../types';
 
 export const HOME_URL = 'https://ryadomcity.ru/';
 export const HOME_METADATA = {
-  title: 'Рядом',
-  description: 'Рядом — городской сервис: организации, места, услуги и события. Открывай город по-новому.',
+  title: 'Scarivo',
+  description: 'Scarivo — городской сервис: организации, места, услуги и события. Открывай город по-новому.',
   canonical: HOME_URL,
 };
 
 export interface PageMetadata { title: string; description: string; canonical?: string }
 
 const sections: Record<Section | 'import', PageMetadata> = {
-  business: {title: 'Бизнесу — Рядом', description: 'Бесплатное размещение организации в городском каталоге, помощь с оформлением и обновлением карточки.'},
-  community: { title: 'Городская лента — Рядом', description: 'Будущая городская лента новостей, вопросов и обсуждений жителей.' },
-  classifieds: { title: 'Объявления — Рядом', description: 'Будущая городская площадка объявлений и переписки жителей.' },
+  business: {title: 'Бизнесу — Scarivo', description: 'Бесплатное размещение организации в городском каталоге, помощь с оформлением и обновлением карточки.'},
+  community: { title: 'Городская лента — Scarivo', description: 'Будущая городская лента новостей, вопросов и обсуждений жителей.' },
+  classifieds: { title: 'Объявления — Scarivo', description: 'Будущая городская площадка объявлений и переписки жителей.' },
   home: HOME_METADATA,
-  places: { title: 'Места и достопримечательности Енисейска — Рядом', description: 'Музеи, исторические места, парки и кафе Енисейска. Знакомьтесь с городом, ищите адреса и сохраняйте интересные места в Рядом.' },
-  events: { title: 'Афиша Енисейска — Рядом', description: 'Раздел «Афиша» городского гида Рядом: подборки событий и идеи для досуга в Енисейске.' },
-  friends: { title: 'Друзья рядом — Рядом', description: 'Приглашения знакомых и добровольный показ приблизительного местоположения друзьям.' },
-  services: { title: 'Услуги рядом в Енисейске — Рядом', description: 'МФЦ, почтовые отделения и полезные городские услуги Енисейска с адресами и источниками.' },
-  favorites: { title: 'Избранное — Рядом', description: 'Ваши сохранённые места, события и услуги в Рядом.' },
-  profile: { title: 'Профиль — Рядом', description: 'Аккаунт и настройки городского гида Рядом.' },
-  login: { title: 'Вход и регистрация — Рядом', description: 'Вход в аккаунт Рядом, регистрация и восстановление пароля.' },
-  consent: { title: 'Согласие на обработку персональных данных — Рядом', description: 'Согласие на обработку персональных данных пользователей Рядом.' },
-  privacy: { title: 'Политика обработки персональных данных — Рядом', description: 'Информация об обработке и защите персональных данных в Рядом.' },
-  cookies: { title: 'Политика cookie — Рядом', description: 'Использование cookie и хранения данных в браузере на сайте Рядом.' },
-  terms: { title: 'Пользовательское соглашение — Рядом', description: 'Условия использования городского гида Рядом.' },
-  contacts: { title: 'Контакты владельца — Рядом', description: 'Контакты владельца сервиса Рядом: почта, сайт и ВКонтакте.' },
-  admin: { title: 'Управление организациями — Рядом', description: 'Закрытая административная панель каталога.' },
-  'admin-preview': { title: 'Демо админки — Рядом', description: 'Тестовый просмотр интерфейса без подключения к базе данных.' },
-  'photo-admin': { title: 'Загрузка фотографий организаций — Рядом', description: 'Закрытый редактор фотографий городского каталога.' },
-  'add-organization': { title: 'Добавить организацию — Рядом', description: 'Заявка на размещение организации в каталоге Рядом с предварительной проверкой сведений.' },
-  'my-applications': { title: 'Мои заявки — Рядом', description: 'Ваши заявки на размещение организаций и результаты рассмотрения.' },
-  'organization-consent': { title: 'Согласие на обработку данных заявки — Рядом', description: 'Отдельное согласие на обработку сведений заявки на размещение организации.' },
-  import: { title: 'Импорт организаций — Рядом', description: 'Служебный инструмент подготовки данных организаций для Рядом.' },
+  places: { title: 'Места и достопримечательности Енисейска — Scarivo', description: 'Музеи, исторические места, парки и кафе Енисейска. Знакомьтесь с городом, ищите адреса и сохраняйте интересные места в сервисе Scarivo.' },
+  events: { title: 'Афиша Енисейска — Scarivo', description: 'Раздел «Афиша» городского гида Scarivo: подборки событий и идеи для досуга в Енисейске.' },
+  friends: { title: 'Друзья на карте — Scarivo', description: 'Приглашения знакомых и добровольный показ приблизительного местоположения друзьям.' },
+  services: { title: 'Услуги рядом в Енисейске — Scarivo', description: 'МФЦ, почтовые отделения и полезные городские услуги Енисейска с адресами и источниками.' },
+  favorites: { title: 'Избранное — Scarivo', description: 'Ваши сохранённые места, события и услуги в сервисе Scarivo.' },
+  profile: { title: 'Профиль — Scarivo', description: 'Аккаунт и настройки городского гида Scarivo.' },
+  login: { title: 'Вход и регистрация — Scarivo', description: 'Вход в аккаунт Scarivo, регистрация и восстановление пароля.' },
+  consent: { title: 'Согласие на обработку персональных данных — Scarivo', description: 'Согласие на обработку персональных данных пользователей Scarivo.' },
+  privacy: { title: 'Политика обработки персональных данных — Scarivo', description: 'Информация об обработке и защите персональных данных в сервисе Scarivo.' },
+  cookies: { title: 'Политика cookie — Scarivo', description: 'Использование cookie и хранения данных в браузере на сайте Scarivo.' },
+  terms: { title: 'Пользовательское соглашение — Scarivo', description: 'Условия использования городского гида Scarivo.' },
+  'publication-consent': { title: 'Согласие на распространение персональных данных — Scarivo', description: 'Отдельные правила разрешения публичного распространения персональных данных.' },
+  'ads-consent': { title: 'Согласие на рекламные рассылки — Scarivo', description: 'Отдельное согласие на рекламные сообщения и порядок отказа.' },
+  'paid-services': { title: 'Платные услуги — Scarivo', description: 'Информация о статусе платных услуг и будущих условиях оформления заказов.' },
+  contacts: { title: 'Контакты владельца — Scarivo', description: 'Контакты владельца сервиса Scarivo: почта, сайт и ВКонтакте.' },
+  admin: { title: 'Управление организациями — Scarivo', description: 'Закрытая административная панель каталога.' },
+  'admin-preview': { title: 'Демо админки — Scarivo', description: 'Тестовый просмотр интерфейса без подключения к базе данных.' },
+  'photo-admin': { title: 'Загрузка фотографий организаций — Scarivo', description: 'Закрытый редактор фотографий городского каталога.' },
+  'add-organization': { title: 'Добавить организацию — Scarivo', description: 'Заявка на размещение организации в каталоге Scarivo с предварительной проверкой сведений.' },
+  'my-applications': { title: 'Мои заявки — Scarivo', description: 'Ваши заявки на размещение организаций и результаты рассмотрения.' },
+  'organization-consent': { title: 'Согласие на обработку данных заявки — Scarivo', description: 'Отдельное согласие на обработку сведений заявки на размещение организации.' },
+  import: { title: 'Импорт организаций — Scarivo', description: 'Служебный инструмент подготовки данных организаций для Scarivo.' },
 };
 
 // Hash screens have no independent HTML URL. Do not invent per-card canonicals.
@@ -40,15 +43,15 @@ export function pageMetadata(section: Section | 'import', id?: string, item?: It
   // The hash router has no independent city URL: keep the canonical homepage
   // for the original Eniseysk index; never claim a new city's page is Eniseysk.
   if (!id && city !== 'Енисейск' && ['home','places','events','services'].includes(section)) {
-    const labels: Partial<Record<Section, string>> = { home: 'Рядом', places: 'Места и организации', events: 'Афиша', services: 'Услуги' };
+    const labels: Partial<Record<Section, string>> = { home: 'Scarivo', places: 'Места и организации', events: 'Афиша', services: 'Услуги' };
     return {
-      title: section === 'home' ? 'Рядом' : `${labels[section as Section]} — ${city} | Рядом`,
-      description: `Рядом — городской справочник ${city}. Выбирайте места, организации, мероприятия и полезные услуги.`,
+      title: section === 'home' ? 'Scarivo' : `${labels[section as Section]} — ${city} | Scarivo`,
+      description: `Scarivo — городской справочник ${city}. Выбирайте места, организации, мероприятия и полезные услуги.`,
     };
   }
-  if (id && !item) return { title: 'Карточка не найдена — Рядом', description: 'Карточка по этой ссылке не найдена. Посмотрите места в городском гиде Рядом.' };
+  if (id && !item) return { title: 'Карточка не найдена — Scarivo', description: 'Карточка по этой ссылке не найдена. Посмотрите места в городском гиде Scarivo.' };
   if (id && item?.real && (item.kind === 'places' || item.kind === 'services')) return {
-    title: `${item.title} — ${item.city} | Рядом`,
+    title: `${item.title} — ${item.city} | Scarivo`,
     description: item.description,
   };
   // Demonstration entries receive no factual card SEO or structured business data.

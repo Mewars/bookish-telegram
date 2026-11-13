@@ -1,5 +1,5 @@
-// Seasonal wrapper embeds the approved wordmark; the original PNG stays unchanged.
-// Labelled navigation controls hide the image from assistive technology to avoid repetition.
+// Brand presentation only. Keep technical routes, OAuth, database and localStorage keys stable.
+// The winter illustration is an original self-contained SVG (gold geolocation pin and Santa hat).
 export function BrandWordmark({ decorative = false }: { decorative?: boolean }) {
-  return <img className="brand-logo-image" src={`${import.meta.env.BASE_URL}brand/ryadom-logo-winter-v3.svg`} width={2096} height={682} alt={decorative ? '' : 'Рядом'} aria-hidden={decorative || undefined}/>;
+  return <img className="brand-logo-image" src={`${import.meta.env.BASE_URL}brand/scarivo-winter.svg`} width={390} height={128} alt={decorative ? '' : 'Scarivo'} aria-hidden={decorative || undefined}/>;
 }

@@ -1,5 +1,5 @@
 import {catalogGroups} from '/catalog/taxonomy.js?v=20261025basic1';
-/* РЯДОМ · фирменная панель разделов и подразделов. Ни одного стороннего дизайна. */
+/* Scarivo · фирменная панель разделов и подразделов. Ни одного стороннего дизайна. */
 (()=>{
 'use strict';
 if(window.top!==window.self)return;
@@ -62,7 +62,7 @@ function open(){
  drawer.setAttribute('role','dialog');drawer.setAttribute('aria-modal','true');drawer.setAttribute('aria-labelledby','ryadom-cat-heading');
  const header=document.createElement('header');header.className='ryadom-cat-header';
  const topline=document.createElement('div');topline.className='ryadom-cat-topline';
- const kicker=document.createElement('span');kicker.className='ryadom-cat-kicker';kicker.textContent='РЯДОМ · '+sectionCity();
+ const kicker=document.createElement('span');kicker.className='ryadom-cat-kicker';kicker.textContent='Scarivo · '+sectionCity();
  const cross=makeButton('ryadom-cat-close','×',close);cross.setAttribute('aria-label','Закрыть разделы');topline.append(kicker,cross);
  const navLine=document.createElement('div');navLine.className='ryadom-cat-navline';
  const back=makeButton('ryadom-cat-back','← Все разделы',()=>{if(activeInfo){activeInfo=null}else if(activeNested){activeNested=null}else{activeParent=null}searchInput.value='';render();});back.id='ryadom-cat-back';
@@ -133,7 +133,7 @@ function render(){
   if(!found.length)note('Подраздел не найден. Можно выполнить обычный поиск по всему каталогу.');
   const button=makeButton('ryadom-cat-all','Искать «'+searchInput.value.trim().slice(0,60)+'» на сайте',()=>{const q=searchInput.value.trim();close();searchCatalog(q)});content.append(button);
  }else if(activeInfo){
-  mainHeading.textContent='Информация';subHeader.textContent='Раздел «РЯДОМ»';
+  mainHeading.textContent='Информация';subHeader.textContent='Раздел «Scarivo»';
   const box=document.createElement('section');box.className='ryadom-cat-info';const badge=document.createElement('span');badge.className='ryadom-cat-info-symbol';badge.textContent='◇';const title=document.createElement('h3');title.textContent='Военные части';const detail=document.createElement('p');detail.textContent='Раздел предусмотрен в каталоге. Сведения об объектах и подразделениях здесь не публикуются.';box.append(badge,title,detail);content.append(box);
  }else if(activeNested){
   mainHeading.textContent=activeNested.name;subHeader.textContent=activeNested.hint;const list=document.createElement('div');list.className='ryadom-cat-sub-list';activeNested.subs.forEach(sub=>list.append(makeSub(sub,activeParent)));content.append(list);

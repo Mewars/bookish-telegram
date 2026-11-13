@@ -18,7 +18,7 @@ with sync_playwright() as p:
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(origin + '/#/places')
         page.wait_for_function("new URLSearchParams(location.hash.split('?')[1]).get('city')==='Енисейск'")
-        page.get_by_role('button', name='Только необходимые', exact=True).click()
+        page.get_by_role('button', name='Отказаться от аналитики', exact=True).click()
         search = page.get_by_role('searchbox', name='Поиск', exact=True)
         search.fill('музей')
         page.get_by_role('group', name='Категории', exact=True).get_by_role('button', name='Музеи', exact=True).click()

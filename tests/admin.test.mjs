@@ -144,14 +144,14 @@ test('organization owners never receive admin roles or management links', async 
   assert.match(page,/validateAdminDraft\(draft, confirmed\)/);
 });
 
-test('admin sidebar reuses the official Ryadom brand image and returns to overview at top', async () => {
+test('admin sidebar reuses the official Ryadom neutral brand icon and returns to overview at top', async () => {
   const [admin, brand, desktop, css] = await Promise.all([
     readFile('src/admin/AdminPage.tsx', 'utf8'),
     readFile('src/components/BrandWordmark.tsx', 'utf8'),
     readFile('src/components/web/WebHeader.tsx', 'utf8'),
     readFile('src/admin/admin.css', 'utf8'),
   ]);
-  assert.match(brand, /brand\/ryadom-logo-winter-v3\.svg/);
+  assert.match(brand, /brand\/scarivo-winter\.svg/);
   assert.match(desktop, /<BrandWordmark decorative\/>/);
   assert.match(admin, /<button type="button" className="admin-cms-wordmark"/);
   assert.match(admin, /<BrandWordmark decorative\/><\/button>/);

@@ -46,20 +46,20 @@ with sync_playwright() as p:
     context.route("**/*", route_request)
     page = context.new_page()
     page.goto("https://ryadomcity.ru/#/friends")
-    expect(page.get_by_role("heading", name="Друзья рядом", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="Друзья на карте", exact=True)).to_be_visible()
     page.wait_for_timeout(200)
     assert sdk_requests == [] and page.evaluate("window.__ymCalls.length") == 0
     assert "ym-disable-webvisor" in page.locator(".friends-page").get_attribute("class")
     page.goto("https://ryadomcity.ru/#/home")
     page.wait_for_function("window.__ymCalls.some(call=>call[1]==='init')")
     assert len(sdk_requests) == 1
-    page.get_by_role("button", name="Друзья рядом — узнать о разделе").click()
-    intro = page.get_by_role("dialog", name="Друзья рядом")
+    page.get_by_role("button", name="Друзья на карте — узнать о разделе").click()
+    intro = page.get_by_role("dialog", name="Друзья на карте")
     expect(intro).to_be_visible()
     # The explanatory card does not request GPS or enter the private route.
     assert not page.evaluate("window.__ymCalls.some(call=>call[1]==='destruct')")
     intro.get_by_role("button", name="Открыть друзей").click()
-    expect(page.get_by_role("heading", name="Друзья рядом", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="Друзья на карте", exact=True)).to_be_visible()
     page.wait_for_function("window.__ymCalls.some(call=>call[1]==='destruct')")
     calls = page.evaluate("window.__ymCalls")
     assert calls[-1][1] == "destruct"

@@ -1,4 +1,4 @@
-export const PD_CONSENT_VERSION = 'PD-CONSENT-1.0';
+export const PD_CONSENT_VERSION = 'PD-CONSENT-1.1';
 export const PD_CONSENT_KEY = 'ryadom_pd_consent_v1';
 export interface PersonalDataConsentReceipt {
   accepted: true;

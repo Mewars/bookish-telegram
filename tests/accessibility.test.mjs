@@ -67,10 +67,10 @@ test('owner contact page and fixed launcher keep requested legal and mobile beha
     readFile('src/accessibility/accessibility.css', 'utf8'),
     readFile('src/components/CityHome.tsx', 'utf8'),
   ]);
-  assert.match(contacts, /Контакты владельца/);
+  assert.match(contacts, /Контакты и реквизиты/);
   assert.match(contacts, /Владелец сервиса/);
   assert.match(contacts, /https:\/\/vk\.ru\/mewarspro/);
-  assert.match(links, /Контакты владельца/);
+  assert.match(links, /Контакты и реквизиты/);
   assert.match(stylesheet, /position: fixed; right: 16px; bottom:/);
   assert.match(stylesheet, /bottom: calc\(94px \+ env\(safe-area-inset-bottom/);
   assert.doesNotMatch(home, /className="city-selections-backdrop"/);

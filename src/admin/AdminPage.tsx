@@ -162,7 +162,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
 
   if (!enabled) return <EmptyState title="Админка готовится к запуску" text="Пока мы не проверили права в Supabase и не включили защищённый доступ, управление организациями выключено." action="На главную" onAction={goHome}/>;
   if (state.status === 'loading') return <p role="status">Проверяем вход администратора…</p>;
-  if (!userId) return <EmptyState title="Для входа в админку нужна авторизация" text="Войди под своей учётной записью «Рядом». Доступ к управлению выдаётся отдельно." action="Войти" onAction={openLogin}/>;
+  if (!userId) return <EmptyState title="Для входа в админку нужна авторизация" text="Войди под своей учётной записью «Scarivo». Доступ к управлению выдаётся отдельно." action="Войти" onAction={openLogin}/>;
   if (checkedUserId !== userId) return <p role="status">Проверяем права этого аккаунта…</p>;
   if (loadingError) return <div className="admin-shell"><h1>Доступ к админке</h1><p role="alert">{loadingError}</p><button className="secondary-button" onClick={() => { setAccess(null); setLoadingError(''); setAttempt(value => value + 1); }}>Повторить проверку</button></div>;
   if (!access) return <p role="status">Проверяем права на управление городами…</p>;
@@ -232,7 +232,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
 
   return <div className="admin-cms-layout">
     <aside className="admin-cms-sidebar" aria-label="Управление каталогом">
-      <button type="button" className="admin-cms-wordmark" aria-label="Рядом — к обзору админки" onClick={() => { navigateAdmin('overview'); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }}><BrandWordmark decorative/></button>
+      <button type="button" className="admin-cms-wordmark" aria-label="Scarivo — к обзору админки" onClick={() => { navigateAdmin('overview'); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }}><BrandWordmark decorative/></button>
       <p className="admin-cms-sidebar-caption">Панель управления</p>
       <p className="admin-cms-nav-label">РАЗДЕЛЫ</p>
       <nav className="admin-cms-nav" aria-label="Разделы админки">
@@ -249,7 +249,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
     </aside>
     <div className="admin-cms-main">
       <div className="admin-cms-topbar">
-        <span>Рядом / {draft ? 'Редактор организации' : screen === 'overview' ? 'Обзор города' : screen === 'applications' ? 'Заявки' : screen === 'cities' ? 'Города' : 'Организации'}</span>
+        <span>Scarivo / {draft ? 'Редактор организации' : screen === 'overview' ? 'Обзор города' : screen === 'applications' ? 'Заявки' : screen === 'cities' ? 'Города' : 'Организации'}</span>
         <div className="admin-cms-top-actions">
           {cities.length > 1 && <select aria-label="Город управления" value={cityFilter} onChange={event => { setCityFilter(event.target.value); setCategoryFilter('all');setSubcategoryFilter('all'); }}>
             <option>Все города</option>{cities.map(city => <option key={city}>{city}</option>)}
@@ -259,7 +259,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
       </div>
       <div className="admin-shell admin-cms-content">
         <header className="admin-cms-header">
-          <div><span className="eyebrow">РЯДОМ · УПРАВЛЕНИЕ ГОРОДОМ</span>
+          <div><span className="eyebrow">Scarivo · УПРАВЛЕНИЕ ГОРОДОМ</span>
             <h1>{draft ? draft.id ? 'Редактирование организации' : 'Новая организация' : screen === 'overview' ? 'Управление каталогом' : screen === 'applications' ? 'Входящие заявки' : screen === 'cities' ? 'Управление городами' : selectedLabel}</h1>
             <p>{owner ? 'Главный администратор' : 'Редактор города'} · {cityFilter === 'Все города' ? 'Все доступные города' : cityFilter} · {cityRows.filter(row=>row.status!=='archived').length} карточек</p>
           </div>

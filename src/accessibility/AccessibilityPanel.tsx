@@ -48,7 +48,7 @@ export function AccessibilityPanel({ open, onClose, preferences, onChange, onRes
     onClick={event => { if (event.target === event.currentTarget) onClose(); }}
   >
     <div className="accessibility-dialog-head">
-      <div><span className="accessibility-eyebrow">РЯДОМ · УДОБНО ДЛЯ ВСЕХ</span>
+      <div><span className="accessibility-eyebrow">Scarivo · УДОБНО ДЛЯ ВСЕХ</span>
         <h2 id="accessibility-title">Настройки доступности</h2></div>
       <button className="accessibility-close" type="button" onClick={onClose} aria-label="Закрыть настройки">✕</button>
     </div>

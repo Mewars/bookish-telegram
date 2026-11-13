@@ -47,7 +47,7 @@ with sync_playwright() as p:
    print('STARTUP ERRORS',errors,flush=True)
    print('STARTUP BODY',page.locator('body').inner_text()[:3000],flush=True)
    raise
-  cookies=page.get_by_role('button',name='Только необходимые',exact=True)
+  cookies=page.get_by_role('button',name='Отказаться от аналитики',exact=True)
   if cookies.is_visible():cookies.click()
   cover=page.locator('.city-cover');bounds=cover.bounding_box()
   assert abs(bounds['y']+bounds['height']-900)<=3,bounds

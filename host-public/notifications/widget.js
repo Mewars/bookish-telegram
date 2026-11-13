@@ -33,7 +33,7 @@ function openDonate(path){
  if(document.getElementById('ryadom-donate-overlay'))return;
  const overlay=el('div','ryadom-donate-overlay');overlay.id='ryadom-donate-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Раздел Поддержать');
  const toolbar=el('div','ryadom-donate-overlay-bar');const back=el('button','','← Вернуться на сайт');back.type='button';toolbar.append(back);
- const iframe=el('iframe','');iframe.src=path;iframe.title='РЯДОМ — Поддержать';
+ const iframe=el('iframe','');iframe.src=path;iframe.title='Scarivo — Поддержать';
  const oldOverflow=document.body.style.overflow;
  function close(){overlay.remove();document.body.style.overflow=oldOverflow;document.removeEventListener('keydown',escape);back.focus()}
  function escape(e){if(e.key==='Escape'){e.preventDefault();close()}}
@@ -76,7 +76,7 @@ function notifyOnPage(item){
 }
 
 const countNode=el('span','ryadom-notif-count');
-const button=el('button','ryadom-notif-trigger','🔔');button.type='button';button.title='Уведомления РЯДОМ';button.setAttribute('aria-label','Уведомления РЯДОМ');
+const button=el('button','ryadom-notif-trigger','🔔');button.type='button';button.title='Уведомления Scarivo';button.setAttribute('aria-label','Уведомления Scarivo');
 const pop=el('section','ryadom-notif-popover');pop.hidden=true;pop.setAttribute('aria-label','Уведомления');pop.setAttribute('role','region');
 button.addEventListener('click',()=>{pop.hidden=!pop.hidden;if(!pop.hidden)void renderPop();});
 async function refresh(){

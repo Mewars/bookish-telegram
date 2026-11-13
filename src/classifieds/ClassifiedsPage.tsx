@@ -243,9 +243,9 @@ function ClassifiedsSession({city,openLogin,userId}:{city:string;openLogin:()=>v
   const currentMessages=messagesFor===threadId&&!messageLoading&&!messageLoadFailed?messages:[];
   return <section className="classifieds-page">
     <header className="classifieds-hero">
-      <span className="classifieds-eyebrow">РЯДОМ · ТЕСТОВАЯ ВЕРСИЯ</span>
+      <span className="classifieds-eyebrow">Scarivo · ТЕСТОВАЯ ВЕРСИЯ</span>
       <h1>Объявления — {city}</h1>
-      <p>Покупайте, продавайте, сдавайте и снимайте. Переписывайтесь прямо в «РЯДОМ».</p>
+      <p>Покупайте, продавайте, сдавайте и снимайте. Переписывайтесь прямо в «Scarivo».</p>
       <div className="classifieds-tabs" role="group" aria-label="Разделы объявлений">
         <button aria-pressed={tab==='browse'} onClick={()=>setTab('browse')}>Объявления</button>
         <button aria-pressed={tab==='mine'} onClick={()=>userId?setTab('mine'):openLogin()}>Мои объявления</button>

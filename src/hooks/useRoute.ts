@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Section } from '../types';
 import {catalogHash,detailHash,hashParts,isCatalogSection,readCatalogFilters,routeCity,safeCatalogReturn,type CatalogFilters} from '../navigation/catalogRoute';
-const sections: Section[] = ['business', 'friends', 'community', 'classifieds', 'home', 'events', 'places', 'services', 'profile', 'favorites', 'login', 'consent', 'privacy', 'cookies', 'terms', 'contacts', 'add-organization', 'my-applications', 'organization-consent', 'admin', 'admin-preview', 'photo-admin'];
+const sections: Section[] = ['business', 'friends', 'community', 'classifieds', 'home', 'events', 'places', 'services', 'profile', 'favorites', 'login', 'consent', 'privacy', 'cookies', 'terms', 'contacts', 'add-organization', 'my-applications', 'organization-consent', 'publication-consent', 'ads-consent', 'paid-services', 'admin', 'admin-preview', 'photo-admin'];
 export function getRoute() {
  const hash=window.location.hash;
  const {section,id,valid}=hashParts(hash);

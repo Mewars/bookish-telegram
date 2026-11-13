@@ -44,8 +44,9 @@ export function initYandexMetrika(): void {
     document.head.append(script);
   }
   try {
+    // Webvisor is deliberately off pending independent masking/privacy verification.
     window.ym(METRIKA_COUNTER_ID, 'init', {
-      defer: true, webvisor: true, clickmap: true, trackLinks: true, accurateTrackBounce: true,
+      defer: true, webvisor: false, clickmap: true, trackLinks: true, accurateTrackBounce: true,
     });
   } catch { /* Analytics must not interrupt the application. */ }
 }
