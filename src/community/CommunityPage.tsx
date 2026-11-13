@@ -123,9 +123,9 @@ function CommunitySession({city,userId,openLogin}:{city:string;userId:string|nul
   const shown=items.filter(item=>view!=='feed'||filter==='all'||item.post_type===filter);
   return <section className="community-page">
     <header className="community-hero">
-      <span>Городской портал · ЗАКРЫТАЯ БЕТА</span>
+      <span>Scarivo · ЗАКРЫТАЯ БЕТА</span>
       <h1>Городская лента · {city}</h1>
-      <p>Городские новости, вопросы соседей и публикации жителей. Всё внутри «Городской портал».</p>
+      <p>Городские новости, вопросы соседей и публикации жителей. Всё внутри «Scarivo».</p>
       <nav className="community-tabs" aria-label="Городская лента">
         <button aria-pressed={view==='feed'} onClick={()=>chooseView('feed')}>Лента</button>
         <button aria-pressed={view==='mine'} onClick={()=>chooseView('mine')}>Мои публикации</button>
