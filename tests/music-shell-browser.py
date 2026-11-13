@@ -38,7 +38,7 @@ with sync_playwright() as p:
         expect(page.locator('.app-shell')).to_have_attribute('data-section', 'places')
         page.add_script_tag(path='host-public/ui/site-shell.js')
         page.evaluate("window.ryadomOpenSection('/wall/')")
-        dialog = page.get_by_role('dialog', name='Городской раздел Городской портал')
+        dialog = page.get_by_role('dialog', name='Городской раздел Scarivo')
         expect(dialog).to_be_visible()
         page.frame_locator('.ryadom-shell-iframe').get_by_role('link', name='Объявления', exact=True).click()
         expect(page.locator('.ryadom-shell-iframe')).to_have_attribute('src', '/classifieds/?ryadom_embed=1')

@@ -11,7 +11,7 @@ test('single owner-provided federal VK community is linked only from the footer'
     readFile('src/styles/account.css','utf8'),
   ]);
   assert.match(config, /url: 'https:\/\/vk\.ru\/ryadomcity'/);
-  assert.match(config, /Федеральное сообщество «Городской портал»/);
+  assert.match(config, /Федеральное сообщество «Scarivo»/);
   assert.doesNotMatch(config, /vk\.ru\/id[0-9]|group_id|access_token|wall\.post/);
   assert.match(footer, /href=\{FEDERAL_VK_COMMUNITY\.url\}/);
   assert.doesNotMatch(footer, /vk\.ru\/mewarspro|По вопросам сотрудничества — VK/);
