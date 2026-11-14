@@ -14,7 +14,7 @@ if (expected) {
 // Inspect standalone host pages too; they do not use the React entrypoint.
 for (const path of ['/wall/', '/classifieds/', '/notifications/', '/donate/']) {
   const response = await fetch(base + path, { signal: AbortSignal.timeout(15000), cache: 'no-store' });
-  assert(response.ok(), `${path}: public page must load`);
+  assert(response.ok, `${path}: public page must load`);
   const html = await response.text();
   assert.match(html, /<title>[^<]*Встречай/, `${path}: title must use the current brand`);
   assert.doesNotMatch(html, /Scarivo|РЯДОМ|Рядом|ryadom-logo-transparent/);
@@ -22,14 +22,14 @@ for (const path of ['/wall/', '/classifieds/', '/notifications/', '/donate/']) {
 }
 for (const path of ['/app.webmanifest', '/notifications/manifest.webmanifest']) {
   const response = await fetch(base + path, { signal: AbortSignal.timeout(15000), cache: 'no-store' });
-  assert(response.ok(), `${path}: manifest must exist`);
+  assert(response.ok, `${path}: manifest must exist`);
   const manifest = await response.json();
   assert.equal(manifest.short_name, 'Встречай');
   assert.equal(manifest.start_url, '/');
   assert.equal(manifest.scope, '/');
   for (const icon of manifest.icons) {
     const image = await fetch(base + icon.src, { signal: AbortSignal.timeout(15000) });
-    assert(image.ok(), `Icon must load: ${icon.src}`);
+    assert(image.ok, `Icon must load: ${icon.src}`);
     const bytes = Buffer.from(await image.arrayBuffer());
     assert.equal(bytes.subarray(1,4).toString(), 'PNG');
     assert.equal(bytes.readUInt32BE(16), Number(icon.sizes.split('x')[0]));
