@@ -1,4 +1,4 @@
-import {attachExpressionPicker,renderWallBody,wallBodyPreview} from './expressions.js?v=20261026stickers2';
+import {attachExpressionPicker,renderWallBody,wallBodyPreview} from './expressions.js?v=vstrechay1';
 import {verifyHuman} from '/security/antispam.js?v=20261022spam2';
 import {c as createClient} from './supabase-client.js';
 import {rejectWallPost,loadReviewReasons,saveWallDraft} from './moderation.js?v=20261020a';
@@ -25,7 +25,7 @@ function fileType(f,types){const ext=fileExtension(f);if(!types[ext])return null
 }
 function makeAvatar(profile,official=false){
  const a=el('span','avatar'+(official?' official':''));
- const label=String(profile?.display_name|| (official?'Scarivo':'Житель')).trim();
+ const label=String(profile?.display_name|| (official?'Встречай':'Житель')).trim();
  const initial=el('span','avatar-initial',[(official?'Р':Array.from(label)[0]||'Ж').toUpperCase()]);a.append(initial);
  if(profile?.avatar_url && /^https:\/\//i.test(profile.avatar_url)){
   const image=document.createElement('img'); image.className='profile-avatar-image';image.src=profile.avatar_url;
@@ -56,7 +56,7 @@ function flash(t,err=false){ui.alert.hidden=false;ui.alert.className='flash'+(er
 function hideFlash(){ui.alert.hidden=true;ui.alert.textContent=''}
 function errMsg(e){const msg=String(e?.message||e||'Ошибка подключения');if(msg.includes('Invalid comment'))return 'Введите комментарий: от 1 до 2000 символов.';if(msg.includes('Reply unavailable'))return 'Комментарий, на который вы отвечаете, уже недоступен. Отмените ответ и отправьте сообщение снова.';if(msg.includes('Comment unavailable'))return 'Комментарий уже удалён. Обновите обсуждение.';if(msg.includes('Too many comments'))return 'Слишком много комментариев за последний час.';if(msg.includes('Daily post limit'))return 'Лимит: до 10 предложенных записей в день.';if(msg.includes('Not authorized'))return 'Недостаточно прав для действия в этом городе.';return msg}
 async function act(fn){if(s.busy)return;s.busy=true;try{await fn()}catch(e){flash(errMsg(e),true)}finally{s.busy=false}}
-function authRequired(){if(s.user)return true;flash('Чтобы писать на стене, ставить лайки и комментировать, войдите в аккаунт «Scarivo» на главной странице.',true);return false}
+function authRequired(){if(s.user)return true;flash('Чтобы писать на стене, ставить лайки и комментировать, войдите в аккаунт «Встречай» на главной странице.',true);return false}
 function isStaff(city=s.city){return s.isOwner||s.staff.includes(city)}
 async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(error)throw error;return data}
 async function auth(){const {data}=await sb.auth.getSession();s.user=data?.session?.user||null;s.isOwner=false;s.staff=[];
@@ -258,7 +258,7 @@ function postShareActions(card,post){
  const menu=el('div','ryadom-share-menu');
  menu.setAttribute('aria-label','Поделиться записью');
  const link=wallPostLink(post);
- const title=(post.title||'Запись на городской стене Scarivo').slice(0,160);
+ const title=(post.title||'Запись на городской стене Встречай').slice(0,160);
  const sharing=[
   ['ВКонтакте','https://vk.com/share.php?url='+encodeURIComponent(link)+'&title='+encodeURIComponent(title)],
   ['MAX','https://max.ru/:share?text='+encodeURIComponent(title+' — '+link)],
@@ -346,7 +346,7 @@ async function makePost(post,photos=[],likes=null,scope='feed',video=null,author
     :'Запись и её вложения удалены со стены.');
   }),'btn small owner-delete-post'));
  }
- // Редактирование прямо на карточке. Только глобальный владелец «Scarivo».
+ // Редактирование прямо на карточке. Только глобальный владелец «Встречай».
  // Сервер повторно проверяет роль owner, поэтому подделка интерфейса бесполезна.
  if(s.isOwner && post.status==='published' && ['feed','admin','mine'].includes(scope)){
   actions.append(btn('✏️ Редактировать',()=>editPublishedPostInline(card,post),'btn small secondary'));
@@ -425,8 +425,8 @@ async function renderFeed(){
  {
   const preview=new URLSearchParams(location.search).get('stories')==='preview';
   const city=s.city,root=el('section');ui.content.append(root);
-  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=20261029fast1';css.dataset.storiesPreviewStyle='';document.head.append(css);}
-  import(preview?'/stories/preview.js?v=20261026a':'/stories/live.js?v=20261029fast1').then(module=>{if(root.isConnected&&s.city===city)clearStoriesPreview=preview?module.mountStoriesPreview(root,{city}):module.mountCityStories(root,{city,client:sb});}).catch(()=>{root.replaceChildren();});
+  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=vstrechay1';css.dataset.storiesPreviewStyle='';document.head.append(css);}
+  import(preview?'/stories/preview.js?v=20261026a':'/stories/live.js?v=vstrechay1').then(module=>{if(root.isConnected&&s.city===city)clearStoriesPreview=preview?module.mountStoriesPreview(root,{city}):module.mountCityStories(root,{city,client:sb});}).catch(()=>{root.replaceChildren();});
  }
 
  ui.content.append(feedBody);
@@ -450,7 +450,7 @@ async function renderFeed(){
  }
 }
 function makeField(label,node,full=false){return el('label','field'+(full?' full':''),[label,node])}
-async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(panel(heading('Предложить запись'),info('Для публикации нужно войти в аккаунт «Scarivo». По ссылке откроется форма входа на основном сайте.'),el('a','btn',['Войти на сайт'])));ui.content.querySelector('a').href='/#/login';return}
+async function renderComposer(edit=null){if(!s.user){ui.content.replaceChildren(panel(heading('Предложить запись'),info('Для публикации нужно войти в аккаунт «Встречай». По ссылке откроется форма входа на основном сайте.'),el('a','btn',['Войти на сайт'])));ui.content.querySelector('a').href='/#/login';return}
  await settings();const existing=edit||s.editing;const section=panel(heading(existing?'Изменить запись':'Предложить запись'));section.append(el('div','status-note',['Новые записи сначала попадут на модерацию. После одобрения их увидят все жители города.']));
  const form=el('form','form-grid');const typ=document.createElement('select');[['post','Обычная запись'],['question','Вопрос жителям']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;typ.append(o)});typ.value=existing?.post_type||'post';typ.disabled=!!existing;
  const title=document.createElement('input');title.required=true;title.minLength=5;title.maxLength=160;title.placeholder='Например: Подскажите, где найти…';title.value=existing?.title||'';

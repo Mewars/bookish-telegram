@@ -54,7 +54,7 @@ with sync_playwright() as p:
   page.get_by_role('button',name='Мои заявки',exact=True).click()
   expect(page.get_by_role('heading',name='Тестовая организация',exact=True)).to_be_visible()
   page.goto(ORIGIN+'/tests/business-fixture.html#/business?city=Город%20Б')
-  expect(page.get_by_text('Scarivo ДЛЯ БИЗНЕСА · Город Б',exact=True)).to_be_visible()
+  expect(page.get_by_text('Встречай ДЛЯ БИЗНЕСА · Город Б',exact=True)).to_be_visible()
   page.get_by_role('link',name='Добавить бесплатно',exact=True).click()
   expect(page.get_by_role('heading',name='Добавить организацию',exact=True)).to_be_visible()
   expect(page.get_by_label('Город *',exact=True)).to_have_value('Город Б')

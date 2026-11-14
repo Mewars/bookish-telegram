@@ -160,3 +160,6 @@ Ryadom-Private-Backups/
 
 # Python browser/integration test bytecode
 __pycache__/
+
+# Local inspection, screenshots and build reports
+work/

@@ -1,11 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="82" height="117" viewBox="0 0 82 117">
-  <defs>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2=".7"><stop stop-color="#fff6a6"/><stop offset=".3" stop-color="#ffd300"/><stop offset=".7" stop-color="#ffb800"/><stop offset="1" stop-color="#d78900"/></linearGradient>
-    <linearGradient id="red" x2=".8" y2="1"><stop stop-color="#ff5965"/><stop offset=".45" stop-color="#e5152d"/><stop offset="1" stop-color="#890b23"/></linearGradient>
-    <linearGradient id="fur" x2=".3" y2="1"><stop stop-color="#fff"/><stop offset=".6" stop-color="#edf1fa"/><stop offset="1" stop-color="#aab5d0"/></linearGradient>
-  </defs>
-  <path d="M36 37C19 37 8 49 8 64c0 17 17 36 25 45q3 4 6 0c8-9 25-28 25-45 0-15-11-27-28-27Zm0 17a13 13 0 1 1 0 26 13 13 0 0 1 0-26Z" fill="url(#gold)" fill-rule="evenodd" stroke="#ffe474" stroke-width="1.5"/>
-  <path d="M11 39C16 18 30 7 48 10c16 2 21 19 24 42l-9 2-8-26c-5 5-6 15-5 21Z" fill="url(#red)" stroke="#ba1230"/>
-  <path d="M10 36c10-6 33-3 47 8 4 3 2 13-3 15-12-10-30-14-45-10-4-2-3-10 1-13Z" fill="url(#fur)" stroke="#f9faff" stroke-width="1.5"/>
-  <circle cx="70" cy="57" r="9" fill="url(#fur)" stroke="#fff"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="92" height="150" viewBox="0 0 92 150"><defs><linearGradient id="pin-body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFE5A0"/><stop offset=".28" stop-color="#D7A74B"/><stop offset=".5" stop-color="#202B39"/><stop offset=".73" stop-color="#008D9C"/><stop offset="1" stop-color="#00D5D0"/></linearGradient>
+<linearGradient id="pin-edge" x1="0" y1=".5" x2="1" y2=".8"><stop stop-color="#FFE5A0"/><stop offset=".45" stop-color="#D7A74B"/><stop offset=".7" stop-color="#008D9C"/><stop offset="1" stop-color="#adfffa"/></linearGradient></defs><path d="M44 38C24 38 9 53 9 72c0 21 23 51 32 65q3 5 6 0c9-14 32-44 32-65 0-19-15-34-35-34Zm0 16a17 17 0 1 1 0 34 17 17 0 0 1 0-34Z" transform="translate(2 3)" fill="#0c2932" fill-rule="evenodd" stroke="#705521" stroke-width="2"/>
+<path d="M44 38C24 38 9 53 9 72c0 21 23 51 32 65q3 5 6 0c9-14 32-44 32-65 0-19-15-34-35-34Zm0 16a17 17 0 1 1 0 34 17 17 0 0 1 0-34Z" fill="url(#pin-body)" fill-rule="evenodd" stroke="url(#pin-edge)" stroke-width="2.4"/>
+<path d="M18 65C21 52 30 45 40 44" fill="none" stroke="#fff2cb" stroke-width="1.8" stroke-linecap="round" opacity=".85"/></svg>

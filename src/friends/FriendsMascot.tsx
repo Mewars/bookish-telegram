@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-/** Original Scarivo companion icon, vector-only (no third-party character or image). */
+/** Original Встречай companion icon, vector-only (no third-party character or image). */
 export function FriendsMascot({ size = 36, className = '' }: { size?: number; className?: string }) {
   const id = useId().replaceAll(':', '');
   const body = `friends-body-${id}`;

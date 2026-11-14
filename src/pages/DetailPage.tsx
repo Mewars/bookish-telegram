@@ -165,7 +165,7 @@ export function DetailPage({
       <div className="detail-map-tile">{basic ? <><h2>Местоположение</h2><p>{item.address || item.city}</p>{maps.mapsUrl && <a href={maps.mapsUrl} target="_blank" rel="noopener noreferrer">Открыть на карте <Icon name="arrow" size={15}/></a>}</> : <PlaceMap key={item.id} item={item} desktop={desktop}/>}</div>
     </aside>}
     </div>
-    {item.real && item.kind !== 'events' && <section className="business-card-contact" aria-label="Для представителя организации"><div><strong>Это ваша организация?</strong><p>Поможем уточнить сведения и согласовать обновления карточки.</p></div><a href={businessHash(item.city,item.id)}>Связаться с Scarivo<Icon name="arrow" size={17}/></a></section>}
+    {item.real && item.kind !== 'events' && <section className="business-card-contact" aria-label="Для представителя организации"><div><strong>Это ваша организация?</strong><p>Поможем уточнить сведения и согласовать обновления карточки.</p></div><a href={businessHash(item.city,item.id)}>Связаться с Встречай<Icon name="arrow" size={17}/></a></section>}
     {!!related.length && openRelated && <section className="city-section related-section">
       <div className="section-heading"><div><span className="section-index">ПРОДОЛЖАЙ ОТКРЫВАТЬ</span><h2>Ещё рядом</h2><p>{item.city} · {item.category.split(' / ')[0]}</p></div></div>
       <div className="card-grid discovery-grid">{related.map(entry => <Card key={entry.id} item={entry} favorites={favorites} toggle={toggle} favoritesBusy={favoritesBusy} open={openRelated}/>)}</div>

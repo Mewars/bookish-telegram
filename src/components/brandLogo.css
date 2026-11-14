@@ -1,31 +1,46 @@
-.scarivo-logo {
-  position: relative;
-  aspect-ratio: 2096 / 682;
-  isolation: isolate;
-}
-.scarivo-logo > .scarivo-logo__letters {
-  display: block;
-  width: 100%;
-  height: auto;
-}
+.scarivo-logo { position: relative; aspect-ratio: 562 / 150; isolation: isolate; }
+.scarivo-logo > .scarivo-logo__word { display: block; width: 100%; }
+.scarivo-logo__word > .scarivo-logo__letters { display: block; width: 100%; height: auto; }
+.scarivo-logo > .scarivo-logo__word--light { display: none; }
+:root:not([data-theme=dark]) .scarivo-logo > .scarivo-logo__word--dark { display: none; }
+:root:not([data-theme=dark]) .scarivo-logo > .scarivo-logo__word--light { display: block; }
+/* The homepage header sits on a dark hero in either site theme. */
+.app-shell[data-section=home] header .scarivo-logo > .scarivo-logo__word--dark { display: block; }
+.app-shell[data-section=home] header .scarivo-logo > .scarivo-logo__word--light { display: none; }
 .scarivo-logo > .scarivo-logo__pin {
-  position: absolute;
-  inset: 0 0 0 auto;
-  width: 22.78%;
-  transform-origin: 50% 92%;
+  position: absolute; inset: 0 0 0 auto; width: 16.37%; transform-origin: 50% 94%;
 }
 .scarivo-logo__pin > img { display: block; width: 100%; height: 100%; }
-/* Animate an HTML wrapper so the 7px jump stays identical at every logo size.
-   The hat shares this wrapper; transforms never affect header layout. */
+.scarivo-logo__pin > .scarivo-logo__hat { position: absolute; inset: 0; }
+/* All travel is relative to the marker; only this explicitly enabled wrapper moves.
+   The reserved box, letters and header remain fixed. The hat shares the flight. */
 .scarivo-logo--animated > .scarivo-logo__pin {
-  animation: scarivo-pin-hop 4.4s ease-in-out infinite;
+  animation: vstrechay-pin-arrive 1.25s cubic-bezier(.22,.65,.35,1) both;
 }
-@keyframes scarivo-pin-hop {
-  0%, 79%, 100% { transform: translateY(0) scale(1); }
-  87% { transform: translateY(-7px) scale(1); }
-  95% { transform: translateY(0) scale(1); }
-  97% { transform: translateY(0) scale(1.04, .94); }
+@keyframes vstrechay-pin-arrive {
+  0% { opacity: 0; transform: translate3d(-100%,-35%,0) rotate(-12deg) scale(.94); }
+  12% { opacity: 1; transform: translate3d(-88%,-42%,0) rotate(-9deg); }
+  38% { opacity: 1; transform: translate3d(-32%,-22%,0) rotate(-3deg); }
+  52% { opacity: 1; transform: translate3d(0,0,0) rotate(0) scale(1); }
+  59% { opacity: 1; transform: translate3d(0,0,0) scale(1.10,.88); }
+  70% { opacity: 1; transform: translate3d(0,-12%,0) scale(.99,1.02); }
+  80% { opacity: 1; transform: translate3d(0,0,0) scale(1.04,.95); }
+  88% { opacity: 1; transform: translate3d(0,-5%,0) scale(1); }
+  96% { opacity: 1; transform: translate3d(0,0,0) scale(1.02,.98); }
+  100% { opacity: 1; transform: translate3d(0,0,0) scale(1); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .scarivo-logo--animated > .scarivo-logo__pin { animation: none; transform: none; }
+  .scarivo-logo--animated > .scarivo-logo__pin { animation: none; opacity: 1; transform: none; }
+}
+
+/* Keep the longer Cyrillic word readable beside compact header controls. */
+@media (max-width: 899px) {
+  .app-shell .app-header .brand-logo-pin { --brand-logo-width:108px; min-width:88px; max-width:108px; }
+}
+@media (max-width: 389px) {
+  .app-shell .app-header .brand-logo-pin { --brand-logo-width:88px; min-width:80px; max-width:88px; }
+}
+@media (max-width: 359px) {
+  .app-shell .app-header .brand-logo-pin { --brand-logo-width:80px; min-width:72px; max-width:80px; }
+  .app-shell .app-header :is(.city-weather-trigger,.header-friends,.header-profile-button) { width:32px; height:32px; min-width:32px; max-width:32px; flex-basis:32px; }
 }
