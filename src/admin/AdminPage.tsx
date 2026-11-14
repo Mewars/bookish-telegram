@@ -6,7 +6,7 @@ import { CityManagement } from './CityManagement';
 import type { OrganizationRow,ApplicationRow } from '../organizations/model';
 import { EmptyState } from '../components/EmptyState';
 import { Icon } from '../components/Icon';
-import { BrandWordmark } from '../components/BrandWordmark';
+import { BrandLogo } from '../components/BrandLogo';
 import { VkFederalComposer } from './VkFederalComposer';
 import { AdminApplicationsPanel } from './AdminApplicationsPanel';
 import {
@@ -232,7 +232,7 @@ export function AdminPage({ enabled, cityDirectoryEnabled, cities: directoryCiti
 
   return <div className="admin-cms-layout">
     <aside className="admin-cms-sidebar" aria-label="Управление каталогом">
-      <button type="button" className="admin-cms-wordmark" aria-label="Scarivo — к обзору админки" onClick={() => { navigateAdmin('overview'); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }}><BrandWordmark decorative/></button>
+      <button type="button" className="admin-cms-wordmark" aria-label="Scarivo — к обзору админки" onClick={() => { navigateAdmin('overview'); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }}><BrandLogo decorative/></button>
       <p className="admin-cms-sidebar-caption">Панель управления</p>
       <p className="admin-cms-nav-label">РАЗДЕЛЫ</p>
       <nav className="admin-cms-nav" aria-label="Разделы админки">

@@ -1,10 +1,10 @@
 import { LegalLinks } from './legal/LegalLinks';
-import { BrandWordmark } from './BrandWordmark';
+import { BrandLogo } from './BrandLogo';
 import { brandAssets } from '../utils/brand';
 import { FEDERAL_VK_COMMUNITY } from '../config/vkCommunity';
 
 export function FooterBrand({ city, region, goHome }: { city: string; region: string; goHome: () => void }) {
-  return <div className="footer-brand"><button className="brand brand-logo-pin" onClick={goHome} aria-label="Scarivo — на главную"><BrandWordmark decorative/></button><p className="footer-slogan">Открывай город по-новому.</p><p className="footer-city">{city}, {region}</p></div>;
+  return <div className="footer-brand"><button className="brand brand-logo-pin" onClick={goHome} aria-label="Scarivo — на главную"><BrandLogo decorative/></button><p className="footer-slogan">Открывай город по-новому.</p><p className="footer-city">{city}, {region}</p></div>;
 }
 
 export function FooterCooperation({ showLegal = true }: { showLegal?: boolean }) {

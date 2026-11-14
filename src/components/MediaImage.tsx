@@ -1,13 +1,11 @@
 import { isLegacyIllustration } from './mediaSource';
 import { useState } from 'react';
-import { Icon } from './Icon';
-import { BrandWordmark } from './BrandWordmark';
+import { BrandLogo } from './BrandLogo';
 import '../../public/catalog/photo-placeholder.css';
 
 export function PhotoPlaceholder() {
   return <span className="photo-placeholder" role="img" aria-label="Фото скоро появится">
-    <span className="photo-placeholder-pin" aria-hidden="true"><Icon name="pin" size={32}/></span>
-    <BrandWordmark decorative/>
+    <BrandLogo decorative/>
     <span className="photo-placeholder-caption">Фото скоро появится</span>
   </span>;
 }
