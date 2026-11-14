@@ -8,7 +8,7 @@ test('private and unreviewed businesses have no phone or commercial links in the
  for(const key of ['phone','website','vkUrl','details'])assert.equal(item[key],undefined);
  assert(!item.description.includes(business.phone));
  assert.equal(item.address,business.address);assert.equal(item.hours,business.hours);
- assert.equal(item.image,''); // An old hosted photo is not proof of organization permission.
+ assert.equal(item.image,business.image); // Public presentation must not erase existing photos.
  assert.equal(business.phone,'+7 000 000-00-00'); // Original/admin data is retained.
  assert.deepEqual(basicPublicItem(item),item);
  assert.equal(showsBasicPhone({...business,category:'Госуслуги'}),false);
@@ -28,4 +28,14 @@ test('descriptions follow recorded category without invented menus or the old te
 });
 test('event information is preserved',()=>{
  const event={...business,kind:'events'};assert.equal(basicPublicItem(event),event);
+});
+
+test('place and service photos and attribution survive every public presentation pass',()=>{
+ for (const kind of ['places','services']) {
+  const original={...business,kind,image:'https://example.org/existing.webp',photoIllustrative:true,photoCredit:'Photo author',photoSourceUrl:'https://example.org/source',photoLicenseUrl:'https://example.org/license'};
+  const item=basicPublicItem(basicPublicItem(basicPublicItem(original)));
+  for (const key of ['image','photoIllustrative','photoCredit','photoSourceUrl','photoLicenseUrl']) assert.equal(item[key],original[key]);
+  for (const key of ['phone','website','vkUrl','details']) assert.equal(item[key],undefined);
+ }
+ assert.equal(basicPublicItem({...business,image:''}).image,'');
 });

@@ -61,14 +61,9 @@ export function basicDescription(item: Pick<Item, 'title' | 'category'>): string
   return `${item.title} — ${text}`;
 }
 
-// Exact photo URLs are added only after an organization supplies the photo
-// and its permission is reviewed. Hosting an old image ourselves is not proof.
-const organizationPhotos: Readonly<Record<string, string>> = {};
-
 export function basicPublicItem(item: Item): Item {
   if (item.kind === 'events') return item;
   return { ...item, phone: showsBasicPhone(item) ? item.phone : undefined,
     website: undefined, vkUrl: undefined, details: undefined,
-    description: basicDescription(item), image: organizationPhotos[item.id] ?? '',
-    photoIllustrative: false, photoCredit: undefined, photoSourceUrl: undefined, photoLicenseUrl: undefined };
+    description: basicDescription(item) };
 }

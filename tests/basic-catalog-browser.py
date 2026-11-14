@@ -11,6 +11,9 @@ with sync_playwright() as p:
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto(ORIGIN+'/tests/basic-catalog-fixture.html')
   expect(page.locator('.card')).to_have_count(5)
+  photo=page.locator('.card').first.locator('.card-image>img')
+  expect(photo).to_have_attribute('src','/spassky-monastery-eniseysk.webp')
+  photo.evaluate('(img)=>img.decode()')
   expect(page.get_by_role('heading',name='Чужой салон',exact=True)).to_have_count(0)
   expect(page.locator('.card').first.locator('.card-meta').first).to_be_visible()
   expect(page.locator('.card').first.locator('.card-footer')).to_be_visible()
@@ -23,8 +26,12 @@ with sync_playwright() as p:
    expect(page.get_by_role('heading',name='Общий салон',exact=True)).to_have_count(0)
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   page.screenshot(path=f'qa-screenshots/beauty-categories-{width}.png',full_page=True)
+  group.get_by_role('button',name='Уход за лицом',exact=True).click()
   page.locator('.card-open').click()
   expect(page.locator('.guide-detail')).to_be_visible()
+  detail_photo=page.locator('.place-media-frame>img').first
+  expect(detail_photo).to_have_attribute('src','/spassky-monastery-eniseysk.webp')
+  detail_photo.evaluate('(img)=>img.decode()')
   assert page.locator('a[href^="tel:"]').count()==0
   assert page.locator('.guide-detail a[href^="https://"]').count()>0
   assert page.locator('a[href*="example-business"],a[href*="business-website"],a[href*="internal-source"]').count()==0

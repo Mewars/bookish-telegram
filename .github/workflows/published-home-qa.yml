@@ -32,6 +32,8 @@ jobs:
         run: node scripts/check-published-brand.mjs
         env:
           RYADOM_EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+      - name: Verify restored catalogue and detail photos on desktop and mobile
+        run: node scripts/check-published-photos.mjs
       - name: Audit real production homepage (desktop and mobile)
         run: node scripts/check-published-home.mjs
         env:
