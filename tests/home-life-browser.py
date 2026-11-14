@@ -109,7 +109,7 @@ with sync_playwright() as p:
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
   assert not errors,errors
   brand=page.locator('.app-header .scarivo-logo__letters')
-  expect(brand).to_have_attribute('src','/brand/scarivo-letters.svg')
+  expect(brand).to_have_attribute('src','/brand/scarivo-letters-soft-v1.svg')
   page.wait_for_function("document.querySelector('.app-header .scarivo-logo__letters')?.naturalWidth>0")
   page.screenshot(path=f'qa-screenshots/home-life-{width}-{height}.png',full_page=True)
   print('PASS',width,'city isolation, links, search, category focus, hero, local photos, section order, no overflow, empty city')

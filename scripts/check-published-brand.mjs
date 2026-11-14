@@ -1,4 +1,4 @@
-/* global process, fetch, AbortSignal, console, getComputedStyle, location */
+/* global process, fetch, AbortSignal, console, document, getComputedStyle, location */
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
@@ -19,6 +19,7 @@ try {
     await page.goto(`${base}/#/home`, { waitUntil: 'domcontentloaded' });
     const logo = page.locator('.web-header .scarivo-logo,.app-header .scarivo-logo').first();
     await logo.waitFor();
+    await page.waitForFunction(() => document.title === 'Scarivo — городская платформа');
     await logo.locator('img').evaluateAll(images => Promise.all(images.map(img => img.decode())));
     const measured = await logo.evaluate(el => {
       const pin = el.querySelector('.scarivo-logo__pin');
