@@ -17,6 +17,8 @@ class Extensions(HTMLParser):
 
     def handle_starttag(self, tag, attributes):
         attrs = dict(attributes)
+        if tag == 'meta' and attrs.get('name') == 'apple-mobile-web-app-title':
+            return  # The new build owns its visible application name.
         if tag == 'meta' and attrs.get('name') in ('apple-mobile-web-app-capable', 'apple-mobile-web-app-status-bar-style', 'apple-mobile-web-app-title', 'mobile-web-app-capable'):
             self.tags.append('<meta name="'+escape(attrs['name'], quote=True)+'" content="'+escape(attrs.get('content', ''), quote=True)+'">')
             return
@@ -28,6 +30,8 @@ class Extensions(HTMLParser):
             return
         if not (url.path.startswith(PREFIXES) or url.path == '/app.webmanifest'):
             return
+        if url.path in ('/app.webmanifest', '/pwa/apple-touch-icon.png', '/pwa/register.js'):
+            return  # Build owns icons/manifest; the old register script is a verified 404.
         if url.path in self.paths:
             return
         self.paths.add(url.path)
@@ -43,6 +47,8 @@ class Extensions(HTMLParser):
             attrs['href'] = '/ui/mobile-fixes.css?v=20261101header3'
         if tag == 'link' and url.path == '/admin/catalog.css':
             attrs['href'] = '/admin/catalog.css?v=20261022admin1'
+        if tag == 'script' and url.path in ('/ui/site-shell.js', '/notifications/widget.js', '/categories/panel.js', '/profile/avatar.js', '/reviews/cards.js'):
+            attrs['src'] = url.path + '?v=vstrechay1'
         # Preserve only browser loading attributes, never event-handler code.
         keep = ('src', 'type', 'defer', 'async', 'crossorigin') if tag == 'script' else ('href', 'rel', 'type', 'sizes', 'crossorigin')
         safe = ' '.join(name if attrs[name] is None else name+'="'+escape(attrs[name], quote=True)+'"'

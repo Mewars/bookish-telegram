@@ -18,7 +18,7 @@ interface WebHeaderProps {
 
 export function WebHeader({ city, section, navigate, friendsEnabled, openFriendsIntro, cityPickerOpen, openCityPicker }: WebHeaderProps) {
   return <header className="web-header"><div className="web-header-inner">
-    <button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Scarivo — на главную"><BrandLogo animated={section === 'home'} decorative/></button>
+    <button className="brand brand-logo-pin" onClick={() => navigate('home')} aria-label="Встречай — на главную"><BrandLogo animated={section === 'home'} decorative/></button>
     <div className="header-city-weather"><button className="city-pill" onClick={openCityPicker} aria-label={`Выбрать город: ${city}`} aria-haspopup="dialog" aria-expanded={cityPickerOpen}>
       <Icon name="pin" size={14}/>{city}<span className="city-chevron" aria-hidden="true"><Icon name="back" size={12}/></span>
     </button><CityWeather key={city} city={city}/></div>

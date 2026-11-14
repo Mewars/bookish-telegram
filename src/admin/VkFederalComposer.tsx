@@ -30,7 +30,7 @@ export function VkFederalComposer(){
  const requestId=useRef<string|null>(null);
  const send=async()=>{
   if(busy||!preflightPassed||message.trim().length<20||message.trim().length>2500||!supabase)return;
-  if(!window.confirm('Опубликовать этот текст от имени федеральной группы «Scarivo» во ВКонтакте? Публикация будет публичной.'))return;
+  if(!window.confirm('Опубликовать этот текст от имени федеральной группы «Встречай» во ВКонтакте? Публикация будет публичной.'))return;
   setBusy(true);setStatus('Проверяем права и отправляем…');setPostUrl('');
   try{
    requestId.current??=crypto.randomUUID();

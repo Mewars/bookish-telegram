@@ -43,9 +43,9 @@ export function FriendsIntroDialog({ onDismiss, onOpen }: { onDismiss: () => voi
       <span className="friends-intro-spark friends-intro-spark-one">✦</span>
       <span className="friends-intro-spark friends-intro-spark-two">✧</span>
     </div>
-    <span className="friends-intro-kicker">ТВОИ ЛЮДИ — Scarivo</span>
+    <span className="friends-intro-kicker">ТВОИ ЛЮДИ — Встречай</span>
     <h2 id="friends-intro-title">Друзья на карте</h2>
-    <p id="friends-intro-description" className="friends-intro-lead">Вы открыли новый раздел «Scarivo». Приглашайте знакомых по личному коду и смотрите на карте, кто из подтверждённых друзей решил поделиться местоположением.</p>
+    <p id="friends-intro-description" className="friends-intro-lead">Вы открыли новый раздел «Встречай». Приглашайте знакомых по личному коду и смотрите на карте, кто из подтверждённых друзей решил поделиться местоположением.</p>
     <div className="friends-intro-facts">
       <p><span aria-hidden="true">♡</span><span>Добавляйте друзей только по взаимному согласию.</span></p>
       <p><span aria-hidden="true">⌖</span><span>Ваше местоположение по умолчанию скрыто. Вы сами включаете приблизительную точку на один час.</span></p>

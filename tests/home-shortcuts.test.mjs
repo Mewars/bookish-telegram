@@ -18,5 +18,5 @@ test('empty public feeds do not turn into invented content or empty advertising 
  assert.match(home,/feed\.listings\.length>0&&/);
  assert.match(home,/events\.length>0&&/);
  assert.match(home,/Город начинается с нас/);
- assert.doesNotMatch(home,/Выбор «Рядом»|Партнёры «Рядом»|HomeCarousel/);
+ assert.doesNotMatch(home,/Выбор «Встречай»|Партнёры «Встречай»|HomeCarousel/);
 });

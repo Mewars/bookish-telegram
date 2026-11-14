@@ -106,7 +106,7 @@ export function PhotoAdminPage({ enabled, goHome, openLogin }: {
   };
 
   if (!enabled) return <EmptyState title="Фотоадминка пока готовится" text="Безопасное подключение хранилища и прав администратора ещё не включено." action="На главную" onAction={goHome}/>;
-  if (state.status === 'loading') return <p role="status">Проверяем вход в аккаунт «Scarivo»…</p>;
+  if (state.status === 'loading') return <p role="status">Проверяем вход в аккаунт «Встречай»…</p>;
   if (!userId) return <EmptyState title="Войди в свой аккаунт" text="Чтобы менять фотографии организаций, необходимо войти и получить права администратора." action="Войти" onAction={openLogin}/>;
   if (checkedFor !== userId) return <p role="status">Проверяем права администратора…</p>;
   if (accessError || !access?.length) return <div className="photo-admin-shell">
@@ -119,7 +119,7 @@ export function PhotoAdminPage({ enabled, goHome, openLogin }: {
   const loading = status === 'loading' || status === 'idle';
   return <div className="photo-admin-shell">
     <header className="photo-admin-heading">
-      <div><span className="eyebrow">Scarivo · АДМИНИСТРАТОР</span><h1>Фотографии организаций</h1>
+      <div><span className="eyebrow">Встречай · АДМИНИСТРАТОР</span><h1>Фотографии организаций</h1>
         <p>Енисейск · {manageableCards.length} карточек · {photos.length} с загруженными фото</p></div>
       <button className="secondary-button" onClick={goHome}>На сайт <Icon name="arrow" size={17}/></button>
     </header>

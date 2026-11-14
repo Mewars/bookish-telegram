@@ -144,7 +144,7 @@ test('organization owners never receive admin roles or management links', async 
   assert.match(page,/validateAdminDraft\(draft, confirmed\)/);
 });
 
-test('admin sidebar reuses the static Scarivo logo and returns to overview at top', async () => {
+test('admin sidebar reuses the static Встречай logo and returns to overview at top', async () => {
   const [admin, brand, desktop, css] = await Promise.all([
     readFile('src/admin/AdminPage.tsx', 'utf8'),
     readFile('src/components/BrandLogo.tsx', 'utf8'),

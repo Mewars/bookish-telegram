@@ -7,11 +7,11 @@ import { HOME_METADATA, HOME_URL, pageMetadata } from '../src/seo/metadata.ts';
 test('static homepage and runtime defaults agree, public URLs use the canonical domain', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(html.includes(`<title>${HOME_METADATA.title}</title>`));
-  assert.equal(HOME_METADATA.title,'Scarivo — городская платформа');
-  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Scarivo — городская платформа');
-  assert.match(html, /property="og:title" content="Scarivo — городская платформа"/);
-  assert.match(html, /name="twitter:title" content="Scarivo — городская платформа"/);
-  const share='https://ryadomcity.ru/brand/scarivo-share-pin.png';
+  assert.equal(HOME_METADATA.title,'Встречай — городская платформа');
+  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Встречай — городская платформа');
+  assert.match(html, /property="og:title" content="Встречай — городская платформа"/);
+  assert.match(html, /name="twitter:title" content="Встречай — городская платформа"/);
+  const share='https://ryadomcity.ru/brand/scarivo-share-pin.png?v=vstrechay1';
   assert.ok(html.includes(`property="og:image" content="${share}"`));
   assert.ok(html.includes(`name="twitter:image" content="${share}"`));
   const icon=await readFile(new URL('../public/brand/scarivo-share-pin.png',import.meta.url));
@@ -39,16 +39,16 @@ test('public sections are distinct; private screens never inherit a place or hom
   assert.equal(new Set(sections.map(section => pageMetadata(section).title)).size, sections.length);
   for (const section of [...sections, 'profile', 'login', 'favorites', 'import', 'privacy', 'consent']) {
     assert.equal(pageMetadata(section).canonical, undefined);
-    assert.ok(pageMetadata(section).title.includes('Scarivo'));
+    assert.ok(pageMetadata(section).title.includes('Встречай'));
   }
   assert.deepEqual(pageMetadata('home'), HOME_METADATA);
 });
 
 test('real place uses supplied public copy; missing/demo cards do not invent facts or URLs', () => {
   const place = { id: 'real', kind: 'places', real: true, title: 'Музей', city: 'Енисейск', description: 'Описание музея.' };
-  assert.deepEqual(pageMetadata('places', 'real', place), { title: 'Музей — Енисейск | Scarivo', description: place.description });
+  assert.deepEqual(pageMetadata('places', 'real', place), { title: 'Музей — Енисейск | Встречай', description: place.description });
   assert.deepEqual(pageMetadata('favorites', 'real', place), pageMetadata('places', 'real', place));
-  assert.equal(pageMetadata('places', 'missing').title, 'Карточка не найдена — Scarivo');
+  assert.equal(pageMetadata('places', 'missing').title, 'Карточка не найдена — Встречай');
   for (const kind of ['events', 'services', 'places']) {
     const demo = { ...place, kind, real: false, title: 'Invented', description: 'Invented facts' };
     const metadata = pageMetadata(kind, 'demo', demo);
