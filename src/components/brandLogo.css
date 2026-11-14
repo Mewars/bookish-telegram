@@ -11,6 +11,7 @@
 .scarivo-logo--animated > .scarivo-logo__pin {
   animation: vstrechay-pin-arrive 1.25s cubic-bezier(.22,.65,.35,1) both;
 }
+.scarivo-logo--loading > .scarivo-logo__pin { animation-play-state: paused; }
 @keyframes vstrechay-pin-arrive {
   0% { opacity: 0; transform: translate3d(-100%,-35%,0) rotate(-12deg) scale(.94); }
   12% { opacity: 1; transform: translate3d(-88%,-42%,0) rotate(-9deg); }

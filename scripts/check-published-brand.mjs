@@ -57,6 +57,7 @@ try {
     await logo.waitFor();
     await page.waitForFunction(() => document.title === 'Встречай — твой город в одном месте');
     await logo.locator('img').evaluateAll(images => Promise.all(images.map(img => img.decode())));
+    await page.locator('header .scarivo-logo--loading').waitFor({ state: 'detached' });
     const measured = await logo.evaluate(el => {
       const pin = el.querySelector('.scarivo-logo__pin');
       const animation = pin.getAnimations()[0];
