@@ -1,4 +1,4 @@
-/* global process, fetch, AbortSignal, console, document, getComputedStyle, location */
+/* global process, fetch, AbortSignal, console, getComputedStyle, location */
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
