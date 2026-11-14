@@ -41,6 +41,13 @@ jobs:
               except Exception as error:report.append({'path':path,'error':str(error)})
           pathlib.Path('public-snapshot/report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
           print(json.dumps(report,ensure_ascii=False,indent=2))
+          import base64,io,zipfile
+          memory=io.BytesIO()
+          with zipfile.ZipFile(memory,'w',zipfile.ZIP_DEFLATED) as archive:
+              for file in pathlib.Path('public-snapshot').rglob('*'):
+                  if file.is_file():archive.write(file,file.relative_to('public-snapshot'))
+          encoded=base64.b64encode(memory.getvalue()).decode('ascii')
+          for offset in range(0,len(encoded),4000):print('BRAND_SNAPSHOT:'+encoded[offset:offset+4000])
           PY
       - uses: actions/upload-artifact@v4
         with:
