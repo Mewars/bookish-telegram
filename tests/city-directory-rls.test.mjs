@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { PGlite } from '@electric-sql/pglite';
 import { getCityCover, winterLampsOn } from '../src/data/cityCover.ts';
 import { isAvailableCity, getCityDefinition, availableCities } from '../src/data/cities.ts';
-import { pageMetadata } from '../src/seo/metadata.ts';
+import { pageMetadata, HOME_METADATA } from '../src/seo/metadata.ts';
 
 test('city-scoped pages do not reuse Eniseysk photos or SEO text', async () => {
   assert.equal(availableCities.length, 3);
@@ -18,7 +18,7 @@ test('city-scoped pages do not reuse Eniseysk photos or SEO text', async () => {
   assert.ok(getCityCover('Енисейск')?.src.includes('yeniseysk'));
   assert.equal(getCityCover('Другой город','http://insecure.example/city.webp'), null);
   assert.equal(getCityCover('Другой город','https://example.org/approved.webp')?.src, 'https://example.org/approved.webp');
-  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Scarivo');
+  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,HOME_METADATA.title);
   assert.ok(pageMetadata('home',undefined,undefined,'Лесосибирск').description.includes('Лесосибирск'));
   assert.ok(!pageMetadata('home',undefined,undefined,'Лесосибирск').description.includes('Енисейск'));
   const home = await readFile('src/components/CityHome.tsx','utf8');
