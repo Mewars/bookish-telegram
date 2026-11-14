@@ -52,7 +52,7 @@ try {
       assert(await page.locator('.scarivo-logo__pin').evaluateAll(els => els.every(el => getComputedStyle(el).animationName === 'none')));
     }
     await page.evaluate(() => { location.hash = '/home'; });
-    await logo.waitFor();
+    await page.locator('header .scarivo-logo--animated').waitFor();
     assert.equal(await page.locator('.scarivo-logo--animated').count(), 1);
     results.push({ width, passed: true, measured });
     console.log(`${width}px: Scarivo home-only 7px jump, pause, squash, stable header, static inner pages/footer, reduced motion: PASS`);
