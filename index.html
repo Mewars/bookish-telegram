@@ -19,6 +19,35 @@
         document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       }());
     </script>
+    <script id="city-cover-preload">
+      // Start the homepage image before downloading and running the React chunks.
+      (function () {
+        var route = window.location.hash.split('?')[0];
+        if (route && route !== '#/' && route !== '#/home') return;
+        var city = 'Енисейск';
+        try {
+          var saved = JSON.parse(localStorage.getItem('ryadom.city'));
+          if (typeof saved === 'string' && saved) city = saved;
+        } catch { /* The default city works without browser storage. */ }
+        var requested = new URLSearchParams(window.location.hash.split('?')[1] || '').get('city');
+        if (requested) city = requested;
+        var covers = {
+          'Енисейск': 'yeniseysk-winter-churches',
+          'Лесосибирск': 'lesosibirsk-winter-v2',
+          'Красноярск': 'krasnoyarsk-winter-v1'
+        };
+        if (!Object.hasOwn(covers, city)) return;
+        var hour = Number(new Intl.DateTimeFormat('en-GB', {
+          timeZone: 'Asia/Krasnoyarsk', hour: '2-digit', hourCycle: 'h23'
+        }).format(new Date()));
+        var image = document.createElement('link');
+        image.rel = 'preload';
+        image.as = 'image';
+        image.fetchPriority = 'high';
+        image.href = '%BASE_URL%brand/' + covers[city] + (hour >= 19 || hour < 9 ? '-on.webp' : '-off.webp');
+        document.head.appendChild(image);
+      }());
+    </script>
     <style>
       /* Only the initial canvas; keep these colors in sync with styles/tokens.css. */
       :root { --bg: #071622; --text: #FFF8E9; background: var(--bg); color: var(--text); color-scheme: dark; }
