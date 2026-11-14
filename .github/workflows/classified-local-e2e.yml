@@ -99,7 +99,7 @@ jobs:
           cp "$TEST_WORKDIR/friends-host-map.png" "$RUNNER_TEMP/ryadom-friends-host-map.png"
       - name: Upload credential-free result
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: classified-local-e2e-report
           path: |
