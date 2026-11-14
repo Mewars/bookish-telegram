@@ -1,7 +1,7 @@
 import {verifyHuman} from '/security/antispam.js?v=20261022spam2';
 import {MESSAGE_PAGE_SIZE,readChatMessages} from './messages.js?v=20261025chat1';
 import {readCityPins,sortPinnedClassifieds} from './pins.js?v=20261021pins1';
-import {createPhotoPlaceholder} from '/catalog/photoFallback.js?v=vstrechay1';
+import {createPhotoPlaceholder} from '/catalog/photoFallback.js?v=vstrechay2';
 import { c as createClient } from './supabase-client.js';
 import { saveOwnedDraft, submitOwnedDraft } from './drafts.js?v=20261020a';
 // The publishable key is deliberately public (never use a service-role/secret key in a browser).

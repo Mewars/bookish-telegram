@@ -1,14 +1,8 @@
 .scarivo-logo { position: relative; aspect-ratio: 562 / 150; isolation: isolate; }
 .scarivo-logo > .scarivo-logo__word { display: block; width: 100%; }
 .scarivo-logo__word > .scarivo-logo__letters { display: block; width: 100%; height: auto; }
-.scarivo-logo > .scarivo-logo__word--light { display: none; }
-:root:not([data-theme=dark]) .scarivo-logo > .scarivo-logo__word--dark { display: none; }
-:root:not([data-theme=dark]) .scarivo-logo > .scarivo-logo__word--light { display: block; }
-/* The homepage header sits on a dark hero in either site theme. */
-.app-shell[data-section=home] header .scarivo-logo > .scarivo-logo__word--dark { display: block; }
-.app-shell[data-section=home] header .scarivo-logo > .scarivo-logo__word--light { display: none; }
 .scarivo-logo > .scarivo-logo__pin {
-  position: absolute; inset: 0 0 0 auto; width: 16.37%; transform-origin: 50% 94%;
+  position: absolute; inset: 0 0 0 auto; width: 19.93%; transform-origin: 50% 94%;
 }
 .scarivo-logo__pin > img { display: block; width: 100%; height: 100%; }
 .scarivo-logo__pin > .scarivo-logo__hat { position: absolute; inset: 0; }

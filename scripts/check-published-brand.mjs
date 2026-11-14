@@ -18,7 +18,7 @@ for (const path of ['/wall/', '/classifieds/', '/notifications/', '/donate/']) {
   const html = await response.text();
   assert.match(html, /<title>[^<]*Встречай/, `${path}: title must use the current brand`);
   assert.doesNotMatch(html, /Scarivo|РЯДОМ|Рядом|ryadom-logo-transparent/);
-  assert.match(html, /scarivo-winter\.svg\?v=vstrechay1/, `${path}: static logo must use the new vector`);
+  assert.match(html, /scarivo-winter\.svg\?v=vstrechay2/, `${path}: static logo must use the new vector`);
 }
 for (const path of ['/app.webmanifest', '/notifications/manifest.webmanifest']) {
   const response = await fetch(base + path, { signal: AbortSignal.timeout(15000), cache: 'no-store' });
@@ -35,6 +35,18 @@ for (const path of ['/app.webmanifest', '/notifications/manifest.webmanifest']) 
     assert.equal(bytes.readUInt32BE(16), Number(icon.sizes.split('x')[0]));
   }
 }
+for (const size of [16, 32, 48]) {
+  const response = await fetch(`${base}/brand/vstrechay-icon-${size}.png?v=vstrechay2`, { signal: AbortSignal.timeout(15000) });
+  assert(response.ok, `${size}px favicon must load`);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  assert.equal(bytes.readUInt32BE(16), size);
+  assert.equal(bytes.readUInt32BE(20), size);
+}
+const favicon = await fetch(`${base}/favicon.ico?v=vstrechay2`, { signal: AbortSignal.timeout(15000) });
+assert(favicon.ok, 'Multi-size favicon must load');
+const ico = Buffer.from(await favicon.arrayBuffer());
+assert.equal(ico.readUInt16LE(2), 1);
+assert.equal(ico.readUInt16LE(4), 3);
 const browser = await chromium.launch({ headless: true });
 const results = [];
 try {
@@ -43,7 +55,7 @@ try {
     await page.goto(`${base}/#/home`, { waitUntil: 'domcontentloaded' });
     const logo = page.locator('.web-header .scarivo-logo,.app-header .scarivo-logo').first();
     await logo.waitFor();
-    await page.waitForFunction(() => document.title === 'Встречай — городская платформа');
+    await page.waitForFunction(() => document.title === 'Встречай — твой город в одном месте');
     await logo.locator('img').evaluateAll(images => Promise.all(images.map(img => img.decode())));
     const measured = await logo.evaluate(el => {
       const pin = el.querySelector('.scarivo-logo__pin');
