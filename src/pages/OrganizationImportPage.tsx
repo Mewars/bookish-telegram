@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BrandWordmark } from '../components/BrandWordmark';
+import { BrandLogo } from '../components/BrandLogo';
 import { useTheme } from '../hooks/useTheme';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { pageMetadata } from '../seo/metadata';
@@ -95,7 +95,7 @@ export function OrganizationImportPage() {
   const visibleRows = checked.slice(page * pageSize, (page + 1) * pageSize);
   const selected = editing ? checked.find(row => row.number === editing.number) : undefined;
   return <div className="import-shell ym-disable-keys ym-disable-clicks ym-disable-webvisor">
-    <header className="import-header"><a href="#/home" className="brand brand-logo-pin" aria-label="Scarivo — на главную"><BrandWordmark decorative/></a>
+    <header className="import-header"><a href="#/home" className="brand brand-logo-pin" aria-label="Scarivo — на главную"><BrandLogo decorative/></a>
       {isWideScreen && <label>Тема<select value={theme} onChange={event => setTheme(event.target.value as typeof theme)}><option value="system">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label>}
     </header>
     <main className="import-page">

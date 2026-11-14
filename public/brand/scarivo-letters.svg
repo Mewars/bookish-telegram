@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="117" viewBox="0 0 360 117">
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="0.1" y2="1">
+      <stop stop-color="#fff"/><stop offset=".42" stop-color="#f7faff"/><stop offset=".55" stop-color="#b8c4db"/><stop offset=".83" stop-color="#e1e7f4"/><stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+  </defs>
+  <text x="2" y="93" font-family="Arial, Helvetica, sans-serif" font-size="87" font-weight="700" font-style="italic" letter-spacing="-3" textLength="275" lengthAdjust="spacingAndGlyphs" fill="#40516e" stroke="#40516e" stroke-width="1.5">Scariv</text>
+  <text x="2" y="91" font-family="Arial, Helvetica, sans-serif" font-size="87" font-weight="700" font-style="italic" letter-spacing="-3" textLength="275" lengthAdjust="spacingAndGlyphs" fill="url(#silver)" stroke="#e9eef8" stroke-width=".5">Scariv</text>
+</svg>

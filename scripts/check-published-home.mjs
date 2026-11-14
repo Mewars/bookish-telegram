@@ -155,14 +155,17 @@ try {
 
       if(expected){
         const brand=page.locator('.web-header .brand-logo-image,.app-header .brand-logo-image').first();
-        assert.match(await brand.getAttribute('src'),/scarivo-winter\.svg$/);
-        await brand.evaluate(img=>img.decode());
+        assert.match(await brand.locator('.scarivo-logo__letters').getAttribute('src'),/scarivo-letters\.svg$/);
+        assert.equal(await brand.locator('.scarivo-logo__pin').count(),1);
+        assert(await brand.evaluate(el=>el.classList.contains('scarivo-logo--animated')));
+        await brand.locator('img').evaluateAll(images=>Promise.all(images.map(img=>img.decode())));
         const snow=page.locator('.winter-snow');
         assert.equal(await snow.count(),1,'Winter snow layer is missing');
         await page.emulateMedia({reducedMotion:'no-preference'});
         assert.equal(await page.locator('.winter-snow-toggle').count(),0,'Visitor snow toggle must be absent');
         await page.emulateMedia({reducedMotion:'reduce'});
         assert.equal(await snow.isVisible(),false,'Reduced motion must disable falling snow');
+        assert.equal(await brand.locator('.scarivo-logo__pin').evaluate(el=>getComputedStyle(el).animationName),'none','Reduced motion must disable the logo hop');
         await page.emulateMedia({reducedMotion:'no-preference'});
         result.checks.push('Winter logo loads; falling snow has no visitor toggle; reduced-motion works');
       }

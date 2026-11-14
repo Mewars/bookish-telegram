@@ -28,6 +28,10 @@ jobs:
           npm ci
           npm install --no-save --no-package-lock playwright@1.58.2
           npx playwright install --with-deps chromium
+      - name: Verify published Scarivo logo animation on desktop and mobile
+        run: node scripts/check-published-brand.mjs
+        env:
+          RYADOM_EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
       - name: Audit real production homepage (desktop and mobile)
         run: node scripts/check-published-home.mjs
         env:

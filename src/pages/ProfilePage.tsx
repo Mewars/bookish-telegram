@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readCityAccess } from '../admin/repository';
 import { hasOwnApplications } from '../organizations/repository';
 import { supabase } from '../lib/supabase';
-import { BrandWordmark } from '../components/BrandWordmark';
+import { BrandLogo } from '../components/BrandLogo';
 import type { Theme } from '../types';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../hooks/useAuth';
@@ -50,5 +50,5 @@ export function ProfilePage({ theme, setTheme, favoritesCount, openFavorites, ci
  {openFriends && <button className="profile-row" onClick={openFriends}><span className="row-icon"><Icon name="pin"/></span><span><strong>Друзья на карте</strong><small>Приглашения и добровольная геолокация на один час</small></span><Icon name="arrow" size={19}/></button>}
  <div className="profile-future">{['Мои отзывы', 'Мои события'].map(title => <button className="profile-row" key={title} disabled><span><strong>{title}</strong></span><span className="row-count">Скоро</span></button>)}</div>
  {allowThemeSelection && <section className="settings-card"><h2>Как тебе удобнее</h2><p>Тема приложения</p><div className="theme-options" role="group" aria-label="Тема приложения">{([{ value: 'system', label: 'Авто', icon: 'profile' }, { value: 'light', label: 'Светлая', icon: 'sun' }, { value: 'dark', label: 'Тёмная', icon: 'moon' }] as const).map(option => <button key={option.value} className={theme === option.value ? 'selected' : ''} aria-pressed={theme === option.value} onClick={() => setTheme(option.value)}><Icon name={option.icon} size={20}/>{option.label}</button>)}</div><small>Авто — тема вашего устройства.</small></section>}
- <section className="about-card"><span className="brand brand-logo-pin about-brand"><BrandWordmark/></span><h2>Город ближе, чем кажется.</h2><p>Открывай места, строй планы и находи своих людей. Всё хорошее может быть совсем рядом.</p><small>Версия 0.1.0 · Сделано для небольших городов</small></section><p className="privacy-note">{state.status === 'authenticated' ? 'Избранное синхронизируется с аккаунтом. Локальный кеш хранится отдельно для каждого аккаунта; тема сохраняется на устройстве.' : 'Избранное и тема хранятся только в этом браузере и не синхронизируются между устройствами.'}</p></>;
+ <section className="about-card"><span className="brand brand-logo-pin about-brand"><BrandLogo/></span><h2>Город ближе, чем кажется.</h2><p>Открывай места, строй планы и находи своих людей. Всё хорошее может быть совсем рядом.</p><small>Версия 0.1.0 · Сделано для небольших городов</small></section><p className="privacy-note">{state.status === 'authenticated' ? 'Избранное синхронизируется с аккаунтом. Локальный кеш хранится отдельно для каждого аккаунта; тема сохраняется на устройстве.' : 'Избранное и тема хранятся только в этом браузере и не синхронизируются между устройствами.'}</p></>;
 }
