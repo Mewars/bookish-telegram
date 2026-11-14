@@ -115,7 +115,7 @@ jobs:
           mkdir -p "$backup"
           cd /home/mewars/domains/ryadomcity.ru/public_html
           backup_paths=(index.html version.json .htaccess classifieds wall ui/site-shell.js admin/catalog.js admin/catalog.css categories/panel.js notifications/widget.js api/weather.php)
-          for path in notifications/index.html notifications/page.js notifications/manifest.webmanifest notifications/icon-192.png notifications/icon-512.png donate profile/avatar.js reviews/cards.js brand pwa app.webmanifest; do
+          for path in notifications/index.html notifications/page.js notifications/manifest.webmanifest notifications/icon-192.png notifications/icon-512.png donate profile/avatar.js reviews/cards.js brand pwa app.webmanifest favicon.ico; do
             if [ -e "$path" ]; then backup_paths+=("$path"); fi
           done
           tar -czf "$backup/frontend-before.tar.gz" "${backup_paths[@]}"

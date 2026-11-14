@@ -1,4 +1,4 @@
-import {catalogGroups} from '/catalog/taxonomy.js?v=vstrechay1';
+import {catalogGroups} from '/catalog/taxonomy.js?v=vstrechay2';
 /* Встречай · фирменная панель разделов и подразделов. Ни одного стороннего дизайна. */
 (()=>{
 'use strict';

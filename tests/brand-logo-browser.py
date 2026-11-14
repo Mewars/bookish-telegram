@@ -13,6 +13,7 @@ with sync_playwright() as p:
         page.wait_for_selector('header .scarivo-logo')
         page.locator('header .scarivo-logo img').evaluate_all(
             '(images) => Promise.all(images.map(img => img.decode()))')
+        page.locator('header .scarivo-logo--loading').wait_for(state='detached')
         result = page.evaluate('''() => {
             const header = document.querySelector('.web-header, .app-header');
             const logo = header.querySelector('.scarivo-logo');
@@ -61,4 +62,19 @@ with sync_playwright() as p:
         page.screenshot(path=f'work/scarivo-{width}.png')
         print(f'{width}px: home arrival/rebound/stop/squash, stable layout, static footer + 9 internal routes, reduced motion, return home: OK')
         page.close()
+    # Cold-load regression: keep the wordmark pending until after the header renders.
+    page = browser.new_page(viewport={'width': 390, 'height': 900})
+    pending = []
+    page.route('**/brand/vstrechay-wordmark*.webp*', lambda route: pending.append(route))
+    page.goto(base + '?brand-cold-load=1#/home', wait_until='domcontentloaded')
+    page.wait_for_selector('header .scarivo-logo--loading')
+    assert page.locator('header .scarivo-logo__pin').evaluate(
+        "el => getComputedStyle(el).animationPlayState === 'paused' && getComputedStyle(el).opacity === '0'")
+    for route in pending:
+        route.continue_()
+    page.locator('header .scarivo-logo--loading').wait_for(state='detached')
+    assert page.locator('header .scarivo-logo__pin').evaluate(
+        "el => getComputedStyle(el).animationPlayState === 'running'")
+    print('Cold load: arrival waits for artwork decoding: OK')
+    page.close()
     browser.close()

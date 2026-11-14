@@ -48,7 +48,7 @@ class Extensions(HTMLParser):
         if tag == 'link' and url.path == '/admin/catalog.css':
             attrs['href'] = '/admin/catalog.css?v=20261022admin1'
         if tag == 'script' and url.path in ('/ui/site-shell.js', '/notifications/widget.js', '/categories/panel.js', '/profile/avatar.js', '/reviews/cards.js'):
-            attrs['src'] = url.path + '?v=vstrechay1'
+            attrs['src'] = url.path + '?v=vstrechay2'
         # Preserve only browser loading attributes, never event-handler code.
         keep = ('src', 'type', 'defer', 'async', 'crossorigin') if tag == 'script' else ('href', 'rel', 'type', 'sizes', 'crossorigin')
         safe = ' '.join(name if attrs[name] is None else name+'="'+escape(attrs[name], quote=True)+'"'

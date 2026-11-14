@@ -2,7 +2,7 @@
 body:has(.app-loading), body:has(.app-startup-error) { background: #071622; min-height: 100dvh; }
 .app-loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; min-height: 100dvh; padding: 24px; }
 .app-loading__mark { position: relative; display: block; width: 72px; height: 80px; flex-shrink: 0; }
-.app-loading__pin { position: absolute; left: 15px; bottom: 18px; width: 42px; height: 49px; transform-origin: 50% 100%; }
+.app-loading__pin { position: absolute; left: 15px; bottom: 18px; width: 42px; height: 49px; object-fit: contain; transform-origin: 50% 100%; }
 .app-loading__shadow { position: absolute; left: 20px; bottom: 8px; width: 32px; height: 8px; border-radius: 50%; background: rgba(243,189,93,.3); filter: blur(3px); transform-origin: center; }
 .app-loading__accessible-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .app-startup-error { max-width: 480px; margin: 0 auto; padding: 48px 24px 24px; color: #fff8e9; overflow-wrap: anywhere; }
