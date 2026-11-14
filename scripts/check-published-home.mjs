@@ -155,7 +155,7 @@ try {
 
       if(expected){
         const brand=page.locator('.web-header .brand-logo-image,.app-header .brand-logo-image').first();
-        assert.match(await brand.locator('.scarivo-logo__letters').getAttribute('src'),/scarivo-letters\.svg$/);
+        assert.match(await brand.locator('.scarivo-logo__letters').getAttribute('src'),/scarivo-letters-soft-v1\.svg$/);
         assert.equal(await brand.locator('.scarivo-logo__pin').count(),1);
         assert(await brand.evaluate(el=>el.classList.contains('scarivo-logo--animated')));
         await brand.locator('img').evaluateAll(images=>Promise.all(images.map(img=>img.decode())));
@@ -269,7 +269,7 @@ try {
         await page.getByRole('heading', { name: 'Городская лента готовится' }).waitFor();
         await page.goto(`${base}/#/classifieds`, { waitUntil: 'domcontentloaded' });
         await page.waitForURL(`${base}/classifieds/`);
-        await page.getByRole('heading', {name:'Объявления города',exact:true}).waitFor();
+        await page.getByRole('heading', {name:'Объявления рядом',exact:true}).waitFor();
         await page.getByRole('link',{name:'Войти / зарегистрироваться',exact:true}).waitFor();
         assert.equal(await page.locator('#mod-tab').isVisible(),false,'Guest must not see moderation');
         await page.getByRole('button',{name:'Подать объявление',exact:true}).click();

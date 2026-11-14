@@ -2,8 +2,8 @@ import type { Item, Section } from '../types';
 
 export const HOME_URL = 'https://ryadomcity.ru/';
 export const HOME_METADATA = {
-  title: 'Scarivo',
-  description: 'Scarivo — городской сервис: организации, места, услуги и события. Открывай город по-новому.',
+  title: 'Scarivo — городская платформа',
+  description: 'Scarivo — городская платформа: места и услуги, события, объявления и общение с жителями. Твой город в одном месте.',
   canonical: HOME_URL,
 };
 
@@ -43,10 +43,10 @@ export function pageMetadata(section: Section | 'import', id?: string, item?: It
   // The hash router has no independent city URL: keep the canonical homepage
   // for the original Eniseysk index; never claim a new city's page is Eniseysk.
   if (!id && city !== 'Енисейск' && ['home','places','events','services'].includes(section)) {
-    const labels: Partial<Record<Section, string>> = { home: 'Scarivo', places: 'Места и организации', events: 'Афиша', services: 'Услуги' };
+    const labels: Partial<Record<Section, string>> = { home: HOME_METADATA.title, places: 'Места и организации', events: 'Афиша', services: 'Услуги' };
     return {
-      title: section === 'home' ? 'Scarivo' : `${labels[section as Section]} — ${city} | Scarivo`,
-      description: `Scarivo — городской справочник ${city}. Выбирайте места, организации, мероприятия и полезные услуги.`,
+      title: section === 'home' ? HOME_METADATA.title : `${labels[section as Section]} — ${city} | Scarivo`,
+      description: section === 'home' ? `${city}: места и услуги, события, объявления и общение с жителями на городской платформе Scarivo.` : `Scarivo — городской справочник ${city}. Выбирайте места, организации, мероприятия и полезные услуги.`,
     };
   }
   if (id && !item) return { title: 'Карточка не найдена — Scarivo', description: 'Карточка по этой ссылке не найдена. Посмотрите места в городском гиде Scarivo.' };

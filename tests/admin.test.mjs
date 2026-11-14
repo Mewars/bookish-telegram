@@ -152,7 +152,7 @@ test('admin sidebar reuses the static Scarivo logo and returns to overview at to
     readFile('src/admin/admin.css', 'utf8'),
   ]);
   assert.match(brand, /animated = false/);
-  assert.match(brand, /scarivo-letters\.svg/);
+  assert.match(brand, /scarivo-letters-soft-v1\.svg/);
   assert.match(desktop, /<BrandLogo animated=\{section === 'home'\} decorative\/>/);
   assert.match(admin, /<button type="button" className="admin-cms-wordmark"/);
   assert.match(admin, /<BrandLogo decorative\/><\/button>/);
