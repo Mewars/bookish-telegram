@@ -43,7 +43,7 @@ jobs:
           python tests/resident-directory-browser.py
           python tests/business-browser.py
           python tests/basic-catalog-browser.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: city-homepage-screenshots

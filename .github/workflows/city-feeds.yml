@@ -67,7 +67,7 @@ jobs:
             collected/public/ "$SPRINTHOST_USER@$SPRINTHOST_HOST:/home/mewars/domains/ryadomcity.ru/public_html/"
       - name: Preserve collection report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: city-feed-collection-report
           path: collected/collection-report.json

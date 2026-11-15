@@ -37,7 +37,7 @@ jobs:
           python -m playwright install --with-deps chromium
           python tests/weather-browser.py
       - name: Save real forecast and mobile screenshot
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: real-city-weather-preview
           path: |
