@@ -5,5 +5,10 @@ export function c(){return {
  for(const method of ['select','order','limit','in','abortSignal'])query[method]=()=>query;
  query.in=(key,value)=>{filters[key]=value;return query;};
  query.eq=(key,value)=>{filters[key]=value;window.homeRequests??=[];window.homeRequests.push({table,key,value});return query;};
- return query;},storage:{from(){return {async createSignedUrl(){return {data:{signedUrl:'/tests/photo-valid.png'},error:null};}}}}
+ return query;},storage:{from(){return {async createSignedUrl(){
+  window.homePhotoSignCount=(window.homePhotoSignCount||0)+1;
+  if(window.homeFailFirstSignedPhoto && window.homePhotoSignCount===1)
+    return {data:{signedUrl:'/tests/photo-expired.png'},error:null};
+  return {data:{signedUrl:'/tests/photo-valid.png?sign='+window.homePhotoSignCount},error:null};
+}}}}
 };}

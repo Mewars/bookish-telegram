@@ -9,13 +9,13 @@ export function PhotoPlaceholder() {
     <span className="photo-placeholder-caption">Фото скоро появится</span>
   </span>;
 }
-function ImageSource({ src, alt, eager }: { src: string; alt: string; eager: boolean }) {
+function ImageSource({ src, alt, eager, onError }: { src: string; alt: string; eager: boolean; onError?: () => void }) {
   const [failed,setFailed] = useState(false);
   if (!src || isLegacyIllustration(src) || failed) return <PhotoPlaceholder/>;
-  return <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" fetchPriority={eager ? 'high' : 'auto'} onError={()=>setFailed(true)}/>;
+  return <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" fetchPriority={eager ? 'high' : 'auto'} onError={()=>{setFailed(true);onError?.();}}/>;
 }
-export function MediaImage({ src = '', alt = '', eager = false }: { src?: string; alt?: string; eager?: boolean }) {
-  return <ImageSource key={src} src={src} alt={alt} eager={eager}/>;
+export function MediaImage({ src = '', alt = '', eager = false, onError }: { src?: string; alt?: string; eager?: boolean; onError?: () => void }) {
+  return <ImageSource key={src} src={src} alt={alt} eager={eager} onError={onError}/>;
 }
 export function PlaceMedia({ images }: { images: { src: string; alt: string }[] }) {
   const available=images.length?images:[{src:'',alt:''}];

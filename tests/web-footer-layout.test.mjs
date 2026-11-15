@@ -12,6 +12,8 @@ test('desktop footer keeps admin access in a discreet utility row without duplic
   assert.match(footer, /canOpenAdmin && <button/);
   assert.doesNotMatch(footer, /footer-navigation/);
   assert.match(footer, /<LegalLinks\s*\/>/);
+  assert.match(footer, /<span>© \{new Date\(\)\.getFullYear\(\)\}<\/span>/);
+  assert.doesNotMatch(footer, /Оператор:|mailto:Mewars@yandex.ru/);
   assert.match(footer, /<FooterCooperation showLegal=\{false\}/);
 
   assert.match(css, /\.web-footer-inner\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1\.15fr\)\s+minmax\(0,\s*\.95fr\)\s+minmax\(0,\s*1\.2fr\)/);
