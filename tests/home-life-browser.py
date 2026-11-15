@@ -20,16 +20,29 @@ with sync_playwright() as p:
    elif u.path=='/feeds/calendar-ru.json':r.fulfill(content_type='application/json',body=json.dumps({'sourceUrl':'https://www.calend.ru/holidays/russtate/','checkedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'items':[{'title':'Тестовый российский праздник','date':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7))).date().isoformat(),'sourceUrl':'https://www.calend.ru/holidays/0/0/3998/'}]}))
    elif u.path=='/news/eniseysk.json':news_requests.append(r.request.url);r.fulfill(status=404,body='News paused')
    elif u.path=='/tests/photo-valid.png':r.fulfill(content_type='image/png',body=PNG)
+   elif u.path=='/tests/photo-expired.png':r.fulfill(status=403,content_type='text/plain',body='Expired signed photo')
    elif r.request.url.startswith(ORIGIN+'/'):r.continue_()
    else:r.abort()
+  if width==390 and height==664:
+   context.add_init_script('window.homeFailFirstSignedPhoto = true')
   context.route('**/*',route)
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+  if width==390 and height==664: page.clock.install()
   page.goto(ORIGIN+'/tests/home-life-fixture.html#/home?city='+ 'Город А')
   expect(page.get_by_role('heading',name='Истории рядом',exact=True)).to_have_count(0)
   expect(page.locator('.city-clock')).to_have_count(0)
   expect(page.get_by_role('heading',name='Новость Город А',exact=True)).to_be_visible()
   expect(page.get_by_role('heading',name='Объявление Город А',exact=True)).to_be_visible()
   page.wait_for_function("document.querySelector('.life-listing-image img')?.naturalWidth>0")
+  if width==390 and height==664:
+   # The first signed URL is expired: onError must renew it immediately.
+   assert page.evaluate('window.homePhotoSignCount')>=2,'Failed signed photo must be retried'
+   before=page.evaluate('window.homePhotoSignCount')
+   page.clock.fast_forward(9*60*1000)
+   page.wait_for_function('old=>window.homePhotoSignCount>old',arg=before)
+   page.wait_for_function("document.querySelector('.life-listing-image img')?.naturalWidth>0")
+   assert '?sign=' in page.locator('.life-listing-image img').first.get_attribute('src')
+   print('PASS homepage photos: expired URL recovered, signed URL refreshed before 10-minute expiry')
   expect(page.get_by_role('heading',name='Прошедшее событие',exact=True)).to_have_count(0)
   assert page.locator('.city-cover').bounding_box()['height']>=420
   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2')
