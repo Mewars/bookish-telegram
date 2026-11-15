@@ -107,7 +107,24 @@ with sync_playwright() as p:
         page.evaluate('location.hash = "/home"')
         page.wait_for_selector('header .scarivo-logo--animated')
         assert not errors, (width, errors)
+        # Capture predictable, inspectable states rather than whichever frame
+        # happens to render immediately after returning to the homepage.
+        page.locator('header .scarivo-logo--loading').wait_for(state='detached')
+        page.locator('header .scarivo-logo__pin').evaluate("""el => {
+            const arrival = el.getAnimations().find(a => a.animationName === 'vstrechay-pin-arrive');
+            const hop = el.querySelector('img').getAnimations().find(a => a.animationName === 'vstrechay-pin-hop');
+            if (!arrival || !hop) throw Error('Missing motion on returning home');
+            arrival.pause();
+            arrival.currentTime = 1250;
+            hop.pause();
+            hop.currentTime = 1250 + 5000;
+        }""")
         page.screenshot(path=f'work/scarivo-{width}.png')
+        page.locator('header .scarivo-logo__pin > img').evaluate("""el => {
+            const hop = el.getAnimations().find(a => a.animationName === 'vstrechay-pin-hop');
+            hop.currentTime = 1250 + .87 * 12500;
+        }""")
+        page.screenshot(path=f'work/scarivo-{width}-hop.png')
         print(f'{width}px: one-time entrance + repeated 12.5s hop, stable letters/header, static internal pages/footer, reduced motion: OK')
         page.close()
     # Cold-load regression: keep the wordmark pending until after the header renders.
