@@ -36,17 +36,32 @@ for (const path of ['/app.webmanifest', '/notifications/manifest.webmanifest']) 
   }
 }
 for (const size of [16, 32, 48]) {
-  const response = await fetch(`${base}/brand/vstrechay-icon-${size}.png?v=vstrechay2`, { signal: AbortSignal.timeout(15000) });
+  const response = await fetch(`${base}/brand/vstrechay-icon-${size}.png?v=vstrechay4`, { signal: AbortSignal.timeout(15000) });
   assert(response.ok, `${size}px favicon must load`);
   const bytes = Buffer.from(await response.arrayBuffer());
   assert.equal(bytes.readUInt32BE(16), size);
   assert.equal(bytes.readUInt32BE(20), size);
 }
-const favicon = await fetch(`${base}/favicon.ico?v=vstrechay2`, { signal: AbortSignal.timeout(15000) });
+const favicon = await fetch(`${base}/favicon.ico?v=vstrechay4`, { signal: AbortSignal.timeout(15000) });
 assert(favicon.ok, 'Multi-size favicon must load');
 const ico = Buffer.from(await favicon.arrayBuffer());
 assert.equal(ico.readUInt16LE(2), 1);
 assert.equal(ico.readUInt16LE(4), 3);
+for (let i = 0; i < 3; i++) {
+  const size = [16, 32, 48][i];
+  const pos = 6 + 16 * i;
+  assert.equal(ico[pos], size);
+  const offset = ico.readUInt32LE(pos + 12);
+  const length = ico.readUInt32LE(pos + 8);
+  const response = await fetch(`${base}/brand/vstrechay-icon-${size}.png?v=vstrechay4`, { signal: AbortSignal.timeout(15000) });
+  assert(response.ok);
+  const png = Buffer.from(await response.arrayBuffer());
+  assert.deepEqual(ico.subarray(offset, offset + length), png, `ICO ${size}px must match the new plain PNG`);
+}
+const plainSvgResponse = await fetch(`${base}/brand/vstrechay-pin-favicon.svg?v=vstrechay4`, { signal: AbortSignal.timeout(15000) });
+assert(plainSvgResponse.ok, 'Plain geolocation SVG must load');
+assert.match(await plainSvgResponse.text(), /aria-label="Геометка Встречай"/);
+
 const browser = await chromium.launch({ headless: true });
 const results = [];
 try {

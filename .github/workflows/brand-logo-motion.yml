@@ -7,6 +7,9 @@ on:
       - 'src/components/BrandLogo.tsx'
       - 'src/components/brandLogo.css'
       - 'public/brand/vstrechay-pin-favicon.svg'
+      - 'public/favicon.ico'
+      - 'public/brand/vstrechay-icon-*.png'
+      - 'tests/favicon-plain.test.mjs'
       - 'index.html'
       - 'tests/brand-logo-browser.py'
       - 'tests/header-brand-cookie.test.mjs'
@@ -33,6 +36,7 @@ jobs:
           npm ci
           npm run lint
           npm run build
+          node --test tests/favicon-plain.test.mjs
       - name: Install Chromium for Playwright
         run: |
           python -m pip install playwright==1.62.0

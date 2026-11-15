@@ -73,8 +73,8 @@ test('Main logo grows, home RGB glows and tab icon is a plain pin', async () => 
   assert.match(css, /\.scarivo-logo--animated > \.scarivo-logo__word::after/);
   assert.match(css, /--brand-logo-width: 196px/);
   assert.match(css, /--brand-logo-width: 136px/);
-  assert.match(html, /vstrechay-pin-favicon\.svg\?v=vstrechay3/);
+  assert.match(html, /vstrechay-pin-favicon\.svg\?v=vstrechay4/);
   assert.match(icon, /viewBox="0 0 64 64"/);
-  assert.match(icon, /pinGold/);
+  assert.match(icon, /id="gold"/);
   assert.doesNotMatch(icon, /hat|santa|шапк|<image/i);
 });
