@@ -1,0 +1,53 @@
+/* Anchored to the same right-center crop as city-cover's photo and city clock. */
+.city-home.home-life .cover-image>.winter-garlands{
+ position:absolute;inset:0;display:block;width:100%;height:100%;
+ overflow:hidden;z-index:1;pointer-events:none;
+}
+.winter-garland-bulb{
+ opacity:.53;
+ animation-name:winter-garland-breathe;
+ animation-timing-function:ease-in-out;
+ animation-iteration-count:infinite;
+ will-change:opacity;
+}
+.winter-garland-bulb--soft{animation-name:winter-garland-breathe;}
+.winter-garland-bulb--spark{
+ animation-name:winter-garland-spark;
+ animation-timing-function:steps(2,end);
+}
+.winter-garland-bulb--wave{animation-name:winter-garland-wave;}
+@keyframes winter-garland-breathe{
+ 0%,100%{opacity:.18;}
+ 19%{opacity:.95;}
+ 37%{opacity:.61;}
+ 58%{opacity:.07;}
+ 76%{opacity:.79;}
+ 88%{opacity:.95;}
+}
+@keyframes winter-garland-spark{
+ 0%,100%{opacity:.14;}
+ 9%{opacity:.96;}
+ 21%{opacity:.16;}
+ 33%{opacity:1;}
+ 46%{opacity:.16;}
+ 54%{opacity:.95;}
+ 63%{opacity:.13;}
+ 79%{opacity:.92;}
+ 89%{opacity:.20;}
+}
+@keyframes winter-garland-wave{
+ 0%,100%{opacity:.12;}
+ 22%{opacity:.93;}
+ 42%{opacity:.78;}
+ 57%{opacity:.08;}
+ 72%{opacity:.81;}
+}
+.winter-garlands[data-paused="true"] .winter-garland-bulb{
+ animation-play-state:paused;
+}
+@media(prefers-reduced-motion:reduce){
+ .winter-garland-bulb{animation:none!important;opacity:.52;will-change:auto;}
+}
+:root[data-a11y-motion="reduce"] .winter-garland-bulb{
+ animation:none!important;opacity:.52;will-change:auto;
+}

@@ -1,4 +1,5 @@
 import {WinterSnow} from './WinterSnow';
+import {WinterGarlands} from './WinterGarlands';
 import {useId} from 'react';
 import {MediaImage} from '../components/MediaImage';
 import {getCityCover} from '../data/cityCover';
@@ -41,6 +42,7 @@ export function WinterScene({city,coverUrl}:{city:string;coverUrl?:string|null})
  const cover=getCityCover(city,coverUrl,now),time=winterTime(now);
  return <div className={`cover-image${winter?' cover-image--winter':''}${cover?'':' cover-image--neutral'}`}>
   {cover&&<MediaImage src={cover.src} alt={cover.alt} eager/>}
+  {winter&&<WinterGarlands city={city}/>}
   {clock&&<div className="city-clock" role="img" aria-label={`Городские часы: ${time.label.slice(0,5)}, время ${krasnoyarsk?'Красноярска':'Енисейска'}`} data-time={time.label} data-lit={time.lampsOn}>
    <svg className="city-clock-world" viewBox={krasnoyarsk?'0 0 1586 992':'0 0 1606 979'} preserveAspectRatio="xMaxYMid slice" aria-hidden="true">{krasnoyarsk?<g className="city-clock-dial" transform="translate(1159 274)">
     <path className="city-clock-hour" d="M-2.6 7L-3-24 0-33 3-24 2.6 7Z" fill="#f7f2df" transform={`rotate(${time.hourAngle})`}/>

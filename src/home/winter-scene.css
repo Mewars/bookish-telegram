@@ -3,3 +3,6 @@
 .city-clock-world{width:100%;height:100%;display:block;}
 @media(prefers-reduced-motion:reduce){.city-clock-second{display:none;}}
 :root[data-a11y-motion=reduce] .city-clock-second{display:none;}
+
+/* Keep clock hands above the festive tree lights. */
+.city-home.home-life .city-clock{z-index:1;}
