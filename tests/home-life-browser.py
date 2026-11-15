@@ -139,6 +139,8 @@ with sync_playwright() as p:
    page.keyboard.press('Escape')
    assert not errors,errors
   if width==390 and height==844:
+   page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
+   expect(page.locator('.winter-garlands')).to_have_attribute('data-city','Енисейск')
    page.emulate_media(reduced_motion='no-preference')
    snow=page.locator('.winter-snow')
    page.locator('.cover-image').scroll_into_view_if_needed()
