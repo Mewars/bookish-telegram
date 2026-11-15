@@ -8,7 +8,7 @@ base = sys.argv[1] if len(sys.argv) > 1 else 'http://localhost:5173/'
 Path('work').mkdir(exist_ok=True)
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE'), args=['--no-sandbox'])
-    for width in (1440, 768, 390, 360, 320):
+    for width in (1440, 1024, 768, 390, 360, 320):
         page = browser.new_page(viewport={'width': width, 'height': 900}, is_mobile=width < 900)
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
@@ -94,7 +94,11 @@ with sync_playwright() as p:
             for fixed in ('logo', 'header', 'letters', 'city', 'pin'):
                 assert result[phase][fixed] == result['firstRest'][fixed], (width, phase, fixed, result)
         assert not result['overflow'], width
+        assert page.locator('header .scarivo-logo__word').evaluate(
+            "el => getComputedStyle(el, '::after').animationName === 'vstrechay-rgb-flow'"), width
         page.emulate_media(reduced_motion='reduce')
+        assert page.locator('header .scarivo-logo__word').evaluate(
+            "el => getComputedStyle(el, '::after').animationName === 'none'"), width
         assert page.locator('header .scarivo-logo__pin').evaluate(
             "el => getComputedStyle(el).animationName === 'none' && getComputedStyle(el).transform === 'none' && getComputedStyle(el.querySelector('img')).animationName === 'none' && getComputedStyle(el.querySelector('img')).transform === 'none'")
         page.emulate_media(reduced_motion='no-preference')

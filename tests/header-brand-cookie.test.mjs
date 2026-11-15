@@ -62,3 +62,19 @@ test('Vstrechay marker arrives once, then hops only when the home header opts in
   assert.match(app, /<BrandLogo animated=\{section === 'home'\} decorative\/>/);
   assert.match(logo, /animated = false/);
 });
+
+test('Main logo grows, home RGB glows and tab icon is a plain pin', async () => {
+  const [css, html, icon] = await Promise.all([
+    read('src/components/brandLogo.css'),
+    read('index.html'),
+    read('public/brand/vstrechay-pin-favicon.svg'),
+  ]);
+  assert.match(css, /animation: vstrechay-rgb-flow 10s linear infinite/);
+  assert.match(css, /\.scarivo-logo--animated > \.scarivo-logo__word::after/);
+  assert.match(css, /--brand-logo-width: 196px/);
+  assert.match(css, /--brand-logo-width: 136px/);
+  assert.match(html, /vstrechay-pin-favicon\.svg\?v=vstrechay3/);
+  assert.match(icon, /viewBox="0 0 64 64"/);
+  assert.match(icon, /pinGold/);
+  assert.doesNotMatch(icon, /hat|santa|шапк|<image/i);
+});
