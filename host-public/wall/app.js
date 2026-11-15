@@ -1,4 +1,4 @@
-import {attachExpressionPicker,renderWallBody,wallBodyPreview} from './expressions.js?v=vstrechay1';
+import {attachExpressionPicker,renderWallBody,wallBodyPreview} from './expressions.js?v=vstrechay2';
 import {verifyHuman} from '/security/antispam.js?v=20261022spam2';
 import {c as createClient} from './supabase-client.js';
 import {rejectWallPost,loadReviewReasons,saveWallDraft} from './moderation.js?v=20261020a';
@@ -425,8 +425,8 @@ async function renderFeed(){
  {
   const preview=new URLSearchParams(location.search).get('stories')==='preview';
   const city=s.city,root=el('section');ui.content.append(root);
-  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=vstrechay1';css.dataset.storiesPreviewStyle='';document.head.append(css);}
-  import(preview?'/stories/preview.js?v=20261026a':'/stories/live.js?v=vstrechay1').then(module=>{if(root.isConnected&&s.city===city)clearStoriesPreview=preview?module.mountStoriesPreview(root,{city}):module.mountCityStories(root,{city,client:sb});}).catch(()=>{root.replaceChildren();});
+  if(!document.querySelector('[data-stories-preview-style]')){const css=el('link');css.rel='stylesheet';css.href='/stories/preview.css?v=vstrechay2';css.dataset.storiesPreviewStyle='';document.head.append(css);}
+  import(preview?'/stories/preview.js?v=20261026a':'/stories/live.js?v=vstrechay2').then(module=>{if(root.isConnected&&s.city===city)clearStoriesPreview=preview?module.mountStoriesPreview(root,{city}):module.mountCityStories(root,{city,client:sb});}).catch(()=>{root.replaceChildren();});
  }
 
  ui.content.append(feedBody);

@@ -15,10 +15,10 @@ class Preservation(unittest.TestCase):
         <link rel="stylesheet" href="/categories/panel.css?v=1"><link rel="stylesheet" href="/ui/mobile-fixes.css?v=20261018d">
         <link rel="manifest" href="/app.webmanifest"><link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png"><script defer src="/pwa/register.js?v=old"></script>
         <meta name="apple-mobile-web-app-title" content="РЯДОМ"></head>'''
-        built='<head><meta name="apple-mobile-web-app-title" content="Встречай"><link rel="manifest" href="/app.webmanifest"><link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png?v=vstrechay1"><script type="module" src="/assets/index-new.js"></script><meta name="ryadom-build-version" content="new"></head>'
+        built='<head><meta name="apple-mobile-web-app-title" content="Встречай"><link rel="manifest" href="/app.webmanifest"><link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png?v=vstrechay2"><script type="module" src="/assets/index-new.js"></script><meta name="ryadom-build-version" content="new"></head>'
         result=module.preserve(live,built)
         self.assertIn('index-new.js',result)
-        self.assertIn('/ui/site-shell.js?v=vstrechay1',result)
+        self.assertIn('/ui/site-shell.js?v=vstrechay2',result)
         self.assertNotIn('/ui/site-shell.js?v=1\"',result)
         self.assertIn('/categories/panel.css?v=1',result)
         self.assertIn('/ui/mobile-fixes.css?v=20261101header3',result)
@@ -28,7 +28,7 @@ class Preservation(unittest.TestCase):
         self.assertNotIn('РЯДОМ',result)
         self.assertNotIn('/pwa/register.js',result)
         self.assertEqual(result.count('rel="manifest"'),1)
-        self.assertIn('/notifications/widget.js?v=vstrechay1',result)
+        self.assertIn('/notifications/widget.js?v=vstrechay2',result)
         self.assertNotIn('/notifications/widget.js?v=20261018d',result)
         for excluded in ['index-old.js','unsafe()','onload','example.org']:
             self.assertNotIn(excluded,result)

@@ -7,11 +7,11 @@ import { HOME_METADATA, HOME_URL, pageMetadata } from '../src/seo/metadata.ts';
 test('static homepage and runtime defaults agree, public URLs use the canonical domain', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(html.includes(`<title>${HOME_METADATA.title}</title>`));
-  assert.equal(HOME_METADATA.title,'Встречай — городская платформа');
-  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Встречай — городская платформа');
-  assert.match(html, /property="og:title" content="Встречай — городская платформа"/);
-  assert.match(html, /name="twitter:title" content="Встречай — городская платформа"/);
-  const share='https://ryadomcity.ru/brand/scarivo-share-pin.png?v=vstrechay1';
+  assert.equal(HOME_METADATA.title,'Встречай — твой город в одном месте');
+  assert.equal(pageMetadata('home',undefined,undefined,'Лесосибирск').title,'Встречай — твой город в одном месте');
+  assert.match(html, /property="og:title" content="Встречай — твой город в одном месте"/);
+  assert.match(html, /name="twitter:title" content="Встречай — твой город в одном месте"/);
+  const share='https://ryadomcity.ru/brand/scarivo-share-pin.png?v=vstrechay2';
   assert.ok(html.includes(`property="og:image" content="${share}"`));
   assert.ok(html.includes(`name="twitter:image" content="${share}"`));
   const icon=await readFile(new URL('../public/brand/scarivo-share-pin.png',import.meta.url));

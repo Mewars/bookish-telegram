@@ -2,7 +2,7 @@ import type { Item, Section } from '../types';
 
 export const HOME_URL = 'https://ryadomcity.ru/';
 export const HOME_METADATA = {
-  title: 'Встречай — городская платформа',
+  title: 'Встречай — твой город в одном месте',
   description: 'Встречай — городская платформа: места и услуги, события, объявления и общение с жителями. Твой город в одном месте.',
   canonical: HOME_URL,
 };
