@@ -10,7 +10,7 @@ const HOME_PHOTO_ERROR_RETRY_MS=30*1000;
 export function useHomeFeed(city:string){
  const [state,setState]=useState(()=>({feed:emptyHomeFeed(city),loading:true}));
  const [revision,setRevision]=useState(0);
- const refreshedAt=useRef(Date.now());
+ const refreshedAt=useRef(0);
  const retriedErrorAt=useRef(0);
 
  useEffect(()=>{
