@@ -68,3 +68,49 @@
   .app-shell .app-header .brand-logo-pin { --brand-logo-width:80px; min-width:72px; max-width:80px; }
   .app-shell .app-header :is(.city-weather-trigger,.header-friends,.header-profile-button) { width:32px; height:32px; min-width:32px; max-width:32px; flex-basis:32px; }
 }
+
+/* Home-only moving LED accent: over the existing gold underline, not the pin. */
+.scarivo-logo--animated > .scarivo-logo__word::after {
+  content: '';
+  position: absolute;
+  left: 3%;
+  right: 22%;
+  bottom: 13%;
+  z-index: 3;
+  height: clamp(2px, .35vw, 4px);
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    #ff4067 0%, #ffc342 16%, #efff69 30%, #39f3a9 46%,
+    #40dbff 63%, #7968ff 79%, #ff54d7 91%, #ff4067 100%);
+  background-size: 200% 100%;
+  box-shadow: 0 0 5px rgba(86, 199, 255, .45);
+  animation: vstrechay-rgb-flow 10s linear infinite;
+}
+@keyframes vstrechay-rgb-flow {
+  from { background-position: 0% 50%; }
+  to { background-position: 200% 50%; }
+}
+
+/* Header only: bigger lettering while preserving room for mobile actions. */
+.app-shell .web-header .brand-logo-pin { --brand-logo-width: 196px; }
+@media (min-width: 900px) and (max-width: 1199px) {
+  .app-shell .web-header .brand-logo-pin { --brand-logo-width: 150px; }
+}
+@media (max-width: 899px) {
+  .app-shell .app-header .brand-logo-pin {
+    --brand-logo-width: 160px; min-width: 0; max-width: 160px; flex-shrink: 1;
+  }
+}
+@media (max-width: 599px) {
+  .app-shell .app-header .brand-logo-pin { --brand-logo-width: 136px; max-width: 136px; }
+}
+@media (max-width: 389px) {
+  .app-shell .app-header .brand-logo-pin { --brand-logo-width: 110px; max-width: 110px; }
+}
+@media (max-width: 359px) {
+  .app-shell .app-header .brand-logo-pin { --brand-logo-width: 96px; max-width: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scarivo-logo--animated > .scarivo-logo__word::after { animation: none; }
+}

@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/components/BrandLogo.tsx'
       - 'src/components/brandLogo.css'
+      - 'public/brand/vstrechay-pin-favicon.svg'
+      - 'index.html'
       - 'tests/brand-logo-browser.py'
       - 'tests/header-brand-cookie.test.mjs'
       - '.github/workflows/brand-logo-motion.yml'
