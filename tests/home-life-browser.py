@@ -62,11 +62,18 @@ with sync_playwright() as p:
   page.get_by_label('Тестовый город',exact=True).select_option('Пустой город')
   expect(page.get_by_role('heading',name='Город начинается с нас',exact=True)).to_be_visible()
   expect(page.get_by_role('heading',name='Объявления рядом',exact=True)).to_have_count(0)
+  expect(page.locator('.winter-garlands')).to_have_count(0)
   expect(page.get_by_role('heading',name='Куда сходить',exact=True)).to_have_count(0)
   page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
   expect(page.get_by_role('heading',name='Новость Енисейск',exact=True)).to_be_visible()
   expect(page.locator('.city-clock')).to_be_visible()
   expect(page.locator('.city-clock-world')).to_be_visible()
+  garlands=page.locator('.winter-garlands')
+  expect(garlands).to_have_attribute('data-city','Енисейск')
+  expect(garlands).to_have_attribute('viewBox','0 0 1606 979')
+  assert garlands.locator('.winter-garland-bulb').count()>=60
+  assert garlands.locator('.winter-garland-bulb').first.evaluate(
+   "el=>getComputedStyle(el).animationName==='none'"),'reduced motion must freeze bulbs'
   expect(page.locator('.winter-snow-toggle')).to_have_count(0)
   scene=page.locator('.cover-image')
   frame=scene.bounding_box()
@@ -132,18 +139,29 @@ with sync_playwright() as p:
    page.keyboard.press('Escape')
    assert not errors,errors
   if width==390 and height==844:
+   page.get_by_label('Тестовый город',exact=True).select_option('Енисейск')
+   expect(page.locator('.winter-garlands')).to_have_attribute('data-city','Енисейск')
    page.emulate_media(reduced_motion='no-preference')
    snow=page.locator('.winter-snow')
    page.locator('.cover-image').scroll_into_view_if_needed()
    expect(page.locator('.winter-snow-toggle')).to_have_count(0)
    expect(snow).to_have_attribute('data-paused','false')
+   expect(garlands).to_have_attribute('data-paused','false')
+   first_lamp=garlands.locator('.winter-garland-bulb').first
+   assert 'winter-garland' in first_lamp.evaluate('el=>getComputedStyle(el).animationName')
+   initial_opacity=first_lamp.evaluate('el=>parseFloat(getComputedStyle(el).opacity)')
+   page.wait_for_function("value=>Math.abs(parseFloat(getComputedStyle(document.querySelector('.winter-garland-bulb')).opacity)-value)>.07",arg=initial_opacity)
+   assert page.evaluate("new Set([...document.querySelectorAll('.winter-garland-bulb')].map(el=>getComputedStyle(el).animationName)).size")>=3
+
    layer=page.locator('.winter-snow-flakes>span').first
    initial=layer.evaluate('el=>getComputedStyle(el).transform')
    page.wait_for_function("before=>getComputedStyle(document.querySelector('.winter-snow-flakes>span')).transform!==before",arg=initial)
    page.get_by_role('heading',name='Город сегодня',exact=True).scroll_into_view_if_needed()
    expect(snow).to_have_attribute('data-paused','true')
+   expect(garlands).to_have_attribute('data-paused','true')
    page.emulate_media(reduced_motion='reduce')
    expect(snow).not_to_be_visible()
+   assert first_lamp.evaluate("el=>getComputedStyle(el).animationName==='none'")
    page.emulate_media(reduced_motion='no-preference')
    page.evaluate("document.documentElement.dataset.a11yMotion='reduce'")
    expect(snow).not_to_be_visible()
@@ -153,6 +171,8 @@ with sync_playwright() as p:
   leso_cover=page.locator('.city-cover .cover-image img')
   expect(leso_cover).to_have_attribute('src',re.compile(r'/brand/lesosibirsk-winter-v2-(on|off)\.webp'))
   expect(page.locator('.city-clock')).to_have_count(0)
+  expect(page.locator('.winter-garlands')).to_have_attribute('data-city','Лесосибирск')
+  expect(page.locator('.winter-garlands')).to_have_attribute('viewBox','0 0 1586 992')
   page.wait_for_function("document.querySelector('.cover-image img')?.naturalWidth>0")
   page.evaluate('scrollTo(0,0)')
   leso_cover.evaluate('img=>img.decode()')
@@ -161,6 +181,8 @@ with sync_playwright() as p:
   kras_cover=page.locator('.city-cover .cover-image img')
   expect(kras_cover).to_have_attribute('src',re.compile(r'/brand/krasnoyarsk-winter-v1-(on|off)\.webp'))
   expect(page.locator('.city-clock')).to_have_count(1)
+  expect(page.locator('.winter-garlands')).to_have_attribute('data-city','Красноярск')
+  expect(page.locator('.winter-garlands')).to_have_attribute('viewBox','0 0 1586 992')
   expect(page.locator('.city-clock')).to_have_attribute('aria-label',re.compile('время Красноярска'))
   expect(page.locator('.city-clock-world')).to_have_attribute('viewBox','0 0 1586 992')
   expect(page.locator('.city-clock-dial')).to_have_attribute('transform','translate(1159 274)')
