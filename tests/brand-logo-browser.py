@@ -93,6 +93,10 @@ with sync_playwright() as p:
         for phase in ('firstRest', 'beforeHop', 'apex', 'landing', 'rebound', 'settled', 'nextApex'):
             for fixed in ('logo', 'header', 'letters', 'city', 'pin'):
                 assert result[phase][fixed] == result['firstRest'][fixed], (width, phase, fixed, result)
+        # The city scene is 100svh minus the 80px desktop header.
+        # A larger wordmark must never increase the header's outer height.
+        if width >= 900:
+            assert abs(result['end']['header'][3] - 80) < 1.5, (width, result['end']['header'])
         assert not result['overflow'], width
         assert page.locator('header .scarivo-logo__word').evaluate(
             "el => getComputedStyle(el, '::after').animationName === 'vstrechay-rgb-flow'"), width

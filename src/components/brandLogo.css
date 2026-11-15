@@ -114,3 +114,9 @@
 @media (prefers-reduced-motion: reduce) {
   .scarivo-logo--animated > .scarivo-logo__word::after { animation: none; }
 }
+
+/* Keep the full 196px logo while preserving the original 80px desktop header.
+   The full-height city scene is sized as 100svh - 80px. */
+@media (min-width: 900px) {
+  .app-shell .web-header .web-header-inner { padding-block: 12px; }
+}
