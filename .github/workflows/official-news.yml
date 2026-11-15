@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: php -l scripts/update-official-news.php && php tests/official-news.php
   withdraw:
     timeout-minutes: 5
@@ -31,7 +31,7 @@ jobs:
       SPRINTHOST_SSH_KNOWN_HOSTS: ${{ secrets.SPRINTHOST_SSH_KNOWN_HOSTS }}
       SPRINTHOST_SSH_PORT: ${{ vars.SPRINTHOST_SSH_PORT || '22' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up existing SSH identity
         run: |
           install -m 700 -d "$HOME/.ssh"

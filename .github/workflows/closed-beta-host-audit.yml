@@ -27,7 +27,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -45,7 +45,7 @@ jobs:
       RYADOM_BETA_BASIC_USER: ${{ secrets.RYADOM_BETA_BASIC_USER }}
       RYADOM_BETA_BASIC_PASSWORD: ${{ secrets.RYADOM_BETA_BASIC_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

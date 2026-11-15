@@ -19,7 +19,7 @@ jobs:
   apache-gate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Apache for the real routing check
         run: sudo apt-get update && sudo apt-get install -y apache2
       - name: Check closed routes, local artwork and reversible reopening

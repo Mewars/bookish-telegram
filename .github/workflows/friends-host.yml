@@ -10,7 +10,7 @@ jobs:
   syntax:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: |
           php -l scripts/probe-friends-host.php
           php -l public/api/friends.php
@@ -33,7 +33,7 @@ jobs:
       SPRINTHOST_SSH_KNOWN_HOSTS: ${{ secrets.SPRINTHOST_SSH_KNOWN_HOSTS }}
       SPRINTHOST_SSH_PORT: ${{ vars.SPRINTHOST_SSH_PORT || '22' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up existing SSH identity
         shell: bash
         run: |
