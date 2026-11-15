@@ -45,3 +45,20 @@ test('header friends and music are highlighted in Ryadom gold against translucen
   assert.match(header, /className="web-friends-trigger"/);
   assert.match(app, /className="header-friends"/);
 });
+
+test('Vstrechay marker arrives once, then hops only when the home header opts in', async () => {
+  const [css, header, app, logo] = await Promise.all([
+    read('src/components/brandLogo.css'),
+    read('src/components/web/WebHeader.tsx'),
+    read('src/App.tsx'),
+    read('src/components/BrandLogo.tsx'),
+  ]);
+  assert.match(css, /animation: vstrechay-pin-arrive 1\.25s/);
+  assert.match(css, /animation: vstrechay-pin-hop 12\.5s linear 1\.25s infinite/);
+  assert.match(css, /@keyframes vstrechay-pin-hop/);
+  assert.match(css, /\.scarivo-logo--animated > \.scarivo-logo__pin > img/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(header, /<BrandLogo animated=\{section === 'home'\} decorative\/>/);
+  assert.match(app, /<BrandLogo animated=\{section === 'home'\} decorative\/>/);
+  assert.match(logo, /animated = false/);
+});
