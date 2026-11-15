@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import { URL } from 'node:url';
+import { Buffer } from 'node:buffer';
 
 const read = path => readFile(new URL('../' + path, import.meta.url));
 const tag = '?v=vstrechay4';
