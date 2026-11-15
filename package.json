@@ -40,7 +40,7 @@
     "test:catalog-polish": "node --loader ./tests/typescript-loader.mjs --test tests/catalog-polish.test.mjs tests/catalog-batch.test.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.117.2",
+    "@supabase/supabase-js": "^2.118.0",
     "leaflet": "1.9.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
